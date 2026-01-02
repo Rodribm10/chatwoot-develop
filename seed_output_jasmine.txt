@@ -1,0 +1,13 @@
+/Users/user/.rbenv/versions/3.4.4/lib/ruby/gems/3.4.0/gems/reline-0.3.6/lib/reline/terminfo.rb:2: warning: /Users/user/.rbenv/versions/3.4.4/lib/ruby/3.4.0/fiddle.rb was loaded from the standard library, but will no longer be part of the default gems starting from Ruby 3.5.0.
+You can add fiddle to your Gemfile or gemspec to silence this warning.
+Also please contact the author of reline-0.3.6 to request adding fiddle into its gemspec.
+Seeding hospitality data for Account: Acme Inc (ID: 1)
+Assistant 'Jasmine (Gerente)' created/updated.
+Document seeded: Horários de Check-in e Check-out
+Document seeded: Informações sobre Café da Manhã
+Document seeded: Política Pet Friendly
+Document seeded: Tabela de Preços e Suítes
+Scenario seeded: Reserva de Quarto
+Scenario seeded: Reclamação de Limpeza
+Scenario seeded: Pedido de Room Service
+Hospitality seeding complete! 🚀
