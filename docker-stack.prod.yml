@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   rails:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-your-username}/chatwoot-develop:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-rodribm10}/chatwoot-jasmine:latest
     environment:
       - RAILS_ENV=production
       - NODE_ENV=production
@@ -22,7 +22,7 @@ services:
       - redis
 
   sidekiq:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-your-username}/chatwoot-develop:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-rodribm10}/chatwoot-jasmine:latest
     command: bundle exec sidekiq -C config/sidekiq.yml
     environment:
       - RAILS_ENV=production
