@@ -14,8 +14,10 @@ class Llm::BaseAiService
     setup_temperature
   end
 
-  def chat(model: @model, temperature: @temperature)
-    RubyLLM.chat(model: model).with_temperature(temperature)
+  def chat(model: @model, temperature: @temperature, api_key: nil)
+    client = RubyLLM.chat(model: model)
+    client = client.with_api_key(api_key) if api_key.present?
+    client.with_temperature(temperature)
   end
 
   private

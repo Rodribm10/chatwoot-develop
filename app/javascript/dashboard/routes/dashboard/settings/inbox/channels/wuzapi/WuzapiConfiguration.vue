@@ -25,7 +25,7 @@ export default defineComponent({
 
     // Get accountId reliably from global store (preferred) or inbox prop
     const accountId = computed(() => {
-      return store.getters['getCurrentAccountId'] || props.inbox.account_id;
+      return store.getters.getCurrentAccountId || props.inbox.account_id;
     });
 
     // Helper for API URL
@@ -39,7 +39,6 @@ export default defineComponent({
 
       try {
         const response = await window.axios.get(getApiUrl(''));
-        console.log('Status Response:', response.data);
 
         const data = response.data;
         // Wuzapi format: { data: { connected: true, jid: "...", details: "..." } }
@@ -58,12 +57,10 @@ export default defineComponent({
         statusMessage.value = wuzapiData.details || legacyStatus || 'Unknown';
 
         if (isConnected.value) {
-          console.log('✅ Wuzapi Connected! JID:', wuzapiData.jid);
           qrCode.value = '';
           stopPolling();
         }
       } catch (error) {
-        console.error('Status Fetch Error:', error);
         statusMessage.value =
           error.response?.data?.error || error.message || 'Check failed';
       }
@@ -71,9 +68,7 @@ export default defineComponent({
 
     const fetchQrCode = async () => {
       try {
-        console.log('Fetching QR code...');
         const response = await window.axios.get(getApiUrl('/qr'));
-        console.log('QR Response Data:', response.data);
 
         // Backend now normalizes to 'qrcode' in most cases, but we keep robust checks
         const d = response.data;
@@ -86,13 +81,9 @@ export default defineComponent({
           (typeof d.data === 'string' ? d.data : null);
 
         if (qrcodeData && qrcodeData.length > 20) {
-          console.log('QR Code found, updating UI...');
           qrCode.value = qrcodeData;
           startPolling();
         } else {
-          console.warn(
-            'No QR code in response. Checking status as fallback...'
-          );
           // Fallback: maybe we are already connected?
           await fetchStatus();
           if (!isConnected.value) {
@@ -100,16 +91,13 @@ export default defineComponent({
           }
         }
       } catch (error) {
-        console.error('QR Fetch Error:', error);
         statusMessage.value =
           error.response?.data?.error || 'Failed to load QR';
       }
     };
 
     const handleConnect = async () => {
-      console.log('Connect button clicked');
       if (!accountId.value) {
-        console.error('Account ID missing');
         useAlert('Error: Account ID missing');
         return;
       }
@@ -118,13 +106,10 @@ export default defineComponent({
       try {
         // 1. Call Connect
         const connectUrl = getApiUrl('/connect');
-        console.log('Calling connect:', connectUrl);
         await window.axios.post(connectUrl);
-        console.log('Connect successful, fetching QR...');
         // 2. Fetch QR
         await fetchQrCode();
       } catch (error) {
-        console.error('Connect failed:', error);
         useAlert(error.response?.data?.error || 'Connection failed');
       } finally {
         isLoading.value = false;
@@ -146,7 +131,15 @@ export default defineComponent({
       }
     };
 
-    const startPolling = () => {
+// Function hoisting allows use before definition
+    function stopPolling() {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }
+
+    function startPolling() {
       if (pollInterval) return;
       // Poll every 5 seconds to check status AND refresh QR code
       pollInterval = setInterval(async () => {
@@ -156,12 +149,37 @@ export default defineComponent({
           await fetchQrCode();
         }
       }, 5000);
+    }
+
+    const isLoadingWebhook = ref(false);
+    const webhookInfo = ref(null);
+
+    const fetchWebhookInfo = async () => {
+      isLoadingWebhook.value = true;
+      try {
+        const response = await window.axios.get(getApiUrl('/webhook_info'));
+        webhookInfo.value = response.data;
+        useAlert('Webhook info fetched successfully');
+      } catch (error) {
+        useAlert(error.response?.data?.error || 'Failed to fetch webhook info');
+      } finally {
+        isLoadingWebhook.value = false;
+      }
     };
 
-    const stopPolling = () => {
-      if (pollInterval) {
-        clearInterval(pollInterval);
-        pollInterval = null;
+    const updateWebhook = async () => {
+      isLoadingWebhook.value = true;
+      try {
+        const response = await window.axios.put(getApiUrl('/update_webhook'));
+        webhookInfo.value = {
+          message: response.data.message,
+          url: response.data.webhook_url
+        };
+        useAlert('Webhook updated successfully');
+      } catch (error) {
+        useAlert(error.response?.data?.error || 'Failed to update webhook');
+      } finally {
+        isLoadingWebhook.value = false;
       }
     };
 
@@ -182,6 +200,10 @@ export default defineComponent({
       disconnect,
       handleConnect,
       accountId,
+      isLoadingWebhook,
+      webhookInfo,
+      fetchWebhookInfo,
+      updateWebhook,
     };
   },
 });
@@ -198,7 +220,7 @@ export default defineComponent({
       <div v-if="accountId" class="flex flex-col items-center">
         <div v-if="isConnected" class="flex flex-col items-center">
           <div class="text-green-600 font-bold mb-4 flex items-center gap-2">
-            <span class="i-woot-checkmark-circle text-2xl"></span>
+            <span class="i-woot-checkmark-circle text-2xl" />
             {{ $t('INBOX_MGMT.EDIT.WUZAPI.CONNECTED') }}
           </div>
           <p class="text-n-slate-11 mb-4">
@@ -249,6 +271,32 @@ export default defineComponent({
 
       <div v-else class="text-red-600 p-4">
         Error: Account ID not loaded. Please refresh the page.
+      </div>
+      <div class="mt-8 pt-6 border-t border-n-weak w-full">
+        <h4 class="text-md font-medium text-n-slate-12 mb-4">
+          Webhook Configuration
+        </h4>
+        <div class="flex gap-4 mb-4">
+          <NextButton
+            icon="i-woot-refresh"
+            :is-loading="isLoadingWebhook"
+            label="Get Webhook Info"
+            @click="fetchWebhookInfo"
+          />
+          <NextButton
+            icon="i-woot-upload"
+            :is-loading="isLoadingWebhook"
+            label="Update Webhook Connection"
+            @click="updateWebhook"
+          />
+        </div>
+
+        <div
+          v-if="webhookInfo"
+          class="bg-n-alpha-1 p-4 rounded text-sm font-mono overflow-auto"
+        >
+          <pre>{{ JSON.stringify(webhookInfo, null, 2) }}</pre>
+        </div>
       </div>
     </div>
   </div>

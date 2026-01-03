@@ -53,7 +53,7 @@ module Wuzapi
     end
 
     def session_disconnect(user_token)
-      request(:get, '/session/disconnect', nil, user_auth_headers(user_token))
+      request(:post, '/session/disconnect', nil, user_auth_headers(user_token))
     end
 
     def session_logout(user_token)
@@ -64,6 +64,15 @@ module Wuzapi
       # Wuzapi expects PascalCase keys 'WebhookURL' and 'Events' with 'All' per user verification.
       payload = { 'WebhookURL' => webhook_url, 'Events' => ['All'] }
       request(:post, '/webhook', payload, user_auth_headers(user_token))
+    end
+
+    def update_webhook(user_token, webhook_url)
+      payload = { 'WebhookURL' => webhook_url, 'Events' => ['All'] }
+      request(:put, '/webhook', payload, user_auth_headers(user_token))
+    end
+
+    def get_webhook(user_token)
+      request(:get, '/webhook', nil, user_auth_headers(user_token))
     end
 
     private
@@ -94,6 +103,8 @@ module Wuzapi
                       Net::HTTP::Get.new(uri.request_uri)
                     when :post
                       Net::HTTP::Post.new(uri.request_uri)
+                    when :put
+                      Net::HTTP::Put.new(uri.request_uri)
                     when :delete
                       Net::HTTP::Delete.new(uri.request_uri)
                     end

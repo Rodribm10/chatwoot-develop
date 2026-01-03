@@ -236,6 +236,8 @@ Rails.application.routes.draw do
               get :qr
               post :connect
               post :disconnect
+              get :webhook_info
+              put :update_webhook
             end
           end
 

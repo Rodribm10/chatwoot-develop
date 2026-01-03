@@ -76,6 +76,26 @@ class Api::V1::Accounts::Inboxes::WuzapiController < Api::V1::Accounts::BaseCont
     render json: { error: e.message }, status: :internal_server_error
   end
 
+  def webhook_info
+    info = client.get_webhook(user_token)
+    render json: info
+  rescue Wuzapi::Client::Error => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  rescue StandardError => e
+    render json: { error: e.message }, status: :internal_server_error
+  end
+
+  def update_webhook
+    # Re-calculate correct webhook URL from model
+    url = @inbox.channel.webhook_url
+    client.update_webhook(user_token, url)
+    render json: { success: true, message: 'Webhook updated successfully', webhook_url: url }
+  rescue Wuzapi::Client::Error => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  rescue StandardError => e
+    render json: { error: e.message }, status: :internal_server_error
+  end
+
   private
 
   def fetch_inbox

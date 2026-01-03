@@ -20,7 +20,7 @@ module Captain::ChatHelper
   private
 
   def build_chat
-    llm_chat = chat(model: @model, temperature: temperature)
+    llm_chat = chat(model: @model, temperature: temperature, api_key: api_key)
     llm_chat = llm_chat.with_params(response_format: { type: 'json_object' })
 
     llm_chat = setup_tools(llm_chat)
@@ -37,7 +37,9 @@ module Captain::ChatHelper
 
   def setup_system_instructions(chat)
     system_messages = @messages.select { |m| m[:role] == 'system' || m[:role] == :system }
-    combined_instructions = system_messages.pluck(:content).join("\n\n")
+    combined_instructions = system_messages.pluck(:content).join("
+
+")
     chat.with_instructions(combined_instructions)
   end
 
@@ -95,24 +97,20 @@ module Captain::ChatHelper
     @account&.id || @assistant&.account_id
   end
 
-  # Ensures all LLM calls and tool executions within an agentic loop
-  # are grouped under a single trace/session in Langfuse.
-  #
-  # Without this guard, each recursive call to request_chat_completion
-  # (triggered by tool calls) would create a separate trace instead of
-  # nesting within the existing session span.
-  def with_agent_session(&)
+  def api_key
+    @assistant&.config&.[]('openai_api_key').presence || ENV.fetch('OPENAI_API_KEY', nil) || ENV.fetch('GEMINI_API_KEY', nil)
+  end
+
+  def with_agent_session(&block)
     already_active = @agent_session_active
     return yield if already_active
 
     @agent_session_active = true
-    instrument_agent_session(instrumentation_params, &)
+    instrument_agent_session(instrumentation_params, &block)
   ensure
     @agent_session_active = false unless already_active
   end
 
-  # Must be implemented by including class to identify the feature for instrumentation.
-  # Used for Langfuse tagging and span naming.
   def feature_name
     raise NotImplementedError, "#{self.class.name} must implement #feature_name"
   end
