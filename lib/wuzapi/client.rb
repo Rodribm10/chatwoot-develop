@@ -61,8 +61,8 @@ module Wuzapi
     end
 
     def set_webhook(user_token, webhook_url)
-      # Wuzapi expects key 'webhook' per documentation.
-      payload = { 'webhook' => webhook_url, 'events' => %w[Message ReadReceipt Presence HistorySync ChatPresence] }
+      # Wuzapi expects PascalCase keys 'WebhookURL' and 'Events' with 'All' per user verification.
+      payload = { 'WebhookURL' => webhook_url, 'Events' => ['All'] }
       request(:post, '/webhook', payload, user_auth_headers(user_token))
     end
 
