@@ -10,7 +10,7 @@ module Jasmine
     belongs_to :document, class_name: 'Jasmine::Document'
 
     # Enable neighbor vector search
-    neighbor_vector :embedding
+    has_neighbors :embedding
 
     validates :content, presence: true
     validate :validate_consistency
@@ -19,7 +19,7 @@ module Jasmine
 
     def validate_consistency
       return if document.nil? || collection.nil?
-      
+
       errors.add(:base, 'Document mismatch') if document.collection_id != collection_id
       errors.add(:base, 'Collection account mismatch') if collection.account_id != account_id
       errors.add(:base, 'Document account mismatch') if document.account_id != account_id
