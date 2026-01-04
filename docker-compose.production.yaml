@@ -2,7 +2,7 @@ version: '3'
 
 services:
   base: &base
-    image: chatwoot/chatwoot:latest
+    image: ghcr.io/rodribm10/chatwoot-jasmine:latest
     env_file: .env ## Change this file for customized env variables
     volumes:
       - storage_data:/app/storage
@@ -50,7 +50,7 @@ services:
   redis:
     image: redis:alpine
     restart: always
-    command: ["sh", "-c", "redis-server --requirepass \"$REDIS_PASSWORD\""]
+    command: ['sh', '-c', 'redis-server --requirepass "$REDIS_PASSWORD"']
     env_file: .env
     volumes:
       - redis_data:/data
