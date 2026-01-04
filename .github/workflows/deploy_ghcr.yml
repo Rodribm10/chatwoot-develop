@@ -62,6 +62,9 @@ jobs:
           file: ./docker/Dockerfile
           platforms: ${{ matrix.platform }}
           push: true
+          build-args: |
+            RAILS_ENV=production
+            NODE_ENV=production
 
           # Publica por digest e deixa o merge job criar a tag multi-arch final
           outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
