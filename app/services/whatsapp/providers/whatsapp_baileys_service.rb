@@ -60,9 +60,6 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     true
   end
 
-    true
-  end
-
   def send_message(recipient_id, message)
     @message = message
     @recipient_id = recipient_id
