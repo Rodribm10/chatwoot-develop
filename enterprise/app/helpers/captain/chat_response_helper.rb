@@ -16,7 +16,7 @@ module Captain::ChatResponseHelper
     JSON.parse(content)
   rescue JSON::ParserError => e
     Rails.logger.error "#{self.class.name} Assistant: #{@assistant.id}, Error parsing JSON response: #{e.message}"
-    { 'content' => content }
+    { 'response' => content, 'reasoning' => 'parse_error' }
   end
 
   def persist_thinking_message(tool_call)

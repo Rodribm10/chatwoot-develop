@@ -103,7 +103,9 @@ const llmProviderOptions = [
 ];
 
 const llmProviderLabel = computed(() => {
-  const option = llmProviderOptions.find(opt => opt.value === state.llmProvider);
+  const option = llmProviderOptions.find(
+    opt => opt.value === state.llmProvider
+  );
   return option ? option.label : 'Selecione um provedor';
 });
 
@@ -111,23 +113,44 @@ const llmProviderLabel = computed(() => {
 const llmModelOptions = computed(() => {
   if (state.llmProvider === 'openai') {
     return [
-      { value: 'gpt-4o', label: 'GPT-4o (Mais Inteligente)' },
-      { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Rápido e Econômico)' },
-      { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-      { value: 'gpt-3.5-turbo-0125', label: 'GPT-3.5 Turbo' },
+      { value: 'gpt-5.2', label: 'GPT-5.2 (Mais Potente)' },
+      { value: 'gpt-5.2-pro', label: 'GPT-5.2 Pro (Premium)' },
+      { value: 'gpt-5.1', label: 'GPT-5.1' },
+      { value: 'gpt-5', label: 'GPT-5' },
+      { value: 'gpt-5-mini', label: 'GPT-5 Mini (Custo/Beneficio)' },
+      { value: 'gpt-5-nano', label: 'GPT-5 Nano (Super Economico)' },
+      { value: 'gpt-4.1', label: 'GPT-4.1 (Estavel)' },
+      { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini (Barato)' },
+      { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Rapido)' },
     ];
-  } else if (state.llmProvider === 'gemini') {
+  }
+  if (state.llmProvider === 'gemini') {
     return [
-      { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-      { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash (Rápido)' },
-      { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (Experimental)' },
+      { value: 'gemini-3-pro', label: 'Gemini 3 Pro (Mais Potente)' },
+      { value: 'gemini-3-flash', label: 'Gemini 3 Flash (Rapido)' },
+      { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro (Equilibrado)' },
+      {
+        value: 'gemini-2.5-flash',
+        label: 'Gemini 2.5 Flash (Rapido/Economico)',
+      },
+      {
+        value: 'gemini-2.5-flash-lite',
+        label: 'Gemini 2.5 Flash Lite (Super Economico)',
+      },
+      { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (Leve)' },
+      {
+        value: 'gemini-2.0-flash-lite',
+        label: 'Gemini 2.0 Flash Lite (Economico)',
+      },
     ];
   }
   return [];
 });
 
 const llmModelLabel = computed(() => {
-  const option = llmModelOptions.value.find(opt => opt.value === state.llmModel);
+  const option = llmModelOptions.value.find(
+    opt => opt.value === state.llmModel
+  );
   return option ? option.label : state.llmModel || 'Selecione um modelo';
 });
 

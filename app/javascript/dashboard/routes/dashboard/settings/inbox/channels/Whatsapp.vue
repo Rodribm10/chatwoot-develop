@@ -7,7 +7,10 @@ import ThreeSixtyDialogWhatsapp from './360DialogWhatsapp.vue';
 import CloudWhatsapp from './CloudWhatsapp.vue';
 import WhatsappEmbeddedSignup from './WhatsappEmbeddedSignup.vue';
 import Wuzapi from './Wuzapi.vue';
+import ZapiWhatsapp from './ZapiWhatsapp.vue';
+import BaileysWhatsapp from './BaileysWhatsapp.vue';
 import ChannelSelector from 'dashboard/components/ChannelSelector.vue';
+import PromoBanner from 'dashboard/components-next/banner/PromoBanner.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -20,6 +23,8 @@ const PROVIDER_TYPES = {
   WHATSAPP_EMBEDDED: 'whatsapp_embedded',
   WHATSAPP_MANUAL: 'whatsapp_manual',
   THREE_SIXTY_DIALOG: '360dialog',
+  BAILEYS: 'baileys',
+  ZAPI: 'zapi',
   WUZAPI: 'wuzapi',
 };
 
@@ -48,6 +53,18 @@ const availableProviders = computed(() => [
     title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO'),
     description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO_DESC'),
     icon: 'i-woot-twilio',
+  },
+  {
+    key: PROVIDER_TYPES.BAILEYS,
+    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS'),
+    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS_DESC'),
+    icon: 'i-woot-baileys',
+  },
+  {
+    key: PROVIDER_TYPES.ZAPI,
+    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI'),
+    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI_DESC'),
+    icon: 'i-woot-zapi',
   },
   {
     key: PROVIDER_TYPES.WUZAPI,
@@ -99,6 +116,29 @@ const handleManualLinkClick = () => {
           @click="selectProvider(provider.key)"
         />
       </div>
+
+      <div class="mt-6 relative overflow-visible">
+        <img
+          src="~dashboard/assets/images/curved-arrow.svg"
+          alt=""
+          class="absolute -top-12 right-64 w-20 h-20 pointer-events-none z-10 scale-y-[-1] -rotate-45"
+        />
+        <PromoBanner
+          :title="
+            $t('INBOX_MGMT.ADD.WHATSAPP.SELECT_PROVIDER.ZAPI_PROMO.TITLE')
+          "
+          :description="
+            $t('INBOX_MGMT.ADD.WHATSAPP.SELECT_PROVIDER.ZAPI_PROMO.DESCRIPTION')
+          "
+          variant="success"
+          logo-src="/assets/images/dashboard/channels/z-api/z-api-dark-green.png"
+          logo-alt="Z-API"
+          :cta-text="
+            $t('INBOX_MGMT.ADD.WHATSAPP.SELECT_PROVIDER.ZAPI_PROMO.CTA')
+          "
+          @cta-click="selectProvider(PROVIDER_TYPES.ZAPI)"
+        />
+      </div>
     </div>
 
     <div v-else-if="showConfiguration">
@@ -139,6 +179,10 @@ const handleManualLinkClick = () => {
         <CloudWhatsapp v-else-if="shouldShowCloudWhatsapp(selectedProvider)" />
 
         <Wuzapi v-else-if="selectedProvider === PROVIDER_TYPES.WUZAPI" />
+        <BaileysWhatsapp
+          v-else-if="selectedProvider === PROVIDER_TYPES.BAILEYS"
+        />
+        <ZapiWhatsapp v-else-if="selectedProvider === PROVIDER_TYPES.ZAPI" />
 
         <!-- Other providers -->
         <Twilio

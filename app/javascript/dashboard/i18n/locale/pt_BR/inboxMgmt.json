@@ -238,7 +238,11 @@
           "TWILIO_DESC": "Conectar através de credenciais Twilio",
           "360_DIALOG": "360Dialog",
           "WUZAPI": "Wuzapi",
-          "WUZAPI_DESC": "Conecte sua instância Wuzapi"
+          "WUZAPI_DESC": "Conecte sua instância Wuzapi",
+          "BAILEYS": "Baileys",
+          "BAILEYS_DESC": "Conectar via API não-oficial Baileys",
+          "ZAPI": "Z-API",
+          "ZAPI_DESC": "Conectar via API não-oficial Z-API"
         },
         "WUZAPI": {
           "BASE_URL": {
@@ -256,7 +260,22 @@
         },
         "SELECT_PROVIDER": {
           "TITLE": "Selecione seu provedor de API",
-          "DESCRIPTION": "Escolha seu provedor do WhatsApp. Você pode se conectar diretamente através de metade, que não requer nenhuma configuração ou se conectar pelo Twilio usando as credenciais da sua conta."
+          "DESCRIPTION": "Escolha seu provedor do WhatsApp. Você pode se conectar diretamente através de metade, que não requer nenhuma configuração ou se conectar pelo Twilio usando as credenciais da sua conta.",
+          "ZAPI_PROMO": {
+            "TITLE": "Procurando uma solução WhatsApp confiável?",
+            "DESCRIPTION": "Z-API oferece estabilidade superior comparado ao Baileys e é muito mais simples de configurar que Cloud ou Twilio - sem necessidade de configuração complexa. Perfeito para empresas que querem começar rapidamente.",
+            "CTA": "Usar Z-API",
+            "SWITCH_BANNER": {
+              "TITLE": "Considere mudar para Z-API para configuração mais fácil",
+              "DESCRIPTION": "Z-API fornece uma conexão mais estável que Baileys e requer menos configuração que Cloud/Twilio. Mude para uma integração WhatsApp sem complicações.",
+              "CTA": "Mudar para Z-API"
+            },
+            "SETUP_BANNER": {
+              "TITLE": "Ganhe 10% de desconto na sua assinatura Z-API",
+              "DESCRIPTION": "Crie sua conta Z-API usando nosso link de afiliado e receba 10% de desconto. Configuração simples, conexões confiáveis e ótimo suporte.",
+              "CTA": "Criar Conta Z-API"
+            }
+          }
         },
         "INBOX_NAME": {
           "LABEL": "Nome da Caixa de Entrada",
@@ -295,37 +314,42 @@
           "WEBHOOK_URL": "URL do Webhook",
           "WEBHOOK_VERIFICATION_TOKEN": "Token de verificação Webhook"
         },
-        "SUBMIT_BUTTON": "Criar canal do WhatsApp",
-        "EMBEDDED_SIGNUP": {
-          "TITLE": "Configuração rápida com Meta",
-          "DESC": "Use o fluxo de inscrição incorporada do WhatsApp para conectar rapidamente novos números. Você será redirecionado para a Meta para entrar na sua conta do WhatsApp Business. Ter acesso de administrador ajudará a tornar a configuração simples e fácil.",
-          "BENEFITS": {
-            "TITLE": "Benefícios da inscrição incorporada:",
-            "EASY_SETUP": "Nenhuma configuração manual é necessária",
-            "SECURE_AUTH": "Autenticação segura baseada em OAuth",
-            "AUTO_CONFIG": "Configuração automática de webhook e número de telefone"
-          },
-          "LEARN_MORE": {
-            "TEXT": "Para saber mais sobre a inscrição integrada, preços e limitações, visite {link}.",
-            "LINK_TEXT": "este link"
-          },
-          "SUBMIT_BUTTON": "Conecte-se com WhatsApp Business",
-          "AUTH_PROCESSING": "Autenticando com Meta",
-          "WAITING_FOR_BUSINESS_INFO": "Por favor, complete a configuração do negócio na janela da Meta...",
-          "PROCESSING": "Configurando sua conta do WhatsApp Business",
-          "LOADING_SDK": "Carregando SDK do Facebook...",
-          "CANCELLED": "A inscrição no WhatsApp foi cancelada",
-          "SUCCESS_TITLE": "Conta do WhatsApp Business conectada!",
-          "WAITING_FOR_AUTH": "Aguardando autenticação...",
-          "INVALID_BUSINESS_DATA": "Dados de negócio inválidos recebidos do Facebook. Por favor, tente novamente.",
-          "SIGNUP_ERROR": "Ocorreu um erro no cadastro",
-          "AUTH_NOT_COMPLETED": "Autenticação não concluída. Por favor, reinicie o processo.",
-          "SUCCESS_FALLBACK": "A conta do WhatsApp Business foi configurada com sucesso",
-          "MANUAL_FALLBACK": "Se o seu número já estiver conectado à Plataforma WhatsApp Business (API) ou se você for um provedor de tecnologia integrando o seu próprio número, use o fluxo de {link}",
-          "MANUAL_LINK_TEXT": "fluxo de configuração manual"
+        "PROVIDER_URL": {
+          "LABEL": "URL do provedor",
+          "PLACEHOLDER": "Se o provedor não está rodando localmente, por favor, insira a URL do provedor",
+          "ERROR": "Por favor, insira uma URL válida"
         },
-        "API": {
-          "ERROR_MESSAGE": "Não foi possível salvar o canal do WhatsApp"
+        "MARK_AS_READ": {
+          "LABEL": "Enviar confirmações de leitura"
+        },
+        "INSTANCE_ID": {
+          "LABEL": "ID da instância",
+          "PLACEHOLDER": "Por favor, insira o ID da sua instância",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "TOKEN": {
+          "LABEL": "Token",
+          "PLACEHOLDER": "Por favor, insira o Token da sua instância",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "CLIENT_TOKEN": {
+          "LABEL": "Token de Segurança",
+          "PLACEHOLDER": "Por favor, insira o Token de Segurança (veja a aba Segurança no painel do Z-API)",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "ADVANCED_OPTIONS": "Opções avançadas",
+        "EXTERNAL_PROVIDER": {
+          "SUBTITLE": "Clique abaixo para configurar o canal do WhatsApp.",
+          "LINK_BUTTON": "Conectar dispositivo",
+          "LINK_DEVICE_MODAL": {
+            "TITLE": "Conecte o seu dispositivo",
+            "SUBTITLE": "Escaneie o QR code para conectar seu dispositivo. Certifique-se de que o número de telefone esteja correto antes de escanear.",
+            "LOADING_QRCODE": "Carregando QR code...",
+            "RECONNECTING": "Conectando...",
+            "LINK_DEVICE": "Conectar dispositivo",
+            "DISCONNECT": "Desconectar",
+            "CONNECTED": "Seu dispositivo foi conectado com sucesso. Agora você pode começar a enviar e receber mensagens."
+          }
         }
       },
       "VOICE": {

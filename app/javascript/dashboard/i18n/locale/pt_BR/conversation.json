@@ -103,6 +103,65 @@
         "DUE": "venceu"
       }
     },
+    "CRM_INSIGHTS": {
+      "TITLE": "Analise por IA",
+      "TOGGLE": "Abrir analise por IA",
+      "REFRESH": "Atualizar resumo",
+      "UPDATED_AT": "Atualizado em",
+      "CONTACT_SESSIONS": "Contatos (24h)",
+      "LAST_CONTACT": "Ultimo contato valido",
+      "EMPTY_STATE": "Nenhum resumo disponivel ainda.",
+      "LOAD_ERROR": "Nao foi possivel carregar o resumo.",
+      "REFRESH_ERROR": "Nao foi possivel atualizar o resumo.",
+      "NOT_AVAILABLE": "Indisponivel",
+      "NO_DELTA": "Nada novo para resumir desde {time}.",
+      "RANGE_TO": "Resumo ate mensagem",
+      "RANGE_LABEL": "Intervalo de mensagens",
+      "LATEST": {
+        "TITLE": "Ultimo resumo valido"
+      },
+      "ERROR_DETAIL": "Erro: {error}",
+      "SEPARATOR": "•",
+      "STATUS": {
+        "SUCCESS": "sucesso",
+        "FAILED": "falhou"
+      },
+      "URGENCY_VALUE": "{value}/5",
+      "CARDS": {
+        "INTENT": "Intencao",
+        "URGENCY": "Urgencia",
+        "PREFERENCES": "Preferencias",
+        "PRICE_SENSITIVITY": "Sensibilidade a preco",
+        "FRICTIONS": "Friccoes",
+        "CONTACT_PATTERN": "Padrao de contato",
+        "CONTACT_TIME": "Horario",
+        "CONTACT_DAYS": "Dias",
+        "CONTACT_TIME_LABEL": "Horario:",
+        "CONTACT_DAYS_LABEL": "Dias:",
+        "NBA": "Proxima melhor acao",
+        "NBA_ACTION": "Acao",
+        "NBA_PRIORITY": "Prioridade",
+        "NBA_REASON": "Motivo",
+        "NBA_ACTION_LABEL": "Acao:",
+        "NBA_PRIORITY_LABEL": "Prioridade:",
+        "NBA_REASON_LABEL": "Motivo:",
+        "SUGGESTED_LABELS": "Etiquetas sugeridas",
+        "CONFIDENCE": "Confianca",
+        "GENERATED_AT": "Ultima geracao"
+      },
+      "ACTIONS": {
+        "TITLE": "Acoes rapidas",
+        "APPLY_LABELS": "Aplicar etiquetas sugeridas",
+        "SET_PRIORITY": "Definir prioridade",
+        "INSERT_REPLY": "Inserir sugestao de resposta",
+        "CREATE_NOTE": "Criar nota interna"
+      },
+      "HISTORY": {
+        "TITLE": "Historico",
+        "SHOW": "Ver historico",
+        "HIDE": "Ocultar historico"
+      }
+    },
     "RESOLVE_DROPDOWN": {
       "MARK_PENDING": "Deixar pendente",
       "SNOOZE_UNTIL": "Adiar",

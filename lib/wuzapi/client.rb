@@ -40,6 +40,11 @@ module Wuzapi
       request(:post, '/chat/send/file', payload, user_auth_headers(user_token))
     end
 
+    def send_reaction(user_token, phone_number, message_id, emoji)
+      payload = { 'Phone' => phone_number, 'Body' => emoji, 'Id' => message_id }
+      request(:post, '/chat/react', payload, user_auth_headers(user_token))
+    end
+
     def session_status(user_token)
       request(:get, '/session/status', nil, user_auth_headers(user_token))
     end

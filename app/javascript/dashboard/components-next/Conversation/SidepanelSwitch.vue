@@ -25,25 +25,47 @@ const isContactSidebarOpen = computed(
 const isCopilotPanelOpen = computed(
   () => uiSettings.value.is_copilot_panel_open
 );
+const isCrmInsightsOpen = computed(() => uiSettings.value.is_crm_insights_open);
 
 const toggleConversationSidebarToggle = () => {
+  if (isCrmInsightsOpen.value) {
+    updateUISettings({
+      is_crm_insights_open: false,
+    });
+    return;
+  }
   updateUISettings({
     is_contact_sidebar_open: !isContactSidebarOpen.value,
     is_copilot_panel_open: false,
+    is_crm_insights_open: false,
   });
 };
 
 const handleConversationSidebarToggle = () => {
+  if (isCrmInsightsOpen.value) {
+    updateUISettings({
+      is_crm_insights_open: false,
+    });
+    return;
+  }
   updateUISettings({
     is_contact_sidebar_open: true,
     is_copilot_panel_open: false,
+    is_crm_insights_open: false,
   });
 };
 
 const handleCopilotSidebarToggle = () => {
+  if (isCrmInsightsOpen.value) {
+    updateUISettings({
+      is_crm_insights_open: false,
+    });
+    return;
+  }
   updateUISettings({
     is_contact_sidebar_open: false,
     is_copilot_panel_open: true,
+    is_crm_insights_open: false,
   });
 };
 

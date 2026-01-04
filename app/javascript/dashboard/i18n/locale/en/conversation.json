@@ -103,6 +103,65 @@
         "DUE": "due"
       }
     },
+    "CRM_INSIGHTS": {
+      "TITLE": "AI CRM Insights",
+      "TOGGLE": "Open AI insights",
+      "REFRESH": "Refresh summary",
+      "UPDATED_AT": "Updated at",
+      "CONTACT_SESSIONS": "Contact sessions (24h)",
+      "LAST_CONTACT": "Last valid contact",
+      "EMPTY_STATE": "No summary available yet.",
+      "LOAD_ERROR": "Could not load the summary.",
+      "REFRESH_ERROR": "Could not refresh the summary.",
+      "NOT_AVAILABLE": "Not available",
+      "NO_DELTA": "Nothing new to summarize since {time}.",
+      "RANGE_TO": "Summary up to message",
+      "RANGE_LABEL": "Message range",
+      "LATEST": {
+        "TITLE": "Latest valid summary"
+      },
+      "ERROR_DETAIL": "Error: {error}",
+      "SEPARATOR": "•",
+      "STATUS": {
+        "SUCCESS": "success",
+        "FAILED": "failed"
+      },
+      "URGENCY_VALUE": "{value}/5",
+      "CARDS": {
+        "INTENT": "Intent",
+        "URGENCY": "Urgency",
+        "PREFERENCES": "Preferences",
+        "PRICE_SENSITIVITY": "Price sensitivity",
+        "FRICTIONS": "Friction points",
+        "CONTACT_PATTERN": "Contact pattern",
+        "CONTACT_TIME": "Time",
+        "CONTACT_DAYS": "Days",
+        "CONTACT_TIME_LABEL": "Time:",
+        "CONTACT_DAYS_LABEL": "Days:",
+        "NBA": "Next best action",
+        "NBA_ACTION": "Action",
+        "NBA_PRIORITY": "Priority",
+        "NBA_REASON": "Reason",
+        "NBA_ACTION_LABEL": "Action:",
+        "NBA_PRIORITY_LABEL": "Priority:",
+        "NBA_REASON_LABEL": "Reason:",
+        "SUGGESTED_LABELS": "Suggested labels",
+        "CONFIDENCE": "Confidence",
+        "GENERATED_AT": "Last generated"
+      },
+      "ACTIONS": {
+        "TITLE": "Quick actions",
+        "APPLY_LABELS": "Apply suggested labels",
+        "SET_PRIORITY": "Set priority",
+        "INSERT_REPLY": "Insert suggested reply",
+        "CREATE_NOTE": "Create internal note"
+      },
+      "HISTORY": {
+        "TITLE": "History",
+        "SHOW": "View history",
+        "HIDE": "Hide history"
+      }
+    },
     "RESOLVE_DROPDOWN": {
       "MARK_PENDING": "Mark as pending",
       "SNOOZE_UNTIL": "Snooze",

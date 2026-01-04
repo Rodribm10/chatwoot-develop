@@ -31,6 +31,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
   def generate_and_process_response
     Rails.logger.info 'ResponseBuilderJob: Generating response...'
+    extract_contact_identity
     @response = Captain::Llm::AssistantChatService.new(assistant: @assistant, conversation: @conversation).generate_response(
       message_history: collect_previous_messages
     )
@@ -39,6 +40,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
   end
 
   def generate_response_with_v2
+    extract_contact_identity
     @response = Captain::Assistant::AgentRunnerService.new(assistant: @assistant, conversation: @conversation).generate_response(
       message_history: collect_previous_messages
     )
@@ -69,6 +71,19 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
       message_hash
     end
+  end
+
+  def extract_contact_identity
+    last_message = @conversation.messages
+                                .where(message_type: :incoming, private: false)
+                                .order(created_at: :desc)
+                                .first
+    return if last_message.blank?
+
+    Captain::Llm::ContactIdentityService.new(
+      contact: @conversation.contact,
+      message_content: last_message.content
+    ).extract_and_update
   end
 
   def determine_role(message)
@@ -105,8 +120,9 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
   end
 
   def create_messages
-    validate_message_content!(@response['response'])
-    create_outgoing_message(@response['response'], agent_name: @response['agent_name'])
+    response_text = inject_preferred_name(@response['response'])
+    validate_message_content!(response_text)
+    create_outgoing_message(response_text, agent_name: @response['agent_name'])
   end
 
   def validate_message_content!(content)
@@ -125,6 +141,18 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
       content: message_content,
       additional_attributes: additional_attrs
     )
+  end
+
+  def inject_preferred_name(content)
+    return content if content.blank?
+
+    attributes = @conversation.contact&.additional_attributes || {}
+    preferred_name = attributes['preferred_name'].to_s.strip
+    confidence = attributes['name_confidence'].to_f
+    return content if preferred_name.blank? || confidence < 0.8
+    return content if content.downcase.include?(preferred_name.downcase)
+
+    "#{preferred_name}, #{content}"
   end
 
   def handle_error(error)

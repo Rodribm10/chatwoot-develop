@@ -66,12 +66,20 @@ class Captain::Documents::ResponseBuilderJob < ApplicationJob
   end
 
   def create_response(faq, document)
-    document.responses.create!(
+    response = document.responses.create!(
       question: faq['question'],
       answer: faq['answer'],
       assistant: document.assistant,
       documentable: document
     )
+
+    return if response.embedding.present?
+
+    embedding = Captain::Llm::EmbeddingService.new(account_id: document.account_id).get_embedding(
+      "#{response.question}: #{response.answer}"
+    )
+    vector = embedding.is_a?(Array) && embedding.first.is_a?(Array) ? embedding.first : embedding
+    response.update_columns(embedding: vector)
   rescue ActiveRecord::RecordInvalid => e
     Rails.logger.error I18n.t('captain.documents.response_creation_error', error: e.message)
   end

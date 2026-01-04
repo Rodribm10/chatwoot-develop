@@ -13,6 +13,14 @@ class ConversationApi extends ApiClient {
   updateLabels(conversationID, labels) {
     return axios.post(`${this.url}/${conversationID}/labels`, { labels });
   }
+
+  getCrmInsight(conversationID) {
+    return axios.get(`${this.url}/${conversationID}/crm_insight`);
+  }
+
+  refreshCrmInsight(conversationID) {
+    return axios.post(`${this.url}/${conversationID}/crm_insight/refresh`);
+  }
 }
 
 export default new ConversationApi();

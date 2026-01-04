@@ -315,10 +315,20 @@ class Message < ApplicationRecord
     send_reply
     execute_message_template_hooks
     update_contact_activity
+    schedule_crm_insights_update
   end
 
   def update_contact_activity
     sender.update(last_activity_at: DateTime.now) if sender.is_a?(Contact)
+  end
+
+  def schedule_crm_insights_update
+    return if private?
+
+    CrmInsights::UpdateJob.set(wait: 30.minutes).perform_later(
+      conversation_id,
+      reason: 'idle'
+    )
   end
 
   def update_waiting_since

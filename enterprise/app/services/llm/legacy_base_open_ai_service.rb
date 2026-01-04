@@ -12,10 +12,15 @@ class Llm::LegacyBaseOpenAiService
   attr_reader :client, :model
 
   def initialize
+    api_key = ENV['OPENAI_API_KEY'] || InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_API_KEY')&.value
+    raise 'No API Key found' if api_key.blank?
+
+    request_timeout = ENV.fetch('CAPTAIN_OPEN_AI_REQUEST_TIMEOUT', '120').to_i
     @client = OpenAI::Client.new(
-      access_token: InstallationConfig.find_by!(name: 'CAPTAIN_OPEN_AI_API_KEY').value,
+      access_token: api_key,
       uri_base: uri_base,
-      log_errors: Rails.env.development?
+      log_errors: Rails.env.development?,
+      request_timeout: request_timeout
     )
     setup_model
   rescue StandardError => e

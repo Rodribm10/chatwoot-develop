@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_01_010000) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_04_150000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -665,6 +665,31 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_01_010000) do
     t.index ["identifier", "account_id"], name: "uniq_identifier_per_account_contact", unique: true
     t.index ["name", "email", "phone_number", "identifier"], name: "index_contacts_on_name_email_phone_number_identifier", opclass: :gin_trgm_ops, using: :gin
     t.index ["phone_number", "account_id"], name: "index_contacts_on_phone_number_and_account_id"
+  end
+
+  create_table "conversation_crm_insights", force: :cascade do |t|
+    t.bigint "conversation_id", null: false
+    t.bigint "contact_id", null: false
+    t.text "summary_text"
+    t.jsonb "structured_data", default: {}
+    t.integer "contact_sessions_count", default: 0, null: false
+    t.datetime "last_contact_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "account_id"
+    t.datetime "generated_at"
+    t.bigint "range_from_message_id"
+    t.bigint "range_to_message_id"
+    t.string "status", default: "success"
+    t.text "error_message"
+    t.string "schema_version"
+    t.string "model"
+    t.float "confidence"
+    t.index ["account_id"], name: "index_conversation_crm_insights_on_account_id"
+    t.index ["contact_id"], name: "index_conversation_crm_insights_on_contact_id"
+    t.index ["conversation_id", "generated_at"], name: "idx_on_conversation_id_generated_at_44d5836366"
+    t.index ["conversation_id"], name: "index_conversation_crm_insights_on_conversation_id"
+    t.index ["status"], name: "index_conversation_crm_insights_on_status"
   end
 
   create_table "conversation_participants", force: :cascade do |t|
@@ -1395,6 +1420,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_01_010000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "captain_tool_configs", "accounts"
   add_foreign_key "captain_tool_configs", "inboxes"
+  add_foreign_key "conversation_crm_insights", "accounts"
+  add_foreign_key "conversation_crm_insights", "contacts"
+  add_foreign_key "conversation_crm_insights", "conversations"
   add_foreign_key "inboxes", "portals"
   add_foreign_key "jasmine_collections", "accounts"
   add_foreign_key "jasmine_collections", "inboxes", column: "owner_inbox_id"

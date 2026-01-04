@@ -5,6 +5,7 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
   attr_reader :assistant, :conversation, :messages
 
   def initialize(assistant:, conversation: nil)
+    super()
     Rails.logger.info "AssistantChatService: Initialized for Assistant #{assistant.id} / Conv #{conversation&.id}"
 
     @assistant = assistant
@@ -14,10 +15,8 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
     @messages = [system_message]
     @response = ''
 
-    # Override model if assistant has specific configuration
-    return unless @assistant&.respond_to?(:llm_model) && @assistant.llm_model.present?
-
-    @model = @assistant.llm_model
+    # Prefer assistant model when set; otherwise keep configured default.
+    @model = @assistant.llm_model.presence || @model
   end
 
   def generate_response(additional_message: nil, message_history: [], role: 'user')
@@ -75,6 +74,8 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
       end
     end
 
+    context_pack = context_pack_message
+    @messages << context_pack if context_pack.present?
     @messages += message_history
 
     # Inject Tool Output into System Context if available (for playground or post-tool)
@@ -110,6 +111,121 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
       role: 'system',
       content: Captain::Llm::SystemPromptsService.assistant_response_generator(@assistant.name, @assistant.config['product_name'], @assistant.config)
     }
+  end
+
+  def context_pack_message
+    return nil if @conversation.blank?
+
+    insight = @conversation.latest_crm_insight
+    insight_data = insight&.structured_data || {}
+    contact = @conversation.contact
+    contact_profile = contact&.additional_attributes || {}
+
+    preferred_name = contact_profile['preferred_name']
+    name_confidence = contact_profile['name_confidence']
+    name_source = contact_profile['name_source']
+
+    summary_text = insight&.summary_text.to_s.strip
+    summary_text = summary_text[0, 400] if summary_text.length > 400
+
+    content = build_context_pack(
+      preferred_name: preferred_name,
+      name_confidence: name_confidence,
+      name_source: name_source,
+      contact_profile: contact_profile,
+      insight: insight,
+      insight_data: insight_data,
+      summary_text: summary_text
+    )
+
+    Rails.logger.info("[Captain] Context pack size=#{content.length} conv_id=#{@conversation.id} insight_id=#{insight&.id || 'none'}")
+
+    {
+      role: 'system',
+      content: content
+    }
+  end
+
+  def build_context_pack(preferred_name:, name_confidence:, name_source:, contact_profile:, insight:, insight_data:, summary_text:)
+    header = "[CONTEXT PACK]\n"
+    guardrails = <<~GUARDRAILS
+      GUARDRAILS:
+      - Use o nome apenas se name_confidence >= 0.8.
+      - Se nao houver nome confiavel, pergunte uma vez e siga sem nome.
+      - Nao invente nome, preferencias ou dados que nao estejam no perfil/insights.
+    GUARDRAILS
+
+    contact_block = <<~CONTACT
+      CONTACT_PROFILE:
+      preferred_name: #{preferred_name.presence || 'desconhecido'}
+      name_confidence: #{name_confidence.presence || '0'}
+      name_source: #{name_source.presence || 'unknown'}
+      preferences: #{format_list(contact_profile['preferences'])}
+      frictions: #{format_list(contact_profile['frictions'])}
+      contact_pattern: #{format_hash(contact_profile['contact_pattern'])}
+    CONTACT
+
+    insights_block = <<~INSIGHTS
+      CONVERSATION_INSIGHTS (latest success):
+      #{insight.present? ? "generated_at: #{insight.generated_at&.iso8601}" : 'sem insights ainda'}
+      summary_text: #{summary_text.presence || 'sem resumo valido'}
+      intent: #{format_value(insight_data['intent'])}
+      urgency: #{format_value(insight_data['urgency'])}
+      nba: #{format_hash(insight_data['nba'])}
+      suggested_labels: #{format_list(insight_data['suggested_labels'])}
+    INSIGHTS
+
+    max_length = 1500
+    parts = [header, contact_block, insights_block, guardrails]
+    combined = parts.join("\n").strip
+    return combined if combined.length <= max_length
+
+    trimmed_summary = summary_text[0, 200]
+    insights_block = <<~INSIGHTS
+      CONVERSATION_INSIGHTS (latest success):
+      #{insight.present? ? "generated_at: #{insight.generated_at&.iso8601}" : 'sem insights ainda'}
+      summary_text: #{trimmed_summary.presence || 'sem resumo valido'}
+      intent: #{format_value(insight_data['intent'])}
+      urgency: #{format_value(insight_data['urgency'])}
+      nba: #{format_hash(insight_data['nba'])}
+      suggested_labels: #{format_list(insight_data['suggested_labels'])}
+    INSIGHTS
+
+    combined = [header, contact_block, insights_block, guardrails].join("\n").strip
+    return combined if combined.length <= max_length
+
+    insights_block = <<~INSIGHTS
+      CONVERSATION_INSIGHTS (latest success):
+      #{insight.present? ? "generated_at: #{insight.generated_at&.iso8601}" : 'sem insights ainda'}
+      intent: #{format_value(insight_data['intent'])}
+      urgency: #{format_value(insight_data['urgency'])}
+      nba: #{format_hash(insight_data['nba'])}
+      suggested_labels: #{format_list(insight_data['suggested_labels'])}
+    INSIGHTS
+
+    combined = [header, contact_block, insights_block, guardrails].join("\n").strip
+    return combined if combined.length <= max_length
+
+    combined = [header, contact_block, guardrails].join("\n").strip
+    combined[0, max_length]
+  end
+
+  def format_list(value)
+    return 'nenhum' if value.blank?
+    return value.join(', ') if value.is_a?(Array)
+
+    value.to_s
+  end
+
+  def format_hash(value)
+    return 'nenhum' if value.blank?
+    return value.to_json if value.is_a?(Hash)
+
+    value.to_s
+  end
+
+  def format_value(value)
+    value.present? ? value.to_s : 'desconhecido'
   end
 
   def persist_message(message, message_type = 'assistant')

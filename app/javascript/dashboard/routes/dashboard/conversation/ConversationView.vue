@@ -10,6 +10,7 @@ import CmdBarConversationSnooze from 'dashboard/routes/dashboard/commands/CmdBar
 import { emitter } from 'shared/helpers/mitt';
 import SidepanelSwitch from 'dashboard/components-next/Conversation/SidepanelSwitch.vue';
 import ConversationSidebar from 'dashboard/components/widgets/conversation/ConversationSidebar.vue';
+import CrmInsightsSidebar from 'dashboard/components/widgets/conversation/CrmInsightsSidebar.vue';
 
 export default {
   components: {
@@ -18,6 +19,7 @@ export default {
     CmdBarConversationSnooze,
     SidepanelSwitch,
     ConversationSidebar,
+    CrmInsightsSidebar,
   },
   beforeRouteLeave(to, from, next) {
     // Clear selected state if navigating away from a conversation to a route without a conversationId to prevent stale data issues
@@ -94,7 +96,14 @@ export default {
       }
 
       const { is_contact_sidebar_open: isContactSidebarOpen } = this.uiSettings;
-      return isContactSidebarOpen;
+      return isContactSidebarOpen && !this.isCrmInsightsOpen;
+    },
+    isCrmInsightsOpen() {
+      const { is_crm_insights_open: isCrmInsightsOpen } = this.uiSettings;
+      return isCrmInsightsOpen;
+    },
+    shouldShowCrmInsights() {
+      return this.currentChat.id && this.isCrmInsightsOpen;
     },
   },
   watch: {
@@ -214,6 +223,10 @@ export default {
       <SidepanelSwitch v-if="currentChat.id" />
     </ConversationBox>
     <ConversationSidebar v-if="shouldShowSidebar" :current-chat="currentChat" />
+    <CrmInsightsSidebar
+      v-if="shouldShowCrmInsights"
+      :current-chat="currentChat"
+    />
     <CmdBarConversationSnooze />
   </section>
 </template>

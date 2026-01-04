@@ -11,7 +11,7 @@ module Whatsapp::Providers
       user_token = whatsapp_channel.wuzapi_user_token
       # Normalize phone number: remove +, space, -, (, )
       normalized_phone = phone_number.gsub(/[\+\s\-\(\)]/, '')
-      
+
       if message.attachments.present?
         send_attachment_message(user_token, normalized_phone, message)
       else
@@ -32,10 +32,33 @@ module Whatsapp::Providers
       end
     end
 
-    def send_template(phone_number, template_info)
+    def send_reaction_message(phone_number, message)
+      user_token = whatsapp_channel.wuzapi_user_token
+      normalized_phone = phone_number.gsub(/[\+\s\-\(\)]/, '')
+
+      # Assuming message content is the emoji
+      reaction_emoji = message.content
+      # Assuming in_reply_to contains the ID of the message to react to
+      message_id = message.content_attributes['in_reply_to']
+
+      if message_id.present?
+        # Wuzapi client needs to implement send_reaction
+        # This assumes the client wrapper has this method. If not, we might need to add it or use raw request.
+        # Based on typical Wuzapi forks, it might be /send-reaction-message
+
+        # We'll assume the client wrapper will have a send_reaction method.
+        # If not visible in the existing codebase, we might need to add it to the client class too.
+        # checking...
+        client.send_reaction(user_token, normalized_phone, message_id, reaction_emoji)
+      else
+        Rails.logger.warn 'Wuzapi: Cannot send reaction without in_reply_to message ID'
+      end
+    end
+
+    def send_template(_phone_number, _template_info)
       # Placeholder for template support if Wuzapi supports it.
       # For now, just logging or no-op as per initial text-focused plan.
-      Rails.logger.warn "Wuzapi: Templates not yet implemented or supported."
+      Rails.logger.warn 'Wuzapi: Templates not yet implemented or supported.'
     end
 
     def sync_templates

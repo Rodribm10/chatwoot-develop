@@ -7,57 +7,30 @@ class Captain::Llm::PdfProcessingService < Llm::LegacyBaseOpenAiService
   end
 
   def process
-    return if document.openai_file_id.present?
+    return if document.content.present?
 
-    file_id = upload_pdf_to_openai
-    raise CustomExceptions::PdfUploadError, I18n.t('captain.documents.pdf_upload_failed') if file_id.blank?
-
-    document.store_openai_file_id(file_id)
+    extract_text_from_pdf
+  rescue StandardError => e
+    Rails.logger.error "PDF Processing Error: #{e.message}"
+    raise e
   end
 
   private
 
   attr_reader :document
 
-  def upload_pdf_to_openai
-    with_tempfile do |temp_file|
-      instrument_file_upload do
-        response = @client.files.upload(
-          parameters: {
-            file: temp_file,
-            purpose: 'assistants'
-          }
-        )
-        response['id']
-      end
+  def extract_text_from_pdf
+    content = ''
+    document.pdf_file.open do |file|
+      reader = PDF::Reader.new(file)
+      content = reader.pages.map(&:text).join("\n")
     end
-  end
 
-  def instrument_file_upload(&)
-    return yield unless ChatwootApp.otel_enabled?
-
-    tracer.in_span('llm.file.upload') do |span|
-      span.set_attribute('gen_ai.provider', 'openai')
-      span.set_attribute('file.purpose', 'assistants')
-      span.set_attribute(ATTR_LANGFUSE_USER_ID, document.account_id.to_s)
-      span.set_attribute(ATTR_LANGFUSE_TAGS, ['pdf_upload'].to_json)
-      span.set_attribute(format(ATTR_LANGFUSE_METADATA, 'document_id'), document.id.to_s)
-      file_id = yield
-      span.set_attribute('file.id', file_id) if file_id
-      file_id
-    end
-  end
-
-  def with_tempfile
-    Tempfile.create(['pdf_upload', '.pdf'], binmode: true) do |temp_file|
-      document.pdf_file.blob.open do |blob_file|
-        IO.copy_stream(blob_file, temp_file)
-      end
-
-      temp_file.flush
-      temp_file.rewind
-
-      yield temp_file
+    if content.present?
+      # Update content and ensure openai_file_id is nil to force standard FAQ generation
+      document.update!(content: content, openai_file_id: nil)
+    else
+      Rails.logger.warn "PDF extracted content is empty for document #{document.id}"
     end
   end
 end

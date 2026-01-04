@@ -113,6 +113,7 @@ class Conversation < ApplicationRecord
   has_many :notifications, as: :primary_actor, dependent: :destroy_async
   has_many :attachments, through: :messages
   has_many :reporting_events, dependent: :destroy_async
+  has_many :crm_insights, class_name: 'ConversationCrmInsight', dependent: :destroy
 
   before_save :ensure_snooze_until_reset
   before_create :determine_conversation_status
@@ -211,6 +212,14 @@ class Conversation < ApplicationRecord
     dispatcher_dispatch(CONVERSATION_UPDATED, previous_changes)
   end
 
+  def latest_crm_insight
+    crm_insights.success.order(generated_at: :desc).first
+  end
+
+  def latest_crm_insight_attempt
+    crm_insights.order(generated_at: :desc).first
+  end
+
   private
 
   def execute_after_update_commit_callbacks
@@ -227,6 +236,8 @@ class Conversation < ApplicationRecord
     # rubocop:disable Rails/SkipsModelValidations
     update_column(:waiting_since, nil)
     # rubocop:enable Rails/SkipsModelValidations
+
+    CrmInsights::UpdateJob.perform_later(id, reason: 'resolved')
   end
 
   def ensure_snooze_until_reset

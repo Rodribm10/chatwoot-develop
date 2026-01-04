@@ -13,6 +13,8 @@ import { conversationListPageURL } from 'dashboard/helper/URLHelper';
 import { snoozedReopenTime } from 'dashboard/helper/snoozeHelpers';
 import { useInbox } from 'dashboard/composables/useInbox';
 import { useI18n } from 'vue-i18n';
+import Button from 'dashboard/components-next/button/Button.vue';
+import { useUISettings } from 'dashboard/composables/useUISettings';
 
 const props = defineProps({
   chat: {
@@ -28,6 +30,7 @@ const props = defineProps({
 const { t } = useI18n();
 const store = useStore();
 const route = useRoute();
+const { uiSettings, updateUISettings } = useUISettings();
 const conversationHeader = ref(null);
 const { width } = useElementSize(conversationHeader);
 const { isAWebWidgetInbox } = useInbox();
@@ -90,6 +93,16 @@ const hasMultipleInboxes = computed(
 );
 
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
+
+const isCrmInsightsOpen = computed(() => uiSettings.value.is_crm_insights_open);
+
+const toggleCrmInsights = () => {
+  updateUISettings({
+    is_crm_insights_open: !isCrmInsightsOpen.value,
+    is_contact_sidebar_open: false,
+    is_copilot_panel_open: false,
+  });
+};
 </script>
 
 <template>
@@ -150,6 +163,17 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
         show-extended-info
         :parent-width="width"
         class="hidden md:flex"
+      />
+      <Button
+        v-tooltip.top="t('CONVERSATION.CRM_INSIGHTS.TOGGLE')"
+        ghost
+        slate
+        sm
+        icon="i-lucide-brain"
+        :class="{
+          'bg-n-alpha-2': isCrmInsightsOpen,
+        }"
+        @click="toggleCrmInsights"
       />
       <MoreActions :conversation-id="currentChat.id" />
     </div>
