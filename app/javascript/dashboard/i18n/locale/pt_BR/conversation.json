@@ -160,6 +160,20 @@
         "TITLE": "Historico",
         "SHOW": "Ver historico",
         "HIDE": "Ocultar historico"
+      },
+      "FUNNEL": {
+        "TITLE": "Funil de Vendas",
+        "TRUST": "{percentage}% confiança",
+        "DISCLAIMER": "* Estágio inferido automaticamente pela IA",
+        "STEPS": {
+          "INFO": "Info",
+          "PRICE": "Preço",
+          "AVAILABILITY": "Disponibilidade",
+          "CONFIRMATION": "Confirmação",
+          "CLOSED": "Fim",
+          "CLOSED_WON": "Fechado (Ganho)",
+          "CLOSED_LOST": "Fechado (Perdido)"
+        }
       }
     },
     "RESOLVE_DROPDOWN": {

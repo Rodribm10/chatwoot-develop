@@ -60,9 +60,29 @@ module CrmInsights
             "frictions": [],
             "commercial_status": "",
             "customer_potential": "",
-            "agent_tip": ""
+            "agent_tip": "",
+            "funnel": {
+              "stage": "info", // enum: info, price, availability, confirmation, closed_won, closed_lost
+              "confidence": 0.0, // float 0-1
+              "reason": "justificativa curta",
+              "evidence_message_ids": [], // IDs das mensagens que justificam o estagio
+              "updated_at": "ISO8601" // data atual se houve mudanca, ou manter anterior
+            }
           }
         }
+
+        REGRAS FUNIL DE VENDAS (CRITICO):
+        1. Analise APENAS o historico fornecido abaixo para definir o estagio.
+        2. Estagios:
+           - info: pede informacoes gerais. (Confianca minima: qualquer)
+           - price: discute valores. (Confianca minima: 0.6)
+           - availability: pergunta sobre datas/vagas. (Confianca minima: 0.6)
+           - confirmation: sinaliza reserva/pagamento. (Confianca minima: 0.75)
+           - closed_won: confirmou reserva explicitamente ("ja paguei", "reservado"). (Confianca minima: 0.85)
+           - closed_lost: desistiu explicitamente ("nao vou querer", "fica pra proxima"). (Confianca minima: 0.85)
+        3. Se nao houver mensagens NOVAS suficientes para mudar de estagio com confianca, mantenha o estagio anterior (se fornecido no JSON anterior) ou retorne "info" se for o inicio.
+        4. NUNCA avance para closed_won/lost sem evidencia explicita de fechamento ou perda.
+        5. "evidence_message_ids" eh OBRIGATORIO. Se estiver vazio, o estagio deve ser considerado invalido ou "info".
 
         Contexto:
         - Canal: #{channel_name}
@@ -99,7 +119,7 @@ module CrmInsights
         • Duvidas recorrentes sobre formas de pagamento
         • Questionamentos frequentes sobre horario de check-in
 
-        Status comercial atual: 🟢 Alta chance de conversao
+        Status comercial atual: 🟢 Alta chance de conversao (Estagio: Disponibilidade)
 
         Potencial do cliente:
         • Perfil recorrente

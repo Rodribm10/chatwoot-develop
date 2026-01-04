@@ -160,6 +160,20 @@
         "TITLE": "History",
         "SHOW": "View history",
         "HIDE": "Hide history"
+      },
+      "FUNNEL": {
+        "TITLE": "Sales Funnel",
+        "TRUST": "{percentage}% trust",
+        "DISCLAIMER": "* Stage automatically inferred by AI",
+        "STEPS": {
+          "INFO": "Info",
+          "PRICE": "Price",
+          "AVAILABILITY": "Availability",
+          "CONFIRMATION": "Confirmation",
+          "CLOSED": "Closed",
+          "CLOSED_WON": "Closed (Won)",
+          "CLOSED_LOST": "Closed (Lost)"
+        }
       }
     },
     "RESOLVE_DROPDOWN": {

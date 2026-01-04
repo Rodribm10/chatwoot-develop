@@ -14,6 +14,7 @@ import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
 import { CONVERSATION_PRIORITY } from 'shared/constants/messages';
 import { BUS_EVENTS } from 'shared/constants/busEvents';
 import { emitter } from 'shared/helpers/mitt';
+import FunnelTimeline from './crm/FunnelTimeline.vue';
 
 const props = defineProps({
   currentChat: {
@@ -154,6 +155,7 @@ const priceSensitivity = computed(
 );
 const confidence = computed(() => structuredData.value?.confidence);
 const nba = computed(() => structuredData.value?.nba || {});
+const funnelData = computed(() => structuredData.value?.funnel || {});
 const generatedAt = computed(() => structuredData.value?.generated_at);
 const agentTip = computed(() => structuredData.value?.agent_tip);
 
@@ -537,6 +539,13 @@ watch(
         </div>
 
         <div class="grid gap-3">
+          <div
+            v-if="funnelData?.stage"
+            class="rounded-xl border border-n-weak overflow-hidden bg-n-alpha-1"
+          >
+            <FunnelTimeline :funnel-data="funnelData" />
+          </div>
+
           <div v-if="intent" class="rounded-xl border border-n-weak p-3">
             <div class="text-xs font-medium text-n-slate-9">
               {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.INTENT') }}

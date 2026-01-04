@@ -166,12 +166,10 @@ const toggleCrmInsights = () => {
       />
       <Button
         v-tooltip.top="t('CONVERSATION.CRM_INSIGHTS.TOGGLE')"
-        ghost
-        slate
-        sm
         icon="i-lucide-brain"
+        class="bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 border border-green-200 dark:border-green-800 !p-2 !h-10 !w-10 !text-xl"
         :class="{
-          'bg-n-alpha-2': isCrmInsightsOpen,
+          'ring-2 ring-green-500 ring-offset-1': isCrmInsightsOpen,
         }"
         @click="toggleCrmInsights"
       />
