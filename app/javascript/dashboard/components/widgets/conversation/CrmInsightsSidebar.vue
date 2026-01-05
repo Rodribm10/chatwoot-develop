@@ -45,6 +45,7 @@ const selectedInsightId = ref(null);
 const isLoading = ref(false);
 const isRefreshing = ref(false);
 const errorMessage = ref('');
+const lastLoadedConversationId = ref(null);
 
 const formatDateTime = value => {
   if (!value) return t('CONVERSATION.CRM_INSIGHTS.NOT_AVAILABLE');
@@ -246,6 +247,9 @@ const loadInsight = async () => {
     errorMessage.value = t('CONVERSATION.CRM_INSIGHTS.LOAD_ERROR');
   } finally {
     isLoading.value = false;
+    if (!errorMessage.value) {
+      lastLoadedConversationId.value = props.currentChat.id;
+    }
   }
 };
 
@@ -320,7 +324,9 @@ watch(
 watch(
   () => isOpen.value,
   open => {
-    if (open) loadInsight();
+    if (open && lastLoadedConversationId.value !== props.currentChat?.id) {
+      loadInsight();
+    }
   }
 );
 </script>

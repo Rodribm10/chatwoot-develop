@@ -21,7 +21,7 @@ module Captain::ChatHelper
 
   def build_chat
     llm_chat = chat(model: @model, temperature: temperature, api_key: api_key)
-    llm_chat = llm_chat.with_params(response_format: { type: 'json_object' })
+    llm_chat = llm_chat.with_params(response_format: { type: 'json_object' }) if @model.to_s.downcase.start_with?('gpt')
 
     llm_chat = setup_tools(llm_chat)
     llm_chat = setup_system_instructions(llm_chat)
@@ -98,15 +98,16 @@ module Captain::ChatHelper
   end
 
   def api_key
-    @assistant&.config&.[]('openai_api_key').presence || ENV.fetch('OPENAI_API_KEY', nil) || ENV.fetch('GEMINI_API_KEY', nil)
+    @assistant&.api_key.presence || @assistant&.config&.[]('openai_api_key').presence || ENV.fetch('OPENAI_API_KEY',
+                                                                                                   nil) || ENV.fetch('GEMINI_API_KEY', nil)
   end
 
-  def with_agent_session(&block)
+  def with_agent_session(&)
     already_active = @agent_session_active
     return yield if already_active
 
     @agent_session_active = true
-    instrument_agent_session(instrumentation_params, &block)
+    instrument_agent_session(instrumentation_params, &)
   ensure
     @agent_session_active = false unless already_active
   end

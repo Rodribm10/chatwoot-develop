@@ -4,10 +4,12 @@ class Api::V1::Accounts::Integrations::HooksController < Api::V1::Accounts::Base
 
   def create
     @hook = Current.account.hooks.create!(permitted_params)
+    sync_llm_integration_settings(@hook)
   end
 
   def update
     @hook.update!(permitted_params.slice(:status, :settings))
+    sync_llm_integration_settings(@hook)
   end
 
   def process_event
@@ -41,5 +43,16 @@ class Api::V1::Accounts::Integrations::HooksController < Api::V1::Accounts::Base
 
   def permitted_params
     params.require(:hook).permit(:app_id, :inbox_id, :status, settings: {})
+  end
+
+  def sync_llm_integration_settings(hook)
+    return unless %w[openai gemini].include?(hook.app_id)
+
+    api_key = hook.settings['api_key'].to_s.strip
+    return if api_key.blank?
+
+    config_key = hook.app_id == 'gemini' ? 'CAPTAIN_GEMINI_API_KEY' : 'CAPTAIN_OPEN_AI_API_KEY'
+    InstallationConfig.find_or_initialize_by(name: config_key).update!(value: api_key)
+    Llm::Config.reset!
   end
 end

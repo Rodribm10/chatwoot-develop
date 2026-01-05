@@ -7,3 +7,6 @@ json.id resource.id
 json.name resource.name
 json.response_guidelines resource.response_guidelines
 json.updated_at resource.updated_at.to_i
+json.llm_provider resource.llm_provider
+json.llm_model resource.llm_model
+json.api_key resource.api_key

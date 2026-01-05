@@ -184,7 +184,26 @@
         "GENERATING": "Gerando...",
         "CANCEL": "Cancelar"
       },
-      "GENERATE_ERROR": "Ocorreu um erro ao processar o conteúdo, por favor, tente novamente"
+      "GENERATE_ERROR": "Ocorreu um erro ao processar o conteúdo, por favor, tente novamente",
+      "TESTER": {
+        "TITLE": "Testar modelos",
+        "DESCRIPTION": "Execute um teste rápido para validar os modelos do provedor.",
+        "CONNECT_REQUIRED": "Conecte a integração para testar modelos.",
+        "CONNECT_BEFORE_TEST": "Conecte a integração antes de testar.",
+        "TESTED_LABEL": "Testado",
+        "VALIDATED_COUNT": "Modelos validadeos: ",
+        "STATUS": {
+           "NOT_TESTED": "Não testado",
+           "OK": "OK (testado)",
+           "FAIL": "Falha",
+           "SUCCESS": "Modelo {model} testado com sucesso",
+           "ERROR": "Falha ao testar modelo"
+        },
+        "BUTTON": {
+           "TESTING": "Testando...",
+           "TEST": "Testar"
+        }
+      }
     },
     "DELETE": {
       "BUTTON_TEXT": "Excluir",
@@ -459,9 +478,14 @@
           "ERROR": "A descrição é obrigatória"
         },
         "PRODUCT_NAME": {
-          "LABEL": "Nome do Produto",
+          "LABEL": "Nome da Empresa/Unidade",
           "PLACEHOLDER": "Digite o nome do produto",
           "ERROR": "O nome do produto é obrigatório"
+        },
+        "ROLE_NAME": {
+          "LABEL": "Nome do Cargo/Função",
+          "PLACEHOLDER": "ex: Recepcionista, Gerente",
+          "ERROR": "O nome do cargo é obrigatório"
         },
         "WELCOME_MESSAGE": {
           "LABEL": "Mensagem de boas-vindas",

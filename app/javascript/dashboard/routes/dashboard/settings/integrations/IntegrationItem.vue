@@ -12,6 +12,10 @@ const props = defineProps({
     type: [String, Number],
     required: true,
   },
+  logo: {
+    type: String,
+    default: '',
+  },
   name: {
     type: String,
     default: '',
@@ -42,6 +46,12 @@ const integrationStatusColor = computed(() =>
   props.enabled ? 'bg-n-teal-9' : 'bg-n-slate-8'
 );
 
+const logoFile = computed(() => props.logo || `${props.id}.png`);
+const logoDarkFile = computed(() => {
+  if (props.logo) return props.logo;
+  return `${props.id}-dark.png`;
+});
+
 const actionURL = computed(() =>
   frontendURL(`accounts/${accountId.value}/settings/integrations/${props.id}`)
 );
@@ -54,11 +64,11 @@ const actionURL = computed(() =>
     <div class="flex items-start justify-between">
       <div class="flex h-12 w-12 mb-4">
         <img
-          :src="`/dashboard/images/integrations/${id}.png`"
+          :src="`/dashboard/images/integrations/${logoFile}`"
           class="max-w-full rounded-md border border-n-weak shadow-sm block dark:hidden bg-n-alpha-3 dark:bg-n-alpha-2"
         />
         <img
-          :src="`/dashboard/images/integrations/${id}-dark.png`"
+          :src="`/dashboard/images/integrations/${logoDarkFile}`"
           class="max-w-full rounded-md border border-n-weak shadow-sm hidden dark:block bg-n-alpha-3 dark:bg-n-alpha-2"
         />
       </div>

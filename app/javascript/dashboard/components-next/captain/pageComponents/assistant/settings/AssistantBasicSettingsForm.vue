@@ -1,8 +1,10 @@
 <script setup>
-import { reactive, computed, watch } from 'vue';
+import { reactive, computed, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useVuelidate } from '@vuelidate/core';
 import { required, minLength } from '@vuelidate/validators';
+import { useMapGetter, useStore } from 'dashboard/composables/store';
+import { LLM_MODELS, LLM_PROVIDERS } from 'dashboard/constants/llmModels';
 
 import Input from 'dashboard/components-next/input/Input.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
@@ -19,11 +21,14 @@ const props = defineProps({
 const emit = defineEmits(['submit']);
 
 const { t } = useI18n();
+const store = useStore();
+const integrationGetter = useMapGetter('integrations/getIntegration');
 
 const initialState = {
   name: '',
   description: '',
   productName: '',
+  roleName: '',
   llmProvider: 'openai',
   llmModel: '',
   apiKey: '',
@@ -60,6 +65,7 @@ const updateStateFromAssistant = assistant => {
   state.name = assistant.name;
   state.description = assistant.description;
   state.productName = config.product_name;
+  state.roleName = config.role_name;
   state.llmProvider = assistant.llm_provider || 'openai';
   state.llmModel = assistant.llm_model || '';
   state.apiKey = assistant.api_key;
@@ -87,6 +93,7 @@ const handleBasicInfoUpdate = async () => {
     config: {
       ...props.assistant.config,
       product_name: state.productName,
+      role_name: state.roleName,
       feature_faq: state.features.conversationFaqs,
       feature_memory: state.features.memories,
       feature_citation: state.features.citations,
@@ -97,10 +104,7 @@ const handleBasicInfoUpdate = async () => {
 };
 
 // Provider options
-const llmProviderOptions = [
-  { value: 'openai', label: 'OpenAI' },
-  { value: 'gemini', label: 'Google Gemini' },
-];
+const llmProviderOptions = LLM_PROVIDERS;
 
 const llmProviderLabel = computed(() => {
   const option = llmProviderOptions.find(
@@ -109,42 +113,19 @@ const llmProviderLabel = computed(() => {
   return option ? option.label : 'Selecione um provedor';
 });
 
+const validatedModelsFor = provider => {
+  const integration = integrationGetter.value(provider) || {};
+  const hook = integration.hooks?.[0];
+  return hook?.settings?.validated_models || [];
+};
+
 // Model options based on provider
 const llmModelOptions = computed(() => {
-  if (state.llmProvider === 'openai') {
-    return [
-      { value: 'gpt-5.2', label: 'GPT-5.2 (Mais Potente)' },
-      { value: 'gpt-5.2-pro', label: 'GPT-5.2 Pro (Premium)' },
-      { value: 'gpt-5.1', label: 'GPT-5.1' },
-      { value: 'gpt-5', label: 'GPT-5' },
-      { value: 'gpt-5-mini', label: 'GPT-5 Mini (Custo/Beneficio)' },
-      { value: 'gpt-5-nano', label: 'GPT-5 Nano (Super Economico)' },
-      { value: 'gpt-4.1', label: 'GPT-4.1 (Estavel)' },
-      { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini (Barato)' },
-      { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Rapido)' },
-    ];
-  }
-  if (state.llmProvider === 'gemini') {
-    return [
-      { value: 'gemini-3-pro', label: 'Gemini 3 Pro (Mais Potente)' },
-      { value: 'gemini-3-flash', label: 'Gemini 3 Flash (Rapido)' },
-      { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro (Equilibrado)' },
-      {
-        value: 'gemini-2.5-flash',
-        label: 'Gemini 2.5 Flash (Rapido/Economico)',
-      },
-      {
-        value: 'gemini-2.5-flash-lite',
-        label: 'Gemini 2.5 Flash Lite (Super Economico)',
-      },
-      { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (Leve)' },
-      {
-        value: 'gemini-2.0-flash-lite',
-        label: 'Gemini 2.0 Flash Lite (Economico)',
-      },
-    ];
-  }
-  return [];
+  const baseOptions = LLM_MODELS[state.llmProvider] || [];
+  const validatedModels = validatedModelsFor(state.llmProvider);
+  if (!validatedModels.length) return baseOptions;
+
+  return baseOptions.filter(option => validatedModels.includes(option.value));
 });
 
 const llmModelLabel = computed(() => {
@@ -154,6 +135,16 @@ const llmModelLabel = computed(() => {
   return option ? option.label : state.llmModel || 'Selecione um modelo';
 });
 
+const modelStatusLabel = computed(() => {
+  const validatedModels = validatedModelsFor(state.llmProvider);
+  if (!state.llmModel) return 'Selecione um modelo';
+  if (!validatedModels.length)
+    return 'Nenhum modelo validado para este provedor';
+  return validatedModels.includes(state.llmModel)
+    ? 'Modelo validado'
+    : 'Modelo nao validado';
+});
+
 watch(
   () => props.assistant,
   newAssistant => {
@@ -161,6 +152,11 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(() => {
+  store.dispatch('integrations/get', 'openai');
+  store.dispatch('integrations/get', 'gemini');
+});
 </script>
 
 <template>
@@ -216,6 +212,9 @@ watch(
             :label="llmModelLabel"
             sub-menu-position="bottom"
           />
+          <p class="text-xs text-n-slate-11">
+            {{ modelStatusLabel }}
+          </p>
         </div>
       </div>
       <Input
@@ -225,6 +224,14 @@ watch(
         type="password"
       />
     </div>
+
+    <Input
+      v-model="state.roleName"
+      :label="t('CAPTAIN.ASSISTANTS.FORM.ROLE_NAME.LABEL')"
+      :placeholder="t('CAPTAIN.ASSISTANTS.FORM.ROLE_NAME.PLACEHOLDER')"
+      :message="formErrors.roleName"
+      :message-type="formErrors.roleName ? 'error' : 'info'"
+    />
 
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-n-slate-12">

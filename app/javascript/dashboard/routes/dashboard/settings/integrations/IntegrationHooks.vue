@@ -6,12 +6,14 @@ import { useIntegrationHook } from 'dashboard/composables/useIntegrationHook';
 import NewHook from './NewHook.vue';
 import SingleIntegrationHooks from './SingleIntegrationHooks.vue';
 import MultipleIntegrationHooks from './MultipleIntegrationHooks.vue';
+import LlmModelTester from './LlmModelTester.vue';
 
 export default {
   components: {
     NewHook,
     SingleIntegrationHooks,
     MultipleIntegrationHooks,
+    LlmModelTester,
   },
   props: {
     integrationId: {
@@ -48,6 +50,12 @@ export default {
     ...mapGetters({ uiFlags: 'integrations/getUIFlags' }),
     showIntegrationHooks() {
       return !this.uiFlags.isFetching && !isEmptyObject(this.integration);
+    },
+    showLlmTester() {
+      return (
+        this.showIntegrationHooks &&
+        ['openai', 'gemini'].includes(this.integrationId)
+      );
     },
     showAddButton() {
       return this.showIntegrationHooks && this.isIntegrationMultiple;
@@ -126,6 +134,10 @@ export default {
           @delete="openDeletePopup"
         />
       </div>
+    </div>
+
+    <div v-if="showLlmTester" class="w-full mt-4">
+      <LlmModelTester :integration-id="integrationId" />
     </div>
 
     <woot-modal v-model:show="showAddHookModal" :on-close="hideAddHookModal">

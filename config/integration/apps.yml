@@ -36,6 +36,8 @@ openai:
         {
           'api_key': { 'type': 'string' },
           'label_suggestion': { 'type': 'boolean' },
+          'model_tests': { 'type': 'object' },
+          'validated_models': { 'type': 'array', 'items': { 'type': 'string' } },
         },
       'required': ['api_key'],
       'additionalProperties': false,
@@ -56,6 +58,35 @@ openai:
       },
     ]
   visible_properties: ['api_key', 'label_suggestion']
+gemini:
+  id: gemini
+  logo: gemini.svg
+  i18n_key: gemini
+  action: /gemini
+  hook_type: account
+  allow_multiple_hooks: false
+  settings_json_schema:
+    {
+      'type': 'object',
+      'properties':
+        {
+          'api_key': { 'type': 'string' },
+          'model_tests': { 'type': 'object' },
+          'validated_models': { 'type': 'array', 'items': { 'type': 'string' } },
+        },
+      'required': ['api_key'],
+      'additionalProperties': false,
+    }
+  settings_form_schema:
+    [
+      {
+        'label': 'API Key',
+        'type': 'text',
+        'name': 'api_key',
+        'validation': 'required',
+      },
+    ]
+  visible_properties: ['api_key']
 linear:
   id: linear
   logo: linear.png

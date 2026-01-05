@@ -95,17 +95,27 @@ export default {
 
 <template>
   <div
-    class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-green-50/50 dark:bg-green-900/10"
+    class="px-4 py-4 bg-gradient-to-br from-violet-50/80 to-indigo-50/50 dark:from-violet-900/20 dark:to-indigo-900/10"
   >
-    <div class="flex items-center justify-between mb-2">
-      <span
-        class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
-      >
-        {{ $t('CONVERSATION.CRM_INSIGHTS.FUNNEL.TITLE') }}
-      </span>
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span
+          class="w-6 h-6 rounded-md bg-violet-100 dark:bg-violet-800/40 flex items-center justify-center"
+        >
+          <i
+            class="i-lucide-git-branch text-sm text-violet-600 dark:text-violet-400"
+          />
+        </span>
+        <span
+          class="text-xs font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-wide"
+        >
+          {{ $t('CONVERSATION.CRM_INSIGHTS.FUNNEL.TITLE') }}
+        </span>
+      </div>
       <span
         v-if="confidence"
-        class="text-[10px] text-slate-400 bg-white/50 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-700"
+        class="text-[10px] text-violet-600 dark:text-violet-300 bg-violet-100 dark:bg-violet-800/40 px-2 py-1 rounded-full font-medium"
       >
         {{
           $t('CONVERSATION.CRM_INSIGHTS.FUNNEL.TRUST', {
@@ -116,10 +126,10 @@ export default {
     </div>
 
     <!-- Timeline Steps -->
-    <div class="flex items-center justify-between relative mb-3 mt-1">
+    <div class="flex items-center justify-between relative mb-4">
       <!-- Connecting Line -->
       <div
-        class="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 dark:bg-slate-800 -z-0"
+        class="absolute top-1/2 left-0 w-full h-0.5 bg-violet-200/50 dark:bg-violet-800/30 -translate-y-1/2"
       />
 
       <!-- Steps -->
@@ -130,7 +140,7 @@ export default {
         class="relative z-10 flex flex-col items-center group cursor-help"
       >
         <div
-          class="w-3 h-3 rounded-full border-2 transition-all duration-300"
+          class="w-4 h-4 rounded-full border-2 transition-all duration-300 shadow-sm"
           :class="getStepClasses(step.key, index)"
         />
       </div>
@@ -138,21 +148,25 @@ export default {
 
     <!-- Current Stage Info -->
     <div
-      class="bg-slate-50 dark:bg-slate-800/50 rounded-md p-2.5 border border-slate-100 dark:border-slate-700/50"
+      class="bg-white/70 dark:bg-violet-900/20 backdrop-blur-sm rounded-xl p-3 border border-violet-200/50 dark:border-violet-700/30 shadow-sm"
     >
-      <div class="flex items-center gap-2 mb-1">
-        <div class="w-2 h-2 rounded-full" :class="statusColorClass" />
-        <span class="text-xs font-bold text-slate-700 dark:text-slate-200">
+      <div class="flex items-center gap-2 mb-1.5">
+        <div class="w-2.5 h-2.5 rounded-full" :class="statusColorClass" />
+        <span
+          class="text-sm font-semibold text-violet-800 dark:text-violet-200"
+        >
           {{ currentStepLabel }}
         </span>
       </div>
       <p
         v-if="reason"
-        class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed"
+        class="text-xs text-n-slate-11 dark:text-n-slate-10 leading-relaxed"
       >
         {{ reason }}
       </p>
-      <div class="mt-2 text-[10px] text-slate-400 italic">
+      <div
+        class="mt-2 pt-2 border-t border-violet-100 dark:border-violet-800/30 text-[10px] text-violet-400 dark:text-violet-500 italic"
+      >
         {{ $t('CONVERSATION.CRM_INSIGHTS.FUNNEL.DISCLAIMER') }}
       </div>
     </div>

@@ -33,6 +33,13 @@ class IntegrationsAPI extends ApiClient {
     return axios.delete(`${this.baseUrl()}/integrations/hooks/${hookId}`);
   }
 
+  testLlmModel({ provider, model }) {
+    return axios.post(`${this.baseUrl()}/integrations/llm_models/test`, {
+      provider,
+      model,
+    });
+  }
+
   connectShopify({ shopDomain }) {
     return axios.post(`${this.baseUrl()}/integrations/shopify/auth`, {
       shop_domain: shopDomain,

@@ -184,7 +184,26 @@
         "GENERATING": "Generating...",
         "CANCEL": "Cancel"
       },
-      "GENERATE_ERROR": "There was an error processing the content, please verify your OpenAI API key and try again"
+      "GENERATE_ERROR": "There was an error processing the content, please verify your OpenAI API key and try again",
+      "TESTER": {
+        "TITLE": "Test Models",
+        "DESCRIPTION": "Run a quick test to validate provider models.",
+        "CONNECT_REQUIRED": "Connect integration to test models.",
+        "CONNECT_BEFORE_TEST": "Connect integration before testing.",
+        "TESTED_LABEL": "Tested",
+        "VALIDATED_COUNT": "Validated models: ",
+        "STATUS": {
+           "NOT_TESTED": "Not tested",
+           "OK": "OK (tested)",
+           "FAIL": "Failed",
+           "SUCCESS": "Model {model} tested successfully",
+           "ERROR": "Failed to test model"
+        },
+        "BUTTON": {
+           "TESTING": "Testing...",
+           "TEST": "Test"
+        }
+      }
     },
     "DELETE": {
       "BUTTON_TEXT": "Delete",
@@ -457,9 +476,14 @@
           "ERROR": "The description is required"
         },
         "PRODUCT_NAME": {
-          "LABEL": "Product Name",
+          "LABEL": "Company/Unit Name",
           "PLACEHOLDER": "Enter product name",
           "ERROR": "The product name is required"
+        },
+        "ROLE_NAME": {
+          "LABEL": "Role Name",
+          "PLACEHOLDER": "e.g., Receptionist, Manager",
+          "ERROR": "The role name is required"
         },
         "WELCOME_MESSAGE": {
           "LABEL": "Welcome Message",

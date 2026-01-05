@@ -319,6 +319,11 @@ Rails.application.routes.draw do
                 post :process_event
               end
             end
+            resource :llm_models, only: [] do
+              collection do
+                post :test
+              end
+            end
             resource :slack, only: [:create, :update, :destroy], controller: 'slack' do
               member do
                 get :list_all_channels

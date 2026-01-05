@@ -224,7 +224,7 @@ export default {
     </ConversationBox>
     <ConversationSidebar v-if="shouldShowSidebar" :current-chat="currentChat" />
     <CrmInsightsSidebar
-      v-if="shouldShowCrmInsights"
+      v-show="shouldShowCrmInsights"
       :current-chat="currentChat"
     />
     <CmdBarConversationSnooze />
