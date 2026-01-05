@@ -337,7 +337,7 @@ watch(
     ]"
   >
     <div
-      class="flex items-center justify-between px-4 py-3 border-b border-n-weak"
+      class="flex items-center justify-between px-4 py-4 bg-gradient-to-r from-violet-50 via-indigo-50 to-violet-50 dark:from-violet-900/20 dark:via-indigo-900/20 dark:to-violet-900/20 border-b border-violet-100 dark:border-violet-800/50"
     >
       <div class="flex items-center gap-2">
         <Button
@@ -348,7 +348,16 @@ watch(
           icon="i-lucide-arrow-left"
           @click="goBackToList"
         />
-        <span class="text-sm font-medium text-n-slate-12">
+        <span
+          class="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-800/40 flex items-center justify-center"
+        >
+          <i
+            class="i-lucide-brain text-lg text-violet-600 dark:text-violet-400"
+          />
+        </span>
+        <span
+          class="text-sm font-semibold text-violet-900 dark:text-violet-100"
+        >
           {{
             viewMode === 'detail'
               ? t('CONVERSATION.CRM_INSIGHTS.LATEST.TITLE')
@@ -490,13 +499,22 @@ watch(
 
       <div v-else-if="hasInsights" class="flex flex-col gap-4">
         <div
-          class="rounded-xl border border-n-weak p-4 space-y-3 bg-n-strong/30"
+          class="rounded-2xl border border-violet-200/50 dark:border-violet-700/30 p-4 space-y-3 bg-white/70 dark:bg-violet-900/10 backdrop-blur-sm shadow-sm"
         >
           <div class="flex items-center justify-between">
-            <div
-              class="text-xs font-semibold text-n-slate-10 uppercase tracking-wide"
-            >
-              {{ t('CONVERSATION.CRM_INSIGHTS.LATEST.TITLE') }}
+            <div class="flex items-center gap-2">
+              <span
+                class="w-6 h-6 rounded-md bg-violet-100 dark:bg-violet-800/40 flex items-center justify-center"
+              >
+                <i
+                  class="i-lucide-sparkles text-sm text-violet-600 dark:text-violet-400"
+                />
+              </span>
+              <span
+                class="text-xs font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-wide"
+              >
+                {{ t('CONVERSATION.CRM_INSIGHTS.LATEST.TITLE') }}
+              </span>
             </div>
             <span class="text-[10px] text-n-slate-10">
               {{
@@ -546,38 +564,57 @@ watch(
             <FunnelTimeline :funnel-data="funnelData" />
           </div>
 
-          <div v-if="intent" class="rounded-xl border border-n-weak p-3">
-            <div class="text-xs font-medium text-n-slate-9">
-              {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.INTENT') }}
+          <div
+            v-if="intent"
+            class="rounded-xl border border-violet-100 dark:border-violet-800/30 p-3 bg-white/50 dark:bg-violet-900/5"
+          >
+            <div class="flex items-center gap-2">
+              <i
+                class="i-lucide-target text-sm text-violet-500 dark:text-violet-400"
+              />
+              <span class="text-xs font-medium text-n-slate-9">
+                {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.INTENT') }}
+              </span>
             </div>
-            <div class="text-sm text-n-slate-12">
+            <div class="text-sm text-n-slate-12 mt-1">
               {{ formatValue(intent) }}
             </div>
           </div>
 
-          <div v-if="urgency" class="rounded-xl border border-n-weak p-3">
-            <div>
-              <div class="text-xs font-medium text-n-slate-9">
+          <div
+            v-if="urgency"
+            class="rounded-xl border border-violet-100 dark:border-violet-800/30 p-3 bg-white/50 dark:bg-violet-900/5"
+          >
+            <div class="flex items-center gap-2">
+              <i
+                class="i-lucide-gauge text-sm text-violet-500 dark:text-violet-400"
+              />
+              <span class="text-xs font-medium text-n-slate-9">
                 {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.URGENCY') }}
-              </div>
-              <div class="text-sm text-n-slate-12">
-                {{ urgencyLabel }}
-              </div>
+              </span>
+            </div>
+            <div class="text-sm text-n-slate-12 mt-1">
+              {{ urgencyLabel }}
             </div>
           </div>
 
           <div
             v-if="preferences.length"
-            class="rounded-xl border border-n-weak p-3"
+            class="rounded-xl border border-violet-100 dark:border-violet-800/30 p-3 bg-white/50 dark:bg-violet-900/5"
           >
-            <div class="text-xs font-medium text-n-slate-9">
-              {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.PREFERENCES') }}
+            <div class="flex items-center gap-2">
+              <i
+                class="i-lucide-heart text-sm text-violet-500 dark:text-violet-400"
+              />
+              <span class="text-xs font-medium text-n-slate-9">
+                {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.PREFERENCES') }}
+              </span>
             </div>
             <div class="flex flex-wrap gap-2 mt-2">
               <span
                 v-for="item in preferences"
                 :key="item"
-                class="text-xs text-n-slate-12 bg-n-strong px-2 py-1 rounded-full"
+                class="text-xs text-violet-700 dark:text-violet-300 bg-violet-100 dark:bg-violet-900/40 px-3 py-1.5 rounded-full font-medium"
               >
                 {{ item }}
               </span>
@@ -586,28 +623,38 @@ watch(
 
           <div
             v-if="priceSensitivity"
-            class="rounded-xl border border-n-weak p-3"
+            class="rounded-xl border border-violet-100 dark:border-violet-800/30 p-3 bg-white/50 dark:bg-violet-900/5"
           >
-            <div class="text-xs font-medium text-n-slate-9">
-              {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.PRICE_SENSITIVITY') }}
+            <div class="flex items-center gap-2">
+              <i
+                class="i-lucide-wallet text-sm text-violet-500 dark:text-violet-400"
+              />
+              <span class="text-xs font-medium text-n-slate-9">
+                {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.PRICE_SENSITIVITY') }}
+              </span>
             </div>
-            <div class="text-sm text-n-slate-12">
+            <div class="text-sm text-n-slate-12 mt-1">
               {{ formatValue(priceSensitivity) }}
             </div>
           </div>
 
           <div
             v-if="frictions.length"
-            class="rounded-xl border border-n-weak p-3"
+            class="rounded-xl border border-amber-200 dark:border-amber-800/30 p-3 bg-amber-50/50 dark:bg-amber-900/5"
           >
-            <div class="text-xs font-medium text-n-slate-9">
-              {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.FRICTIONS') }}
+            <div class="flex items-center gap-2">
+              <i
+                class="i-lucide-alert-triangle text-sm text-amber-500 dark:text-amber-400"
+              />
+              <span class="text-xs font-medium text-n-slate-9">
+                {{ t('CONVERSATION.CRM_INSIGHTS.CARDS.FRICTIONS') }}
+              </span>
             </div>
             <div class="flex flex-wrap gap-2 mt-2">
               <span
                 v-for="item in frictions"
                 :key="item"
-                class="text-xs text-n-slate-12 bg-n-strong px-2 py-1 rounded-full"
+                class="text-xs text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/40 px-3 py-1.5 rounded-full font-medium"
               >
                 {{ item }}
               </span>

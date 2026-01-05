@@ -166,10 +166,11 @@ const toggleCrmInsights = () => {
       />
       <Button
         v-tooltip.top="t('CONVERSATION.CRM_INSIGHTS.TOGGLE')"
-        icon="i-lucide-lightbulb"
-        class="bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 border border-green-200 dark:border-green-800 !p-2 !h-10 !w-10 !text-xl"
+        icon="i-lucide-brain"
+        class="bg-gradient-to-br from-violet-50 to-indigo-50 text-violet-600 hover:from-violet-100 hover:to-indigo-100 dark:from-violet-900/30 dark:to-indigo-900/30 dark:text-violet-400 border border-violet-200/50 dark:border-violet-700/50 !p-2.5 !h-11 !w-11 !text-2xl rounded-xl shadow-sm transition-all duration-200"
         :class="{
-          'ring-2 ring-green-500 ring-offset-1': isCrmInsightsOpen,
+          'ring-2 ring-violet-500 ring-offset-1 animate-pulse':
+            isCrmInsightsOpen,
         }"
         @click="toggleCrmInsights"
       />
