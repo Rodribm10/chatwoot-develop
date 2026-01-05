@@ -132,6 +132,7 @@ RUN apk update && apk add --no-cache \
 COPY --from=node /usr/local/bin/node /usr/local/bin/
 COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
 
+RUN rm -rf public/packs public/assets
 RUN if [ "$RAILS_ENV" != "production" ]; then \
   apk add --no-cache curl \
   && ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
