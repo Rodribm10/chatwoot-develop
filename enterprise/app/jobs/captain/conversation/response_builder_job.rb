@@ -104,6 +104,8 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
       I18n.with_locale(@assistant.account.locale) do
         create_handoff_message
         @conversation.bot_handoff!
+        apply_handoff_side_effects
+        log_handoff_event
         send_out_of_office_message_if_applicable
       end
     end
@@ -121,6 +123,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
   def create_messages
     response_text = inject_preferred_name(@response['response'])
+    response_text = prevent_fake_handoff(response_text)
     validate_message_content!(response_text)
     create_outgoing_message(response_text, agent_name: @response['agent_name'])
   end
@@ -153,6 +156,41 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     return content if content.downcase.include?(preferred_name.downcase)
 
     "#{preferred_name}, #{content}"
+  end
+
+  def prevent_fake_handoff(content)
+    return content if content.blank? || handoff_requested?
+
+    handoff_message = @assistant.config['handoff_message'].presence || I18n.t('conversations.captain.handoff')
+    return content unless content.strip == handoff_message.to_s.strip
+
+    fallback_question
+  end
+
+  def fallback_question
+    'Pode me dizer sua duvida de forma mais especifica?'
+  end
+
+  def apply_handoff_side_effects
+    @conversation.add_labels(['handoff_requested'])
+
+    return if @conversation.assignee.present?
+
+    allowed_agent_ids = @conversation.inbox.member_ids_with_assignment_capacity
+    AutoAssignment::AgentAssignmentService.new(conversation: @conversation, allowed_agent_ids: allowed_agent_ids).perform
+  end
+
+  def log_handoff_event
+    Rails.logger.info(
+      "[CAPTAIN][handoff] request_id=#{extract_request_id} conversation_id=#{@conversation.id} assistant_id=#{@assistant.id} " \
+      "assignee_id=#{@conversation.assignee_id} team_id=#{@conversation.team_id}"
+    )
+  end
+
+  def extract_request_id
+    return RequestStore.store[:request_id] if defined?(RequestStore) && RequestStore.store[:request_id].present?
+
+    Thread.current[:request_id] || 'unknown'
   end
 
   def handle_error(error)

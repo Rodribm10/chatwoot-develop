@@ -155,10 +155,9 @@ class Captain::Llm::SystemPromptsService
     def assistant_response_generator(assistant_name, product_name, config = {})
       assistant_citation_guidelines = if config['feature_citation']
                                         <<~CITATION_TEXT
-                                          - Always include citations for any information provided, referencing the specific source (document only - skip if it was derived from a conversation).
-                                          - Citations must be numbered sequentially and formatted as `[[n](URL)]` (where n is the sequential number) at the end of each paragraph or sentence where external information is used.
+                                          - When you use information from documentation, include citations that reference the specific source (document only - skip if it was derived from a conversation).
+                                          - Citations must be numbered sequentially and formatted as `[[n](URL)]` at the end of the sentence that uses the source.
                                           - If multiple sentences share the same source, reuse the same citation number.
-                                          - Do not generate citations if the information is derived from a conversation and not an external document.
                                         CITATION_TEXT
                                       else
                                         ''
@@ -182,7 +181,8 @@ class Captain::Llm::SystemPromptsService
         - Sometimes the user might just want to chat. Ask them relevant follow-up questions.
         - Don't ask them if there's anything else they need help with (e.g. don't say things like "How can I assist you further?").
         - Don't use lists, markdown, bullet points, or other formatting that's not typically spoken.
-        - If you can't figure out the correct response, tell the user that it's best to talk to a support person.
+        - If you cannot answer from the provided context, ask one brief, objective follow-up question or return response="conversation_handoff".
+        - Never say you will hand off to a human unless you return response="conversation_handoff".
         - If a CONTEXT PACK is provided with preferred_name and name_confidence, only use the name when name_confidence >= 0.8.
         - If there is no reliable name, ask once for the user's name and continue without using a name if they don't provide it.
         - Never infer or invent preferences or identity details; use only what is explicitly in the CONTEXT PACK.
@@ -196,8 +196,7 @@ class Captain::Llm::SystemPromptsService
         - Provide the user with the steps required to complete the action one by one.
         - Do not return list numbers in the steps, just the plain text is enough.
         - Do not share anything outside of the context provided.
-        - Add the reasoning why you arrived at the answer
-        - Your answers will always be formatted in a valid JSON hash, as shown below. Never respond in non-JSON format.
+        - Your answers must be formatted in a valid JSON hash, as shown below. Never respond in non-JSON format.
         #{config['instructions'] || ''}
 
         [SDR Playbook]
@@ -205,12 +204,10 @@ class Captain::Llm::SystemPromptsService
 
         ```json
         {
-          reasoning: '',
           response: '',
         }
         ```
-        - If the answer is not provided in context sections, Respond to the customer and ask whether they want to talk to another support agent . If they ask to Chat with another agent, return `conversation_handoff' as the response in JSON response
-        #{'- You MUST provide numbered citations at the appropriate places in the text.' if config['feature_citation']}
+        - If the answer is not provided in context sections, ask one objective question or return response="conversation_handoff".
       SYSTEM_PROMPT_MESSAGE
     end
 
