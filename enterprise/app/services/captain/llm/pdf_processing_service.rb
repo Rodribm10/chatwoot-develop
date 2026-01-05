@@ -29,8 +29,9 @@ class Captain::Llm::PdfProcessingService < Llm::LegacyBaseOpenAiService
 
     if content.present?
       Rails.logger.info "PDF extracted content for document #{document.id} (chars=#{content.length})"
-      # Update content and ensure openai_file_id is nil to force standard FAQ generation
-      document.update!(content: content, openai_file_id: nil)
+      # Update content and clear openai_file_id in metadata to force standard FAQ generation.
+      metadata = (document.metadata || {}).merge('openai_file_id' => nil)
+      document.update!(content: content, metadata: metadata)
     else
       Rails.logger.warn "PDF extracted content is empty for document #{document.id}"
     end
