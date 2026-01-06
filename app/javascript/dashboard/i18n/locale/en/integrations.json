@@ -501,6 +501,32 @@
           "LABEL": "Instructions",
           "PLACEHOLDER": "Enter instructions for the assistant"
         },
+        "SYSTEM_PROMPT": {
+          "LABEL": "System Prompt",
+          "PLACEHOLDER": "Edit the system prompt used by the assistant",
+          "SAVE_VERSION": "Save version",
+          "REVERT_LAST": "Revert last",
+          "RESTORE_DEFAULT": "Restore default"
+        },
+        "SYSTEM_PROMPT_BLOCKS": {
+          "LABEL": "System prompt blocks",
+          "ADD": "Add block",
+          "EDIT": "Edit",
+          "REMOVE": "Remove",
+          "CANCEL": "Cancel",
+          "DONE": "Done",
+          "VIEW_FULL": "View full prompt",
+          "PREVIEW_TITLE": "Full system prompt",
+          "EDIT_TITLE": "Edit block",
+          "TITLE_LABEL": "Block title",
+          "TITLE_PLACEHOLDER": "e.g., Identity",
+          "CONTENT_LABEL": "Block content",
+          "CONTENT_PLACEHOLDER": "Write the content for this block",
+          "EMPTY_CONTENT": "No content yet",
+          "CHAR_COUNT": "{{count}} / {{limit}} characters",
+          "LIMIT_WARNING": "Prompt length exceeds the limit for this model.",
+          "CLOSE": "Close"
+        },
         "PLAYBOOK": {
           "LABEL": "SDR Playbook",
           "PLACEHOLDER": "Sales script and objection handling...",
@@ -733,6 +759,26 @@
             "SUCCESS": "Scenarios deleted successfully",
             "ERROR": "There was an error deleting scenarios, please try again."
           }
+        }
+      }
+      ,
+      "SKILLS": {
+        "HEADER": "Assistant Skills",
+        "DESCRIPTION": "Configure the capabilities and tools available to this assistant.",
+        "SAVING": "Saving...",
+        "CONFIGURATION": "Configuration",
+        "EMPTY_STATE": "No skills available for this assistant.",
+        "WEBHOOK_URL": {
+          "LABEL": "Webhook URL",
+          "PLACEHOLDER": "https://oxpi.com.br/api/..."
+        },
+        "PLUG_PLAY_ID": {
+          "LABEL": "Plug&Play Client ID",
+          "PLACEHOLDER": "Client ID"
+        },
+        "PLUG_PLAY_TOKEN": {
+          "LABEL": "Plug&Play Token",
+          "PLACEHOLDER": "Token"
         }
       }
     },

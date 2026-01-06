@@ -13,7 +13,7 @@ const onClick = () => {
   <EmptyStateLayout
     :title="$t('CAPTAIN.CUSTOM_TOOLS.EMPTY_STATE.TITLE')"
     :subtitle="$t('CAPTAIN.CUSTOM_TOOLS.EMPTY_STATE.SUBTITLE')"
-    :action-perms="['administrator']"
+    :action-perms="[]"
   >
     <template #empty-state-item>
       <div class="min-h-[600px]" />
