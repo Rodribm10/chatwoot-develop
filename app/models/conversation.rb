@@ -161,6 +161,13 @@ class Conversation < ApplicationRecord
 
   def bot_handoff!
     open!
+    account.labels.find_or_create_by!(title: 'desligar_ia') do |label|
+      label.description = 'Desliga a IA para este contato/conversa.'
+      label.color = '#f59e0b'
+      label.show_on_sidebar = true
+    end
+    contact&.add_labels(['desligar_ia'])
+    add_labels(['desligar_ia'])
     dispatcher_dispatch(CONVERSATION_BOT_HANDOFF)
   end
 

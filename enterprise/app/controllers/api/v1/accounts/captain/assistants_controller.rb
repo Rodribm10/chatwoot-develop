@@ -48,17 +48,18 @@ class Api::V1::Accounts::Captain::AssistantsController < Api::V1::Accounts::Base
   end
 
   def assistant_params
-    permitted = params.require(:assistant).permit(:name, :description, :llm_provider, :llm_model, :api_key,
-                                                  config: [
-                                                    :product_name, :role_name, :feature_faq, :feature_memory, :feature_citation,
-                                                    :welcome_message, :handoff_message, :resolution_message,
-                                                    :instructions, :temperature
-                                                  ])
+    assistant_payload = params[:assistant].presence || params
+    permitted = assistant_payload.permit(:name, :description, :llm_provider, :llm_model, :api_key,
+                                         config: [
+                                           :product_name, :role_name, :feature_faq, :feature_memory, :feature_citation,
+                                           :welcome_message, :handoff_message, :resolution_message,
+                                           :instructions, :temperature, :playbook, :distance_threshold, :max_rag_results
+                                         ])
 
     # Handle array parameters separately to allow partial updates
-    permitted[:response_guidelines] = params[:assistant][:response_guidelines] if params[:assistant].key?(:response_guidelines)
+    permitted[:response_guidelines] = assistant_payload[:response_guidelines] if assistant_payload.key?(:response_guidelines)
 
-    permitted[:guardrails] = params[:assistant][:guardrails] if params[:assistant].key?(:guardrails)
+    permitted[:guardrails] = assistant_payload[:guardrails] if assistant_payload.key?(:guardrails)
 
     permitted
   end

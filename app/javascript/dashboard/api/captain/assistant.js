@@ -26,6 +26,18 @@ class CaptainAssistant extends ApiClient {
     return axios.get(`${this.url}/${assistantId}/tools`);
   }
 
+  create(data) {
+    return axios.post(this.url, {
+      assistant: data,
+    });
+  }
+
+  update(id, data) {
+    return axios.patch(`${this.url}/${id}`, {
+      assistant: data,
+    });
+  }
+
   updateTool(assistantId, toolKey, config) {
     return axios.patch(`${this.url}/${assistantId}/tools/${toolKey}`, config);
   }

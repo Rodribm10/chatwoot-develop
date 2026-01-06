@@ -63,8 +63,9 @@ const updateStateFromAssistant = assistant => {
   state.resolutionMessage = config.resolution_message || '';
   state.instructions = config.instructions || '';
   state.playbook = config.playbook || '';
-  state.temperature = config.temperature || 1;
-  state.distanceThreshold = config.distance_threshold || 0.35;
+  state.temperature = config.temperature !== undefined ? config.temperature : 1;
+  state.distanceThreshold =
+    config.distance_threshold !== undefined ? config.distance_threshold : 0.35;
   state.maxRagResults = config.max_rag_results || 3;
 };
 
@@ -88,7 +89,7 @@ const handleSystemMessagesUpdate = async () => {
       ...props.assistant.config,
       handoff_message: state.handoffMessage,
       resolution_message: state.resolutionMessage,
-      temperature: state.temperature || 1,
+      temperature: state.temperature !== undefined ? state.temperature : 1,
       playbook: state.playbook,
       distance_threshold: state.distanceThreshold,
       max_rag_results: state.maxRagResults,
@@ -166,7 +167,9 @@ watch(
             step="0.1"
             class="w-full h-1.5 bg-n-slate-3 rounded-lg appearance-none cursor-pointer"
           />
-          <span class="text-sm font-medium text-n-slate-12 w-8 text-right">{{ state.temperature }}</span>
+          <span class="text-sm font-medium text-n-slate-12 w-8 text-right">{{
+            state.temperature
+          }}</span>
         </div>
         <p class="text-xs text-n-slate-11 italic">
           {{ t('CAPTAIN.ASSISTANTS.FORM.TEMPERATURE.DESCRIPTION') }}
@@ -186,7 +189,9 @@ watch(
             step="0.01"
             class="w-full h-1.5 bg-n-slate-3 rounded-lg appearance-none cursor-pointer"
           />
-          <span class="text-sm font-medium text-n-slate-12 w-8 text-right">{{ state.distanceThreshold }}</span>
+          <span class="text-sm font-medium text-n-slate-12 w-8 text-right">{{
+            state.distanceThreshold
+          }}</span>
         </div>
         <p class="text-xs text-n-slate-11 italic">
           {{ t('CAPTAIN.ASSISTANTS.FORM.DISTANCE_THRESHOLD.DESCRIPTION') }}
