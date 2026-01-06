@@ -1,8 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, nextTick } from 'vue';
 import { useMapGetter, useStore } from 'dashboard/composables/store';
-import { FEATURE_FLAGS } from 'dashboard/featureFlags';
-
 import PageLayout from 'dashboard/components-next/captain/PageLayout.vue';
 import CaptainPaywall from 'dashboard/components-next/captain/pageComponents/Paywall.vue';
 import CustomToolsPageEmptyState from 'dashboard/components-next/captain/pageComponents/emptyStates/CustomToolsPageEmptyState.vue';
@@ -80,13 +78,11 @@ onMounted(() => {
   <PageLayout
     :header-title="$t('CAPTAIN.CUSTOM_TOOLS.HEADER')"
     :button-label="$t('CAPTAIN.CUSTOM_TOOLS.ADD_NEW')"
-    :button-policy="['administrator']"
     :total-count="customToolsMeta.totalCount"
     :current-page="customToolsMeta.page"
     :show-pagination-footer="!isFetching && !!customTools.length"
     :is-fetching="isFetching"
     :is-empty="!customTools.length"
-    :feature-flag="FEATURE_FLAGS.CAPTAIN_V2"
     :show-know-more="false"
     @update:current-page="onPageChange"
     @click="openCreateDialog"

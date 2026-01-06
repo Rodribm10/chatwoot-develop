@@ -503,6 +503,32 @@
           "LABEL": "Instruções",
           "PLACEHOLDER": "Digite as instruções para o assistente"
         },
+        "SYSTEM_PROMPT": {
+          "LABEL": "System Prompt",
+          "PLACEHOLDER": "Edite o system prompt usado pelo assistente",
+          "SAVE_VERSION": "Salvar versão",
+          "REVERT_LAST": "Reverter última",
+          "RESTORE_DEFAULT": "Restaurar padrão"
+        },
+        "SYSTEM_PROMPT_BLOCKS": {
+          "LABEL": "Blocos do system prompt",
+          "ADD": "Adicionar bloco",
+          "EDIT": "Editar",
+          "REMOVE": "Remover",
+          "CANCEL": "Cancelar",
+          "DONE": "Concluir",
+          "VIEW_FULL": "Ver prompt completo",
+          "PREVIEW_TITLE": "System prompt completo",
+          "EDIT_TITLE": "Editar bloco",
+          "TITLE_LABEL": "Título do bloco",
+          "TITLE_PLACEHOLDER": "ex.: Identidade",
+          "CONTENT_LABEL": "Conteúdo do bloco",
+          "CONTENT_PLACEHOLDER": "Escreva o conteúdo deste bloco",
+          "EMPTY_CONTENT": "Sem conteúdo",
+          "CHAR_COUNT": "{{count}} / {{limit}} caracteres",
+          "LIMIT_WARNING": "O tamanho do prompt excede o limite para este modelo.",
+          "CLOSE": "Fechar"
+        },
         "FEATURES": {
           "TITLE": "Funcionalidades",
           "ALLOW_CONVERSATION_FAQS": "Gerar perguntas frequentes a partir de conversas resolvidas",
@@ -713,6 +739,26 @@
           }
         }
       }
+      ,
+      "SKILLS": {
+        "HEADER": "Skills do assistente",
+        "DESCRIPTION": "Configure as capacidades e ferramentas disponíveis para este assistente.",
+        "SAVING": "Salvando...",
+        "CONFIGURATION": "Configuração",
+        "EMPTY_STATE": "Nenhuma skill disponível para este assistente.",
+        "WEBHOOK_URL": {
+          "LABEL": "Webhook URL",
+          "PLACEHOLDER": "https://oxpi.com.br/api/..."
+        },
+        "PLUG_PLAY_ID": {
+          "LABEL": "Plug&Play Client ID",
+          "PLACEHOLDER": "Client ID"
+        },
+        "PLUG_PLAY_TOKEN": {
+          "LABEL": "Plug&Play Token",
+          "PLACEHOLDER": "Token"
+        }
+      }
     },
     "DOCUMENTS": {
       "HEADER": "Documentos",
@@ -772,8 +818,8 @@
       }
     },
     "CUSTOM_TOOLS": {
-      "HEADER": "Ferramentas",
-      "ADD_NEW": "Criar ferramenta",
+      "HEADER": "Poderes",
+      "ADD_NEW": "Criar poder",
       "EMPTY_STATE": {
         "TITLE": "Não há ferramentas personalizadas disponíveis",
         "SUBTITLE": "Crie ferramentas personalizadas para conectar com APIs e serviços externos, permitindo obter dados e agir por você.",
