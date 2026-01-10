@@ -31,7 +31,9 @@ if (props.tool.param_schema) {
   });
 }
 
-const hasParams = computed(() => props.tool.param_schema && props.tool.param_schema.length > 0);
+const hasParams = computed(
+  () => props.tool.param_schema && props.tool.param_schema.length > 0
+);
 
 const handleClose = () => {
   emit('close');
@@ -41,7 +43,10 @@ const runTest = async () => {
   isLoading.value = true;
   testResult.value = null;
   try {
-    const { data } = await CaptainCustomToolsAPI.test(props.tool.id, testParams.value);
+    const { data } = await CaptainCustomToolsAPI.test(
+      props.tool.id,
+      testParams.value
+    );
     testResult.value = data;
   } catch (error) {
     useAlert(t('CAPTAIN.CUSTOM_TOOLS.TEST.ERROR_MESSAGE'));
@@ -64,12 +69,19 @@ defineExpose({ dialogRef });
   >
     <div class="flex flex-col gap-6">
       <!-- Params Section -->
-      <div v-if="hasParams" class="flex flex-col gap-4 p-4 border rounded-lg border-n-slate-3 bg-n-slate-1">
+      <div
+        v-if="hasParams"
+        class="flex flex-col gap-4 p-4 border rounded-lg border-n-slate-3 bg-n-slate-1"
+      >
         <h4 class="text-sm font-medium text-n-slate-12">
           {{ $t('CAPTAIN.CUSTOM_TOOLS.TEST.PARAMETERS') }}
         </h4>
         <div class="grid grid-cols-2 gap-4">
-          <div v-for="param in tool.param_schema" :key="param.name" class="flex flex-col gap-1">
+          <div
+            v-for="param in tool.param_schema"
+            :key="param.name"
+            class="flex flex-col gap-1"
+          >
             <Label :label="param.name" :required="param.required" />
             <Input
               v-model="testParams[param.name]"
@@ -83,7 +95,11 @@ defineExpose({ dialogRef });
       <!-- Action Button -->
       <div class="flex justify-end">
         <Button
-          :label="isLoading ? $t('CAPTAIN.CUSTOM_TOOLS.TEST.TESTING') : $t('CAPTAIN.CUSTOM_TOOLS.TEST.RUN_TEST')"
+          :label="
+            isLoading
+              ? $t('CAPTAIN.CUSTOM_TOOLS.TEST.TESTING')
+              : $t('CAPTAIN.CUSTOM_TOOLS.TEST.RUN_TEST')
+          "
           :icon="isLoading ? '' : 'i-lucide-play'"
           color="blue"
           :disabled="isLoading"
@@ -106,7 +122,12 @@ defineExpose({ dialogRef });
                 : 'bg-red-100 text-red-700'
             "
           >
-            {{ testResult.status }} {{ testResult.success ? 'OK' : 'Fail' }}
+            {{ testResult.status }}
+            {{
+              testResult.success
+                ? $t('INTEGRATION_SETTINGS.OPEN_AI.TESTER.STATUS.OK')
+                : $t('INTEGRATION_SETTINGS.OPEN_AI.TESTER.STATUS.FAIL')
+            }}
           </span>
           <span class="text-xs text-n-slate-11">
             {{ $t('CAPTAIN.CUSTOM_TOOLS.TEST.RESPONSE_TIME', { ms: 'N/A' }) }}
@@ -120,7 +141,9 @@ defineExpose({ dialogRef });
           </span>
           <pre
             class="p-3 overflow-x-auto text-xs rounded bg-n-slate-2 text-n-slate-11 font-mono max-h-32"
-          >{{ JSON.stringify(testResult.headers, null, 2) }}</pre>
+          >
+            {{ JSON.stringify(testResult.headers, null, 2) }}
+          </pre>
         </div>
 
         <!-- Body -->
@@ -130,11 +153,15 @@ defineExpose({ dialogRef });
           </span>
           <pre
             class="p-3 overflow-x-auto text-xs rounded bg-n-slate-2 text-n-slate-12 font-mono max-h-96"
-          >{{ testResult.body }}</pre>
+          >
+            {{ testResult.body }}
+          </pre>
         </div>
       </div>
     </div>
 
-    <template #footer />
+    <template #footer>
+      <!-- Footer content -->
+    </template>
   </Dialog>
 </template>
