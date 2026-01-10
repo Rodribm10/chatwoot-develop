@@ -525,7 +525,7 @@
           "CONTENT_LABEL": "Conteúdo do bloco",
           "CONTENT_PLACEHOLDER": "Escreva o conteúdo deste bloco",
           "EMPTY_CONTENT": "Sem conteúdo",
-          "CHAR_COUNT": "{{count}} / {{limit}} caracteres",
+          "CHAR_COUNT": "{count} / {limit} caracteres",
           "LIMIT_WARNING": "O tamanho do prompt excede o limite para este modelo.",
           "CLOSE": "Fechar"
         },

@@ -523,7 +523,7 @@
           "CONTENT_LABEL": "Block content",
           "CONTENT_PLACEHOLDER": "Write the content for this block",
           "EMPTY_CONTENT": "No content yet",
-          "CHAR_COUNT": "{{count}} / {{limit}} characters",
+          "CHAR_COUNT": "{count} / {limit} characters",
           "LIMIT_WARNING": "Prompt length exceeds the limit for this model.",
           "CLOSE": "Close"
         },
