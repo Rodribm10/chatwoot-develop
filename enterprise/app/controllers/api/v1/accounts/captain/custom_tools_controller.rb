@@ -1,7 +1,7 @@
 class Api::V1::Accounts::Captain::CustomToolsController < Api::V1::Accounts::BaseController
   before_action :current_account
   before_action -> { check_authorization(Captain::CustomTool) }
-  before_action :set_custom_tool, only: [:show, :update, :destroy]
+  before_action :set_custom_tool, only: [:show, :update, :destroy, :test]
 
   def index
     @custom_tools = account_custom_tools.enabled
@@ -20,6 +20,14 @@ class Api::V1::Accounts::Captain::CustomToolsController < Api::V1::Accounts::Bas
   def destroy
     @custom_tool.destroy
     head :no_content
+  end
+
+  def test
+    raise Pundit::NotAuthorizedError unless Current.user.administrator?
+
+    tool_instance = @custom_tool.tool(nil)
+    result = tool_instance.test_perform(nil, **params.fetch(:tool_params, {}).permit!)
+    render json: result
   end
 
   private

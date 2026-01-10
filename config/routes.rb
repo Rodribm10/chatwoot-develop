@@ -71,7 +71,9 @@ Rails.application.routes.draw do
             resources :copilot_threads, only: [:index, :create] do
               resources :copilot_messages, only: [:index, :create]
             end
-            resources :custom_tools
+            resources :custom_tools do
+              post :test, on: :member
+            end
             resources :documents, only: [:index, :show, :create, :destroy]
           end
           # Jasmine AI Routes (SDR Agent)

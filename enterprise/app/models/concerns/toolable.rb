@@ -44,20 +44,28 @@ module Concerns::Toolable
   end
 
   def build_auth_headers
-    return {} if auth_none?
+    headers = {}
 
+    # 1. Base Auth Headers (if any)
     case auth_type
     when 'bearer'
-      { 'Authorization' => "Bearer #{auth_config['token']}" }
+      headers['Authorization'] = "Bearer #{auth_config['token']}"
     when 'api_key'
-      if auth_config['location'] == 'header'
-        { auth_config['name'] => auth_config['key'] }
-      else
-        {}
-      end
-    else
-      {}
+      headers[auth_config['name']] = auth_config['key'] if auth_config['location'] == 'header'
     end
+
+    # 2. Custom Mixin Headers (from auth_config['headers'])
+    # Priority: Custom headers overwrite generated headers if conflict (though rare)
+    # Normalization: We trust the keys as provided or we could downcase them,
+    # but Net::HTTP handles headers case-insensitively usually.
+    # To avoid duplicates like 'Authorization' and 'authorization', we could normalize keys.
+    if auth_config['headers'].is_a?(Hash)
+      auth_config['headers'].each do |key, value|
+        headers[key] = value
+      end
+    end
+
+    headers
   end
 
   def build_basic_auth_credentials

@@ -5,6 +5,7 @@ import PageLayout from 'dashboard/components-next/captain/PageLayout.vue';
 import CaptainPaywall from 'dashboard/components-next/captain/pageComponents/Paywall.vue';
 import CustomToolsPageEmptyState from 'dashboard/components-next/captain/pageComponents/emptyStates/CustomToolsPageEmptyState.vue';
 import CreateCustomToolDialog from 'dashboard/components-next/captain/pageComponents/customTool/CreateCustomToolDialog.vue';
+import ToolTestDialog from 'dashboard/components-next/captain/pageComponents/customTool/ToolTestDialog.vue';
 import CustomToolCard from 'dashboard/components-next/captain/pageComponents/customTool/CustomToolCard.vue';
 import DeleteDialog from 'dashboard/components-next/captain/pageComponents/DeleteDialog.vue';
 
@@ -17,6 +18,7 @@ const customToolsMeta = useMapGetter('captainCustomTools/getMeta');
 
 const createDialogRef = ref(null);
 const deleteDialogRef = ref(null);
+const toolTestDialogRef = ref(null);
 const selectedTool = ref(null);
 const dialogType = ref('');
 
@@ -38,6 +40,12 @@ const handleEdit = tool => {
   nextTick(() => createDialogRef.value.dialogRef.open());
 };
 
+const handleTest = tool => {
+  dialogType.value = 'test';
+  selectedTool.value = tool;
+  nextTick(() => toolTestDialogRef.value.dialogRef.open());
+};
+
 const handleDelete = tool => {
   selectedTool.value = tool;
   nextTick(() => deleteDialogRef.value.dialogRef.open());
@@ -49,6 +57,8 @@ const handleAction = ({ action, id }) => {
     handleEdit(tool);
   } else if (action === 'delete') {
     handleDelete(tool);
+  } else if (action === 'test') {
+    handleTest(tool);
   }
 };
 
@@ -117,10 +127,17 @@ onMounted(() => {
   </PageLayout>
 
   <CreateCustomToolDialog
-    v-if="dialogType"
+    v-if="['create', 'edit'].includes(dialogType)"
     ref="createDialogRef"
     :type="dialogType"
     :selected-tool="selectedTool"
+    @close="handleDialogClose"
+  />
+
+  <ToolTestDialog
+    v-if="dialogType === 'test'"
+    ref="toolTestDialogRef"
+    :tool="selectedTool"
     @close="handleDialogClose"
   />
 

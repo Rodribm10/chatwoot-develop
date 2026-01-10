@@ -22,7 +22,40 @@ class Captain::Tools::HttpTool < Agents::Tool
     'An error occurred while executing the request'
   end
 
+  def test_perform(tool_context, **params)
+    url = @custom_tool.build_request_url(params)
+    body = @custom_tool.build_request_body(params)
+
+    # Execute request
+    response = execute_http_request(url, body, tool_context)
+
+    # Return structured data for test UI
+    {
+      success: response.is_a?(Net::HTTPSuccess),
+      status: response.code.to_i,
+      headers: mask_sensitive_headers(response.each_header.to_h),
+      body: response.body # Frontend should truncated if too large
+    }
+  rescue StandardError => e
+    {
+      success: false,
+      error: e.message,
+      status: 500
+    }
+  end
+
   private
+
+  def mask_sensitive_headers(headers)
+    sensitive_keys = %w[authorization plug-play-token plug-play-id x-api-key]
+    headers.each_with_object({}) do |(k, v), h|
+      h[k] = if sensitive_keys.include?(k.downcase)
+               '********'
+             else
+               v
+             end
+    end
+  end
 
   PRIVATE_IP_RANGES = [
     IPAddr.new('127.0.0.0/8'),    # IPv4 Loopback
@@ -55,7 +88,14 @@ class Captain::Tools::HttpTool < Agents::Tool
     apply_authentication(request)
     apply_metadata_headers(request, tool_context)
 
+    Rails.logger.info "[HttpTool] Requesting #{request.method} #{uri}"
+    Rails.logger.info "[HttpTool] Headers: #{request.each_header.to_h}"
+    Rails.logger.info "[HttpTool] Body: #{request.body}" if request.body
+
     response = http.request(request)
+
+    Rails.logger.info "[HttpTool] Response Status: #{response.code}"
+    Rails.logger.info "[HttpTool] Response Body: #{response.body}"
 
     raise "HTTP request failed with status #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 

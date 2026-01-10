@@ -44,6 +44,12 @@ const [showActionsDropdown, toggleDropdown] = useToggle();
 
 const menuItems = computed(() => [
   {
+    label: t('CAPTAIN.CUSTOM_TOOLS.OPTIONS.TEST_TOOL'),
+    value: 'test',
+    action: 'test',
+    icon: 'i-lucide-play',
+  },
+  {
     label: t('CAPTAIN.CUSTOM_TOOLS.OPTIONS.EDIT_TOOL'),
     value: 'edit',
     action: 'edit',
