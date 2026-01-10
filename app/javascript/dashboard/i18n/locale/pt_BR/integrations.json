@@ -533,7 +533,8 @@
           "TITLE": "Funcionalidades",
           "ALLOW_CONVERSATION_FAQS": "Gerar perguntas frequentes a partir de conversas resolvidas",
           "ALLOW_MEMORIES": "Capture os principais detalhes como memórias de interações do cliente.",
-          "ALLOW_CITATIONS": "Incluir fonte de citações nas respostas"
+          "ALLOW_CITATIONS": "Incluir fonte de citações nas respostas",
+          "ALLOW_SENTIMENT_HANDOFF": "Transferir automaticamente para humano em caso de sentimento negativo (raiva/frustração)"
         }
       },
       "EDIT": {
@@ -709,6 +710,10 @@
                 "LABEL": "Como lidar",
                 "PLACEHOLDER": "Descreva como e onde este cenário será utilizado",
                 "ERROR": "Conteúdo do cenário é obrigatório"
+              },
+              "TOOLS": {
+                "LABEL": "Capacidades / Poderes",
+                "PLACEHOLDER": "Selecione os poderes que este sub-agente pode usar"
               },
               "CREATE": "Criar",
               "CANCEL": "Cancelar"

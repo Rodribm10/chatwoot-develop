@@ -43,6 +43,9 @@ module Llm::Config
     end
 
     def system_api_key
+      # Prioritize ENV key to avoid overwriting with stale DB config
+      return nil if ENV['OPENAI_API_KEY'].present?
+
       InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_API_KEY')&.value
     end
 

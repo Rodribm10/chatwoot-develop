@@ -18,12 +18,19 @@ class Captain::Assistant::AgentRunnerService
   end
 
   def generate_response(message_history: [])
+    sanitize_global_api_key
     agents = build_and_wire_agents
     context = build_context(message_history)
     message_to_process = extract_last_user_message(message_history)
     runner = Agents::Runner.with_agents(*agents)
     runner = add_callbacks_to_runner(runner) if @callbacks.any?
-    result = runner.run(message_to_process, context: context, max_turns: 100)
+
+    puts "[DEBUG V2] Running with agents: #{agents.map(&:name).join(', ')}"
+
+    # Use assistant's API key if present, otherwise fallback to global config
+    result = with_assistant_api_key do
+      runner.run(message_to_process, context: context, max_turns: 100)
+    end
 
     process_agent_result(result)
   rescue StandardError => e
@@ -39,7 +46,15 @@ class Captain::Assistant::AgentRunnerService
   private
 
   def build_context(message_history)
-    conversation_history = message_history.map do |msg|
+    # Remove the last user message from history because it will be passed as the main message to the runner
+    last_user_index = message_history.rindex { |msg| msg[:role] == 'user' || msg[:role] == :user }
+    filtered_history = if last_user_index
+                         message_history[0...last_user_index] + message_history[(last_user_index + 1)..-1]
+                       else
+                         message_history
+                       end
+
+    conversation_history = filtered_history.map do |msg|
       content = extract_text_from_content(msg[:content])
 
       {
@@ -56,7 +71,8 @@ class Captain::Assistant::AgentRunnerService
   end
 
   def extract_last_user_message(message_history)
-    last_user_msg = message_history.reverse.find { |msg| msg[:role] == 'user' }
+    last_user_msg = message_history.reverse.find { |msg| msg[:role] == 'user' || msg[:role] == :user }
+    return '' unless last_user_msg
 
     extract_text_from_content(last_user_msg[:content])
   end
@@ -74,22 +90,56 @@ class Captain::Assistant::AgentRunnerService
   # Response formatting methods
   def process_agent_result(result)
     Rails.logger.info "[Captain V2] Agent result: #{result.inspect}"
-    response = format_response(result.output)
+
+    # If the LLM returned an error (like Unauthorized), show a user-friendly message
+    if result.error.present?
+      Rails.logger.error "[Captain V2] LLM Error: #{result.error.message}"
+      return {
+        'response' => 'Desculpe, estou com dificuldades técnicas no momento. Por favor, tente novamente em alguns instantes.',
+        'reasoning' => "LLM Error: #{result.error.message}"
+      }
+    end
+
+    # Extract response from direct output or history
+    res_data = if result.output.present?
+                 result.output
+               else
+                 # Look into result.messages for the last assistant response content
+                 last_msg = result.messages.reverse.find { |m| m[:role] == :assistant && m[:content].present? }
+                 { 'response' => last_msg ? last_msg[:content] : nil }
+               end
+
+    response = format_response(res_data)
 
     # Extract agent name from context
     response['agent_name'] = result.context&.dig(:current_agent)
-
     response
   end
 
   def format_response(output)
-    return output.with_indifferent_access if output.is_a?(Hash)
+    # If the output is an agent object, it means a handoff happened
+    if output.respond_to?(:name)
+      return {
+        'response' => "Transferindo para o setor de #{output.name.humanize}... Um momento.",
+        'reasoning' => "Handoff para #{output.name}"
+      }
+    end
 
-    # Fallback for backwards compatibility
-    {
-      'response' => output.to_s,
-      'reasoning' => 'Processed by agent'
-    }
+    res = if output.is_a?(Hash)
+            output.with_indifferent_access
+          elsif output.respond_to?(:to_h)
+            output.to_h.with_indifferent_access
+          else
+            { 'response' => output.to_s }
+          end
+
+    # Critical: Ensure response is not empty
+    if res['response'].blank?
+      res['response'] = 'Entendi seu pedido. Como posso ajudar com isso especificamente?'
+      res['reasoning'] ||= 'IA gerou resposta vazia, aplicando fallback.'
+    end
+
+    res
   end
 
   def error_response(error_message)
@@ -114,14 +164,34 @@ class Captain::Assistant::AgentRunnerService
     state
   end
 
+  def with_assistant_api_key
+    api_key = @assistant.api_key.presence
+    original_key = RubyLLM.config.openai_api_key
+
+    if api_key.present?
+      RubyLLM.config.openai_api_key = api_key
+      Rails.logger.info "[Captain V2] Using assistant API key: #{api_key[0..15]}..."
+    end
+
+    yield
+  ensure
+    # Restore original key after the block
+    RubyLLM.config.openai_api_key = original_key if api_key.present?
+  end
+
   def build_and_wire_agents
-    assistant_agent = @assistant.agent
-    scenario_agents = @assistant.scenarios.enabled.map(&:agent)
+    # In Delegation Mode, we only use the orchestrator agent.
+    # The sub-agents (scenarios) are now dynamic tools of this agent.
+    [@assistant.agent]
+  end
 
-    assistant_agent.register_handoffs(*scenario_agents) if scenario_agents.any?
-    scenario_agents.each { |scenario_agent| scenario_agent.register_handoffs(assistant_agent) }
+  def sanitize_global_api_key
+    # Force sanitization of the global gem config just in case it's dirty
+    raw_key = InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_API_KEY')&.value.presence || ENV.fetch('OPENAI_API_KEY', nil)
+    return unless raw_key.present?
 
-    [assistant_agent] + scenario_agents
+    sanitized_key = raw_key.to_s.gsub(/\.(png|jpg|jpeg|gif|webp|svg|@2x|@3x).*$/i, '').strip
+    Agents.configure { |config| config.openai_api_key = sanitized_key }
   end
 
   def add_callbacks_to_runner(runner)

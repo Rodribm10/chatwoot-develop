@@ -5,11 +5,13 @@ import { useToggle } from '@vueuse/core';
 import { useVuelidate } from '@vuelidate/core';
 import { vOnClickOutside } from '@vueuse/components';
 import { required, minLength } from '@vuelidate/validators';
+import { useMapGetter } from 'dashboard/composables/store';
 
 import Input from 'dashboard/components-next/input/Input.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
 import Editor from 'dashboard/components-next/Editor/Editor.vue';
+import TagMultiSelectComboBox from 'dashboard/components-next/combobox/TagMultiSelectComboBox.vue';
 
 const emit = defineEmits(['add']);
 
@@ -22,6 +24,16 @@ const state = reactive({
   title: '',
   description: '',
   instruction: '',
+  tools: [],
+});
+
+const allTools = useMapGetter('captainTools/getRecords');
+
+const toolOptions = computed(() => {
+  return allTools.value.map(tool => ({
+    label: tool.title,
+    value: tool.id,
+  }));
 });
 
 const rules = {
@@ -56,6 +68,7 @@ const resetState = () => {
     title: '',
     description: '',
     instruction: '',
+    tools: [],
   });
 };
 
@@ -94,7 +107,7 @@ const onClickCancel = () => {
         {{ t(`CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.TITLE`) }}
       </h3>
 
-      <div class="flex flex-col gap-4">
+      <div class="max-h-[31.25rem] overflow-y-auto flex flex-col gap-4">
         <Input
           v-model="state.title"
           :label="t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TITLE.LABEL')"
@@ -134,6 +147,18 @@ const onClickCancel = () => {
           :show-character-count="false"
           enable-captain-tools
         />
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-medium text-n-slate-11">
+            {{ t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TOOLS.LABEL') }}
+          </label>
+          <TagMultiSelectComboBox
+            v-model="state.tools"
+            :options="toolOptions"
+            :placeholder="
+              t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TOOLS.PLACEHOLDER')
+            "
+          />
+        </div>
       </div>
 
       <div class="flex items-center justify-between w-full gap-3">

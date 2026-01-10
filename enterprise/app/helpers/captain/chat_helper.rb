@@ -98,8 +98,11 @@ module Captain::ChatHelper
   end
 
   def api_key
-    @assistant&.api_key.presence || @assistant&.config&.[]('openai_api_key').presence || ENV.fetch('OPENAI_API_KEY',
-                                                                                                   nil) || ENV.fetch('GEMINI_API_KEY', nil)
+    raw_key = @assistant&.api_key.presence || @assistant&.config&.[]('openai_api_key').presence || ENV.fetch('OPENAI_API_KEY', nil) || ENV.fetch('GEMINI_API_KEY', nil)
+    return nil if raw_key.blank?
+
+    # Sanitize: Remove common accidental suffixes like image names or whitespace
+    raw_key.to_s.gsub(/\.(png|jpg|jpeg|gif|webp|svg|@2x|@3x).*$/i, '').strip
   end
 
   def with_agent_session(&)

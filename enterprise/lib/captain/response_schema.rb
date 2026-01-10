@@ -3,4 +3,5 @@
 class Captain::ResponseSchema < RubyLLM::Schema
   string :response, description: 'The message to send to the user'
   string :reasoning, description: "Agent's thought process"
+  string :sentiment, description: "The user's sentiment (e.g., neutral, positive, frustrated, angry)"
 end

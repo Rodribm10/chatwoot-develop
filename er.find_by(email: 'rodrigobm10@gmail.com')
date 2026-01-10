@@ -1,0 +1,12 @@
+=> #<Account:0x0000ffff5f679468
+ id: 1,
+ name: "Acme Inc",
+ created_at: Tue, 06 Jan 2026 22:14:10.147780000 -03 -03:00,
+ updated_at: Tue, 06 Jan 2026 22:14:10.147780000 -03 -03:00,
+ locale: "en",
+ domain: nil,
+ support_email: nil,
+ feature_flags: 288235736303927183,
+ auto_resolve_duration: nil,
+ limits: {},
+ custom_attributes: {},

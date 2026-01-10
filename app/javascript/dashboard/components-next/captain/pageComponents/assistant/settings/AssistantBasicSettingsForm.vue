@@ -36,6 +36,7 @@ const initialState = {
     conversationFaqs: false,
     memories: false,
     citations: false,
+    handoffOnSentiment: false,
   },
 };
 
@@ -73,6 +74,7 @@ const updateStateFromAssistant = assistant => {
     conversationFaqs: config.feature_faq || false,
     memories: config.feature_memory || false,
     citations: config.feature_citation || false,
+    handoffOnSentiment: config.handoff_on_sentiment || false,
   };
 };
 
@@ -97,6 +99,7 @@ const handleBasicInfoUpdate = async () => {
       feature_faq: state.features.conversationFaqs,
       feature_memory: state.features.memories,
       feature_citation: state.features.citations,
+      handoff_on_sentiment: state.features.handoffOnSentiment,
     },
   };
 
@@ -249,6 +252,10 @@ onMounted(() => {
         <label class="flex items-center gap-2">
           <input v-model="state.features.citations" type="checkbox" />
           {{ t('CAPTAIN.ASSISTANTS.FORM.FEATURES.ALLOW_CITATIONS') }}
+        </label>
+        <label class="flex items-center gap-2">
+          <input v-model="state.features.handoffOnSentiment" type="checkbox" />
+          {{ t('CAPTAIN.ASSISTANTS.FORM.FEATURES.ALLOW_SENTIMENT_HANDOFF') }}
         </label>
       </div>
     </div>

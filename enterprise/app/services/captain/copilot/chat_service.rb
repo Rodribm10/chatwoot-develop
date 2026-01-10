@@ -41,6 +41,7 @@ class Captain::Copilot::ChatService < Llm::BaseAiService
   def build_messages(config)
     messages= [system_message]
     messages << account_id_context
+    messages << date_context
     messages += @previous_history if @previous_history.present?
     messages += current_viewing_history(config[:conversation_id]) if config[:conversation_id].present?
     messages
@@ -93,6 +94,13 @@ class Captain::Copilot::ChatService < Llm::BaseAiService
     {
       role: 'system',
       content: "The current account id is #{@account.id}. The account is using #{@account.locale_english_name} as the language."
+    }
+  end
+
+  def date_context
+    {
+      role: 'system',
+      content: "Today is #{Time.zone.today.strftime('%A, %B %d, %Y')}."
     }
   end
 

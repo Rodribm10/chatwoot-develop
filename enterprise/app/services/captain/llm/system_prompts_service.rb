@@ -151,28 +151,27 @@ class Captain::Llm::SystemPromptsService
     end
     # rubocop:enable Metrics/MethodLength
 
-    # rubocop:disable Metrics/MethodLength
     def assistant_response_generator(assistant_name, product_name, config = {})
+      json_instruction = <<~JSON_INSTRUCTION
+        \n\nIMPORTANT: Your final response MUST be a valid JSON object.
+        Structure:
+        {
+          "response": "Your visible message to the customer",
+          "reasoning": "Internal logic",
+          "sentiment": "neutral | positive | frustrated | angry"
+        }
+      JSON_INSTRUCTION
+
       blocks = config['system_prompt_blocks']
-      return assistant_prompt_from_blocks(blocks) if blocks.present?
-
-      system_prompt_override = config['system_prompt'].to_s
-      return system_prompt_override if system_prompt_override.present?
-
-      blocks = assistant_prompt_blocks(assistant_name, product_name, config)
-      return assistant_prompt_from_blocks(blocks) if blocks.present?
-
-      if config['feature_citation']
-        <<~CITATION_TEXT
-          - When you use information from documentation, include citations that reference the specific source (document only - skip if it was derived from a conversation).
-          - Citations must be numbered sequentially and formatted as `[[n](URL)]` at the end of the sentence that uses the source.
-          - If multiple sentences share the same source, reuse the same citation number.
-        CITATION_TEXT
-      else
-        ''
+      if blocks.present?
+        return "#{assistant_prompt_from_blocks(blocks)}#{json_instruction}"
       end
 
-      ''
+      system_prompt_override = config['system_prompt'].to_s
+      return "#{system_prompt_override}#{json_instruction}" if system_prompt_override.present?
+
+      blocks = assistant_prompt_blocks(assistant_name, product_name, config)
+      "#{assistant_prompt_from_blocks(blocks)}#{json_instruction}"
     end
 
     def assistant_prompt_blocks(assistant_name, product_name, config = {})

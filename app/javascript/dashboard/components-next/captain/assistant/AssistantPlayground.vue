@@ -62,6 +62,7 @@ const sendMessage = async () => {
     messages.value.push({
       content: data.response,
       sender: 'assistant',
+      agentName: data.agent_name,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

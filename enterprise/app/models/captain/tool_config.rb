@@ -1,5 +1,6 @@
 module Captain
   class ToolConfig < ApplicationRecord
+    self.table_name = 'captain_tool_configs'
     belongs_to :account
     belongs_to :inbox, optional: true
     belongs_to :captain_assistant, class_name: 'Captain::Assistant', optional: true

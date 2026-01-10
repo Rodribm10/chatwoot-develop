@@ -30,12 +30,28 @@ class Api::V1::Accounts::Captain::AssistantsController < Api::V1::Accounts::Base
   end
 
   def playground
-    response = Captain::Llm::AssistantChatService.new(assistant: @assistant).generate_response(
-      additional_message: params[:message_content],
-      message_history: message_history
-    )
+    content = params[:message_content] || params.dig(:assistant, :message_content)
+    history = params[:message_history] || params.dig(:assistant, :message_history) || []
+    history = history.map { |m| { role: m[:role] || m['role'], content: m[:content] || m['content'] } }
+
+    if captain_v2_enabled?
+      # For V2, we only pass the history. The current message is already in history from frontend
+      # or should be treated as the last turn.
+      response = Captain::Assistant::AgentRunnerService.new(assistant: @assistant).generate_response(
+        message_history: history
+      )
+    else
+      # V1 Engine (Single Agent)
+      response = Captain::Llm::AssistantChatService.new(assistant: @assistant).generate_response(
+        additional_message: content,
+        message_history: history
+      )
+    end
 
     render json: response
+  rescue StandardError => e
+    Rails.logger.error "Playground Error: #{e.message}"
+    render json: { response: "Erro técnico: #{e.message}", reasoning: e.backtrace.first }, status: :internal_server_error
   end
 
   def tools
@@ -63,7 +79,7 @@ class Api::V1::Accounts::Captain::AssistantsController < Api::V1::Accounts::Base
                                            :product_name, :role_name, :feature_faq, :feature_memory, :feature_citation,
                                            :welcome_message, :handoff_message, :resolution_message,
                                            :instructions, :temperature, :playbook, :distance_threshold, :max_rag_results,
-                                           :system_prompt,
+                                           :system_prompt, :handoff_on_sentiment,
                                            { system_prompt_blocks: [:key, :title, :content, :order] }
                                          ])
 
@@ -114,5 +130,9 @@ class Api::V1::Accounts::Captain::AssistantsController < Api::V1::Accounts::Base
 
   def message_history
     (playground_params[:message_history] || []).map { |message| { role: message[:role], content: message[:content] } }
+  end
+
+  def captain_v2_enabled?
+    Current.account.feature_enabled?('captain_integration_v2')
   end
 end

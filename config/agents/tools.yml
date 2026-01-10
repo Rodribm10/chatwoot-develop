@@ -34,3 +34,8 @@
   title: 'Handoff to Human'
   description: 'Hand off the conversation to a human agent'
   icon: 'user-switch'
+
+- id: react_to_message
+  title: 'Reagir a Mensagens'
+  description: 'React to customer messages with emoji (👍, ❤️, 😊)'
+  icon: 'emoji'

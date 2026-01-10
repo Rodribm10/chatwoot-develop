@@ -544,7 +544,8 @@
           "TITLE": "Features",
           "ALLOW_CONVERSATION_FAQS": "Generate FAQs from resolved conversations",
           "ALLOW_MEMORIES": "Capture key details as memories from customer interactions.",
-          "ALLOW_CITATIONS": "Include source citations in responses"
+          "ALLOW_CITATIONS": "Include source citations in responses",
+          "ALLOW_SENTIMENT_HANDOFF": "Automatically handoff to human on negative sentiment (angry/frustrated)"
         },
         "LLM_PROVIDER": {
           "LABEL": "LLM Provider"
@@ -731,6 +732,10 @@
                 "LABEL": "How to handle",
                 "PLACEHOLDER": "Describe how and where this scenario will be handled",
                 "ERROR": "Scenario content is required"
+              },
+              "TOOLS": {
+                "LABEL": "Capabilities / Tools",
+                "PLACEHOLDER": "Select the tools this sub-agent can use"
               },
               "CREATE": "Create",
               "CANCEL": "Cancel"

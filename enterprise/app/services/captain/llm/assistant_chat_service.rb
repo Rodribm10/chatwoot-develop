@@ -12,7 +12,7 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
     @conversation = conversation
 
     @tools = build_tools
-    @messages = [system_message]
+    @messages = [system_message, date_message]
     @response = ''
 
     # Prefer assistant model when set; otherwise keep configured default.
@@ -103,13 +103,24 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
   end
 
   def build_tools
-    [Captain::Tools::SearchDocumentationService.new(@assistant, user: nil, conversation: @conversation)]
+    [
+      Captain::Tools::SearchDocumentationService.new(@assistant, user: nil, conversation: @conversation),
+      Captain::Tools::StatusSuitesTool.new(@assistant, user: nil, conversation: @conversation),
+      Captain::Tools::ReactToMessageTool.new(@assistant, user: nil, conversation: @conversation)
+    ]
   end
 
   def system_message
     {
       role: 'system',
       content: Captain::Llm::SystemPromptsService.assistant_response_generator(@assistant.name, @assistant.config['product_name'], @assistant.config)
+    }
+  end
+
+  def date_message
+    {
+      role: 'system',
+      content: "Today is #{Time.zone.today.strftime('%A, %B %d, %Y')}."
     }
   end
 

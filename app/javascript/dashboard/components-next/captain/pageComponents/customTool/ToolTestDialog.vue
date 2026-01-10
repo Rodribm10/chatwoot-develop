@@ -45,7 +45,6 @@ const runTest = async () => {
     testResult.value = data;
   } catch (error) {
     useAlert(t('CAPTAIN.CUSTOM_TOOLS.TEST.ERROR_MESSAGE'));
-    console.error(error);
   } finally {
     isLoading.value = false;
   }
@@ -107,7 +106,7 @@ defineExpose({ dialogRef });
                 : 'bg-red-100 text-red-700'
             "
           >
-            {{ testResult.status }} {{ testResult.success ? 'OK' : 'Error' }}
+            {{ testResult.status }} {{ testResult.success ? 'OK' : 'Fail' }}
           </span>
           <span class="text-xs text-n-slate-11">
             {{ $t('CAPTAIN.CUSTOM_TOOLS.TEST.RESPONSE_TIME', { ms: 'N/A' }) }}

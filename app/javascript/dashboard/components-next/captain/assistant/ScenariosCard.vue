@@ -5,6 +5,7 @@ import { useToggle, useElementSize } from '@vueuse/core';
 import { useVuelidate } from '@vuelidate/core';
 import { required, minLength } from '@vuelidate/validators';
 import { useMessageFormatter } from 'shared/composables/useMessageFormatter';
+import { useMapGetter } from 'dashboard/composables/store';
 import Input from 'dashboard/components-next/input/Input.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
@@ -12,10 +13,11 @@ import Editor from 'dashboard/components-next/Editor/Editor.vue';
 import CardLayout from 'dashboard/components-next/CardLayout.vue';
 import Checkbox from 'dashboard/components-next/checkbox/Checkbox.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
+import TagMultiSelectComboBox from 'dashboard/components-next/combobox/TagMultiSelectComboBox.vue';
 
 const props = defineProps({
   id: {
-    type: Number,
+    type: [Number, String],
     required: true,
   },
   title: {
@@ -59,6 +61,7 @@ const state = reactive({
   title: '',
   description: '',
   instruction: '',
+  tools: [],
 });
 
 const instructionContentRef = ref();
@@ -69,13 +72,23 @@ const [isInstructionExpanded, toggleInstructionExpanded] = useToggle();
 const { height: contentHeight } = useElementSize(instructionContentRef);
 const needsOverlay = computed(() => contentHeight.value > 160);
 
+const allTools = useMapGetter('captainTools/getRecords');
+
+const toolOptions = computed(() => {
+  const options = allTools.value.map(tool => ({
+    label: tool.title,
+    value: tool.id,
+  }));
+  return options;
+});
+
 const startEdit = () => {
   Object.assign(state, {
     id: props.id,
     title: props.title,
     description: props.description,
     instruction: props.instruction,
-    tools: props.tools,
+    tools: props.tools || [],
   });
   toggleEditing(true);
 };
@@ -200,7 +213,7 @@ const renderInstruction = instruction => () =>
         {{ tools?.map(tool => `@${tool}`).join(', ') }}
       </span>
     </div>
-    <div v-else class="overflow-hidden flex flex-col gap-4 w-full">
+    <div v-else class="flex flex-col gap-4 w-full">
       <Input
         v-model="state.title"
         :label="t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TITLE.LABEL')"
@@ -236,6 +249,18 @@ const renderInstruction = instruction => () =>
         :show-character-count="false"
         enable-captain-tools
       />
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-medium text-n-slate-11">
+          {{ t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TOOLS.LABEL') }}
+        </label>
+        <TagMultiSelectComboBox
+          v-model="state.tools"
+          :options="toolOptions"
+          :placeholder="
+            t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TOOLS.PLACEHOLDER')
+          "
+        />
+      </div>
       <div class="flex items-center gap-3">
         <Button
           faded

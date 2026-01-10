@@ -8,9 +8,12 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     @conversation = conversation
     @inbox = conversation.inbox
     @assistant = assistant
+    @start_time = Time.zone.now
 
     Current.executed_by = @assistant
     Current.account = conversation.account
+
+    trigger_typing_status('on')
 
     if captain_v2_enabled?
       generate_response_with_v2
@@ -20,6 +23,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
       end
     end
   rescue StandardError => e
+    trigger_typing_status('off')
     raise e if e.is_a?(ActiveStorage::FileNotFoundError) || e.is_a?(Faraday::BadRequestError)
 
     handle_error(e)
@@ -48,11 +52,46 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
   end
 
   def process_response
-    return process_action('handoff') if handoff_requested?
+    trigger_typing_status('off')
+    return process_action('handoff') if handoff_requested? || negative_sentiment?
 
+    humanized_delay(@response['response'])
     create_messages
     Rails.logger.info("[CAPTAIN][ResponseBuilderJob] Incrementing response usage for #{account.id}")
     account.increment_response_usage
+  end
+
+  def negative_sentiment?
+    return false unless @assistant.config['handoff_on_sentiment']
+
+    # Force handoff if user is angry or very frustrated
+    ['angry', 'frustrated'].include?(@response['sentiment']&.downcase)
+  end
+
+  def trigger_typing_status(status)
+    Conversations::TypingStatusManager.new(
+      @conversation,
+      @assistant,
+      { typing_status: status, is_private: false }
+    ).toggle_typing_status
+  rescue StandardError => e
+    Rails.logger.warn "Failed to trigger typing status: #{e.message}"
+  end
+
+  def humanized_delay(response_text)
+    return if response_text.blank?
+
+    # Roughly 50ms per character simulation
+    typing_speed = 50
+    target_delay = (response_text.length * typing_speed) / 1000.0
+
+    # Cap at 7 seconds to balance humanization vs speed
+    target_delay = [target_delay, 7.0].min
+
+    elapsed_time = Time.zone.now - @start_time
+    remaining_delay = target_delay - elapsed_time
+
+    sleep(remaining_delay) if remaining_delay > 0
   end
 
   def collect_previous_messages

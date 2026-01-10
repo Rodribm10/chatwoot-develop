@@ -12,6 +12,10 @@ module Whatsapp::Providers
       # Normalize phone number: remove +, space, -, (, )
       normalized_phone = phone_number.gsub(/[\+\s\-\(\)]/, '')
 
+      if message.content_attributes['is_reaction'] || message.content_attributes[:is_reaction]
+        return send_reaction_message(normalized_phone, message)
+      end
+
       if message.attachments.present?
         send_attachment_message(user_token, normalized_phone, message)
       else
@@ -38,8 +42,14 @@ module Whatsapp::Providers
 
       # Assuming message content is the emoji
       reaction_emoji = message.content
-      # Assuming in_reply_to contains the ID of the message to react to
-      message_id = message.content_attributes['in_reply_to']
+      # Prefer external message id, fallback to in_reply_to if already external.
+      message_id = message.content_attributes['in_reply_to_external_id'] || message.content_attributes['in_reply_to']
+      use_me_prefix = reaction_to_own_message?(message)
+
+      if use_me_prefix
+        normalized_phone = "me:#{normalized_phone}" unless normalized_phone.start_with?('me:')
+        message_id = "me:#{message_id}" if message_id.present? && !message_id.start_with?('me:')
+      end
 
       if message_id.present?
         # Wuzapi client needs to implement send_reaction
@@ -82,6 +92,21 @@ module Whatsapp::Providers
 
     def client
       @client ||= ::Wuzapi::Client.new(@base_url)
+    end
+
+    def reaction_to_own_message?(message)
+      # If we can resolve the target message, check if it was sent by us.
+      target_message = nil
+      if message.in_reply_to.present?
+        target_message = message.conversation.messages.find_by(id: message.in_reply_to)
+        target_message ||= message.conversation.messages.find_by(source_id: message.in_reply_to)
+      elsif message.in_reply_to_external_id.present?
+        target_message = message.conversation.messages.find_by(source_id: message.in_reply_to_external_id)
+      end
+
+      return false unless target_message.present?
+
+      target_message.outgoing? || target_message.template?
     end
   end
 end

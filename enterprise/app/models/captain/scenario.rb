@@ -47,7 +47,8 @@ class Captain::Scenario < ApplicationRecord
       title: title,
       instructions: resolved_instructions,
       tools: resolved_tools,
-      assistant_name: assistant.name.downcase.gsub(/\s+/, '_'),
+      assistant_name: assistant.send(:agent_name),
+      current_date: Time.zone.today.strftime('%A, %B %d, %Y'),
       response_guidelines: response_guidelines || [],
       guardrails: guardrails || []
     }
@@ -134,6 +135,7 @@ class Captain::Scenario < ApplicationRecord
     return if instruction.blank?
 
     tool_ids = extract_tool_ids_from_text(instruction)
-    self.tools = tool_ids.presence
+    combined_tools = (Array.wrap(tools) + tool_ids).uniq
+    self.tools = combined_tools.presence
   end
 end

@@ -69,11 +69,19 @@ watch(() => props.messages.length, scrollToBottom);
           :size="24"
           class="shrink-0"
         />
-        <div
-          class="px-4 py-3 text-sm [overflow-wrap:break-word]"
-          :class="getMessageStyle(message.sender)"
-        >
-          <div v-html="formatMessage(message.content)" />
+        <div class="flex flex-col gap-1">
+          <span
+            v-if="!isUserMessage(message.sender) && message.agentName"
+            class="text-[10px] text-n-slate-10 uppercase font-bold px-1"
+          >
+            {{ message.agentName }}
+          </span>
+          <div
+            class="px-4 py-3 text-sm [overflow-wrap:break-word]"
+            :class="getMessageStyle(message.sender)"
+          >
+            <div v-html="formatMessage(message.content)" />
+          </div>
         </div>
       </div>
     </div>

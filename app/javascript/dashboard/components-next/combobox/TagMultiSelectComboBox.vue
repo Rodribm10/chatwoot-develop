@@ -54,9 +54,10 @@ const comboboxRef = ref(null);
 
 const filteredOptions = computed(() => {
   const searchTerm = search.value.toLowerCase();
-  return props.options.filter(option =>
+  const result = props.options.filter(option =>
     option.label?.toLowerCase().includes(searchTerm)
   );
+  return result;
 });
 
 const selectPlaceholder = computed(() => {

@@ -93,10 +93,22 @@ class Captain::Assistant < ApplicationRecord
   end
 
   def agent_tools
-    [
+    tools = [
       self.class.resolve_tool_class('faq_lookup').new(self),
       self.class.resolve_tool_class('handoff').new(self)
     ]
+
+    # Add each enabled scenario as a tool
+    scenarios.enabled.each do |scenario|
+      tools << Captain::Tools::ScenarioDelegatorTool.new(scenario)
+    end
+
+    # Add enabled custom tools
+    account.captain_custom_tools.enabled.each do |custom_tool|
+      tools << Captain::Tools::HttpTool.new(self, custom_tool)
+    end
+
+    tools
   end
 
   def prompt_context
@@ -104,6 +116,8 @@ class Captain::Assistant < ApplicationRecord
       name: name,
       description: description,
       product_name: config['product_name'] || 'this product',
+      current_date: Time.zone.today.strftime('%A, %B %d, %Y'),
+      system_prompt_blocks: config['system_prompt_blocks'] || [],
       scenarios: scenarios.enabled.map do |scenario|
         {
           title: scenario.title,
