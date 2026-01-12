@@ -36,7 +36,11 @@ class Captain::Reminders::Processor
 
     tool = Captain::Tools::StatusSuitesTool.new(assistant, conversation: conversation)
     result = tool.execute
-    parsed = JSON.parse(result) rescue {}
+    parsed = begin
+      JSON.parse(result)
+    rescue StandardError
+      {}
+    end
     free_suites = parsed['free'] || []
     free_suites.any? { |suite| suite['suite'].to_s == @reminder.suite_identifier.to_s }
   end
