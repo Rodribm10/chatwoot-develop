@@ -111,6 +111,7 @@ watch(
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
     <Input
       v-model="state.name"

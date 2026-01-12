@@ -1,0 +1,11 @@
+json.id automation.id
+json.account_id automation.account_id
+json.inbox_id automation.inbox_id
+json.title automation.title
+json.message automation.message
+json.trigger_event automation.trigger_event
+json.timing automation.timing
+json.offset_minutes automation.offset_minutes
+json.enabled automation.enabled
+json.created_at automation.created_at.to_i
+json.updated_at automation.updated_at.to_i

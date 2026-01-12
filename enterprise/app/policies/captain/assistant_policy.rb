@@ -26,4 +26,8 @@ class Captain::AssistantPolicy < ApplicationPolicy
   def playground?
     true
   end
+
+  def test_webhook?
+    @account_user.administrator?
+  end
 end

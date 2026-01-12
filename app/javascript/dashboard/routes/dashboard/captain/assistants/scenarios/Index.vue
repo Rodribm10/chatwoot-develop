@@ -198,6 +198,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.DOCUMENTS.HEADER')"
     :is-fetching="isFetching"
@@ -241,7 +242,7 @@ onMounted(() => {
               />
               <span class="text-sm text-n-slate-11 font-medium mb-1">
                 {{ t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.SUGGESTED.TOOLS_USED') }}
-                {{ item.tools?.map(tool => `@${tool}`).join(', ')}}
+                {{ item.tools?.map(tool => `@${tool}`).join(', ') }}
               </span>
             </div>
           </template>

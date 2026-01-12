@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_10_193000) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_14_101013) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -293,6 +293,15 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_10_193000) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
+  create_table "captain_assets", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "name"], name: "index_captain_assets_on_account_id_and_name", unique: true
+    t.index ["account_id"], name: "index_captain_assets_on_account_id"
+  end
+
   create_table "captain_assistant_responses", force: :cascade do |t|
     t.string "question", null: false
     t.text "answer", null: false
@@ -323,7 +332,32 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_10_193000) do
     t.string "llm_provider", default: "openai"
     t.string "llm_model", default: "gpt-3.5-turbo"
     t.text "api_key"
+    t.jsonb "handoff_webhook_config", default: {}
     t.index ["account_id"], name: "index_captain_assistants_on_account_id"
+  end
+
+  create_table "captain_brands", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "name", null: false
+    t.jsonb "suite_categories", default: [], null: false
+    t.jsonb "stay_durations", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.jsonb "suite_images", default: {}, null: false
+    t.index ["account_id"], name: "index_captain_brands_on_account_id"
+  end
+
+  create_table "captain_configurations", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "title", default: "Reserva Rápida"
+    t.string "subtitle", default: "Agende sua estadia com praticidade"
+    t.string "logo_url"
+    t.string "primary_color", default: "#1E90FF"
+    t.string "secondary_color", default: "#1B3B5F"
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_captain_configurations_on_account_id"
   end
 
   create_table "captain_custom_tools", force: :cascade do |t|
@@ -361,14 +395,159 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_10_193000) do
     t.index ["status"], name: "index_captain_documents_on_status"
   end
 
+  create_table "captain_extras", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.decimal "price", precision: 10, scale: 2, null: false
+    t.string "image_url"
+    t.string "category"
+    t.string "tag"
+    t.boolean "active", default: true
+    t.integer "order", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_captain_extras_on_account_id"
+  end
+
+  create_table "captain_inbox_automations", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "inbox_id", null: false
+    t.string "title", null: false
+    t.text "message", null: false
+    t.integer "trigger_event", default: 0, null: false
+    t.integer "timing", default: 1, null: false
+    t.integer "offset_minutes", default: 0, null: false
+    t.boolean "enabled", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "inbox_id"], name: "index_captain_inbox_automations_on_account_id_and_inbox_id"
+    t.index ["account_id"], name: "index_captain_inbox_automations_on_account_id"
+    t.index ["inbox_id"], name: "index_captain_inbox_automations_on_inbox_id"
+  end
+
+  create_table "captain_inbox_reminder_settings", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "inbox_id", null: false
+    t.boolean "enabled", default: true, null: false
+    t.text "menu_message"
+    t.integer "menu_delay_minutes", default: 15, null: false
+    t.text "feedback_message"
+    t.integer "feedback_delay_minutes", default: 30, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "inbox_id"], name: "index_captain_inbox_reminder_settings_on_account_inbox", unique: true
+    t.index ["account_id"], name: "index_captain_inbox_reminder_settings_on_account_id"
+    t.index ["inbox_id"], name: "index_captain_inbox_reminder_settings_on_inbox_id"
+  end
+
   create_table "captain_inboxes", force: :cascade do |t|
     t.bigint "captain_assistant_id", null: false
     t.bigint "inbox_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "always_use_reminder_tool", default: false, null: false
+    t.bigint "captain_unit_id", null: false
     t.index ["captain_assistant_id", "inbox_id"], name: "index_captain_inboxes_on_captain_assistant_id_and_inbox_id", unique: true
     t.index ["captain_assistant_id"], name: "index_captain_inboxes_on_captain_assistant_id"
+    t.index ["captain_unit_id"], name: "index_captain_inboxes_on_captain_unit_id"
     t.index ["inbox_id"], name: "index_captain_inboxes_on_inbox_id"
+  end
+
+  create_table "captain_pix_charges", force: :cascade do |t|
+    t.bigint "reservation_id", null: false
+    t.bigint "unit_id", null: false
+    t.string "txid"
+    t.text "pix_copia_e_cola"
+    t.string "status"
+    t.string "e2eid"
+    t.datetime "paid_at"
+    t.jsonb "raw_webhook_payload"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["e2eid"], name: "idx_cp_charges_e2eid"
+    t.index ["e2eid"], name: "index_captain_pix_charges_on_e2eid"
+    t.index ["reservation_id"], name: "index_captain_pix_charges_on_reservation_id"
+    t.index ["txid"], name: "idx_cp_charges_txid", unique: true
+    t.index ["txid"], name: "index_captain_pix_charges_on_txid"
+    t.index ["unit_id"], name: "index_captain_pix_charges_on_unit_id"
+  end
+
+  create_table "captain_pricings", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "captain_brand_id", null: false
+    t.string "day_range", null: false
+    t.string "suite_category", null: false
+    t.string "duration", null: false
+    t.decimal "price", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_captain_pricings_on_account_id"
+    t.index ["captain_brand_id"], name: "index_captain_pricings_on_captain_brand_id"
+  end
+
+  create_table "captain_reminders", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "inbox_id", null: false
+    t.bigint "contact_id", null: false
+    t.bigint "contact_inbox_id", null: false
+    t.bigint "conversation_id"
+    t.integer "reminder_type", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.text "message"
+    t.datetime "scheduled_at", null: false
+    t.datetime "sent_at"
+    t.integer "attempt_count", default: 0, null: false
+    t.text "error_message"
+    t.jsonb "metadata", default: {}, null: false
+    t.string "source_type"
+    t.bigint "source_id"
+    t.bigint "created_by_id"
+    t.string "created_by_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "inbox_id"], name: "index_captain_reminders_on_account_id_and_inbox_id"
+    t.index ["account_id"], name: "index_captain_reminders_on_account_id"
+    t.index ["contact_id", "inbox_id"], name: "index_captain_reminders_on_contact_id_and_inbox_id"
+    t.index ["contact_id"], name: "index_captain_reminders_on_contact_id"
+    t.index ["contact_inbox_id"], name: "index_captain_reminders_on_contact_inbox_id"
+    t.index ["conversation_id"], name: "index_captain_reminders_on_conversation_id"
+    t.index ["inbox_id"], name: "index_captain_reminders_on_inbox_id"
+    t.index ["scheduled_at", "status"], name: "index_captain_reminders_on_scheduled_at_and_status"
+    t.index ["source_type", "source_id"], name: "index_captain_reminders_on_source_type_and_source_id"
+  end
+
+  create_table "captain_reservations", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "inbox_id", null: false
+    t.bigint "contact_id", null: false
+    t.bigint "contact_inbox_id", null: false
+    t.bigint "conversation_id"
+    t.string "suite_identifier"
+    t.datetime "check_in_at", null: false
+    t.datetime "check_out_at", null: false
+    t.integer "status", default: 0, null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.bigint "created_by_id"
+    t.string "created_by_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "captain_brand_id"
+    t.bigint "captain_unit_id"
+    t.decimal "total_amount", precision: 10, scale: 2
+    t.string "payment_status", default: "pending"
+    t.string "integracao_id"
+    t.bigint "current_pix_charge_id"
+    t.index ["account_id", "inbox_id"], name: "index_captain_reservations_on_account_id_and_inbox_id"
+    t.index ["account_id"], name: "index_captain_reservations_on_account_id"
+    t.index ["captain_brand_id"], name: "index_captain_reservations_on_captain_brand_id"
+    t.index ["captain_unit_id"], name: "index_captain_reservations_on_captain_unit_id"
+    t.index ["contact_id", "inbox_id"], name: "index_captain_reservations_on_contact_id_and_inbox_id"
+    t.index ["contact_id"], name: "index_captain_reservations_on_contact_id"
+    t.index ["contact_inbox_id"], name: "index_captain_reservations_on_contact_inbox_id"
+    t.index ["conversation_id"], name: "index_captain_reservations_on_conversation_id"
+    t.index ["inbox_id"], name: "index_captain_reservations_on_inbox_id"
+    t.index ["integracao_id"], name: "index_captain_reservations_on_integracao_id"
   end
 
   create_table "captain_scenarios", force: :cascade do |t|
@@ -387,6 +566,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_10_193000) do
     t.index ["enabled"], name: "index_captain_scenarios_on_enabled"
   end
 
+  create_table "captain_suites", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "name"
+    t.string "category"
+    t.jsonb "unit_ids", default: []
+    t.string "api_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_captain_suites_on_account_id"
+    t.index ["category"], name: "index_captain_suites_on_category"
+  end
+
   create_table "captain_tool_configs", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.bigint "inbox_id"
@@ -403,6 +594,28 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_10_193000) do
     t.index ["captain_assistant_id", "tool_key"], name: "index_captain_tool_configs_on_assistant_id_and_tool_key", unique: true
     t.index ["captain_assistant_id"], name: "index_captain_tool_configs_on_captain_assistant_id"
     t.index ["inbox_id"], name: "index_captain_tool_configs_on_inbox_id"
+  end
+
+  create_table "captain_units", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "captain_brand_id", null: false
+    t.string "name", null: false
+    t.jsonb "visible_suite_categories", default: [], null: false
+    t.jsonb "suite_category_images", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "status"
+    t.string "inter_client_id"
+    t.string "inter_client_secret"
+    t.string "inter_pix_key"
+    t.string "inter_cert_path"
+    t.string "inter_key_path"
+    t.string "inter_account_number"
+    t.string "webhook_url"
+    t.bigint "inbox_id"
+    t.index ["account_id"], name: "index_captain_units_on_account_id"
+    t.index ["captain_brand_id"], name: "index_captain_units_on_captain_brand_id"
+    t.index ["inbox_id"], name: "index_captain_units_on_inbox_id"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -1418,8 +1631,37 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_10_193000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "captain_assets", "accounts"
+  add_foreign_key "captain_brands", "accounts"
+  add_foreign_key "captain_configurations", "accounts"
+  add_foreign_key "captain_extras", "accounts"
+  add_foreign_key "captain_inbox_automations", "accounts"
+  add_foreign_key "captain_inbox_automations", "inboxes"
+  add_foreign_key "captain_inbox_reminder_settings", "accounts"
+  add_foreign_key "captain_inbox_reminder_settings", "inboxes"
+  add_foreign_key "captain_inboxes", "captain_units"
+  add_foreign_key "captain_pix_charges", "captain_reservations", column: "reservation_id"
+  add_foreign_key "captain_pix_charges", "captain_units", column: "unit_id"
+  add_foreign_key "captain_pricings", "accounts"
+  add_foreign_key "captain_pricings", "captain_brands"
+  add_foreign_key "captain_reminders", "accounts"
+  add_foreign_key "captain_reminders", "contact_inboxes"
+  add_foreign_key "captain_reminders", "contacts"
+  add_foreign_key "captain_reminders", "conversations"
+  add_foreign_key "captain_reminders", "inboxes"
+  add_foreign_key "captain_reservations", "accounts"
+  add_foreign_key "captain_reservations", "captain_brands"
+  add_foreign_key "captain_reservations", "captain_units"
+  add_foreign_key "captain_reservations", "contact_inboxes"
+  add_foreign_key "captain_reservations", "contacts"
+  add_foreign_key "captain_reservations", "conversations"
+  add_foreign_key "captain_reservations", "inboxes"
+  add_foreign_key "captain_suites", "accounts"
   add_foreign_key "captain_tool_configs", "accounts"
   add_foreign_key "captain_tool_configs", "inboxes"
+  add_foreign_key "captain_units", "accounts"
+  add_foreign_key "captain_units", "captain_brands"
+  add_foreign_key "captain_units", "inboxes"
   add_foreign_key "conversation_crm_insights", "accounts"
   add_foreign_key "conversation_crm_insights", "contacts"
   add_foreign_key "conversation_crm_insights", "conversations"

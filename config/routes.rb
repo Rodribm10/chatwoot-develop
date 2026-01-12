@@ -58,11 +58,13 @@ Rails.application.routes.draw do
             resources :assistants do
               member do
                 post :playground
+                post :test_webhook
               end
               collection do
                 get :tools
               end
-              resources :inboxes, only: [:index, :create, :destroy], param: :inbox_id
+              resources :inboxes, only: [:index, :create, :update, :destroy]
+
               resources :scenarios
               resources :tools, only: [:index, :update]
             end
@@ -75,6 +77,16 @@ Rails.application.routes.draw do
               post :test, on: :member
             end
             resources :documents, only: [:index, :show, :create, :destroy]
+            resources :assets, only: [:index, :show, :create, :update, :destroy]
+            resources :reservations, only: [:index, :show, :create, :update, :destroy]
+            resources :reminders, only: [:index, :show, :create, :destroy]
+            resources :inbox_automations, only: [:index, :create, :update, :destroy]
+            resources :payment_callbacks, only: [:update]
+            resources :units, only: [:index, :show, :create, :update, :destroy], param: :id
+            resources :brands
+            resources :pricings
+            resources :extras
+            resource :configuration, only: [:show, :update]
           end
           # Jasmine AI Routes (SDR Agent)
           namespace :jasmine do
@@ -91,6 +103,9 @@ Rails.application.routes.draw do
                 resources :tools, only: [:index, :update] do
                   post :test, on: :member
                 end
+              end
+              namespace :captain do
+                resource :reminder_settings, only: [:show, :update]
               end
             end
           end
@@ -374,6 +389,8 @@ Rails.application.routes.draw do
             resources :articles do
               post :reorder, on: :collection
             end
+            resources :reminders
+            resource :configuration, only: [:show, :update]
           end
 
           resources :upload, only: [:create]
@@ -548,6 +565,14 @@ Rails.application.routes.draw do
         end
 
         resources :csat_survey, only: [:show, :update]
+
+        namespace :captain do
+          resources :reservations, only: [:create] do
+            get :status, on: :member
+          end
+          post 'webhooks/inter_pix', to: 'webhooks#inter_pix'
+          resource :master_data, only: [:show], controller: 'master_data'
+        end
       end
     end
   end
@@ -578,6 +603,9 @@ Rails.application.routes.draw do
   post 'webhooks/line/:line_channel_id', to: 'webhooks/line#process_payload'
   post 'webhooks/telegram/:bot_token', to: 'webhooks/telegram#process_payload'
   post 'webhooks/sms/:phone_number', to: 'webhooks/sms#process_payload'
+  get 'public/accounts/:account_id/reservas', to: 'public/api/v1/captain/booking_app#index', as: :public_account_reservations
+  get 'public/accounts/:account_id/reservas/*path', to: 'public/api/v1/captain/booking_app#index'
+
   get 'webhooks/whatsapp/:phone_number', to: 'webhooks/whatsapp#verify'
   post 'webhooks/whatsapp/:phone_number', to: 'webhooks/whatsapp#process_payload'
   get 'webhooks/instagram', to: 'webhooks/instagram#verify'

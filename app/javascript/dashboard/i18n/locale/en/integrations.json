@@ -547,6 +547,19 @@
           "ALLOW_CITATIONS": "Include source citations in responses",
           "ALLOW_SENTIMENT_HANDOFF": "Automatically handoff to human on negative sentiment (angry/frustrated)"
         },
+        "WEBHOOK": {
+          "TITLE": "Handoff Webhook",
+          "DESCRIPTION": "Notify external systems when a conversation is handed off to a human agent",
+          "URL_LABEL": "Webhook URL",
+          "URL_PLACEHOLDER": "https://api.example.com/handoff",
+          "HEADERS_LABEL": "Custom Headers (Optional)",
+          "HEADERS_HELP": "Add custom headers for authentication (e.g., Authorization: Bearer TOKEN)",
+          "ADD_HEADER": "+ Add Header",
+          "RETRY_LABEL": "Retry Attempts",
+          "TIMEOUT_LABEL": "Timeout (seconds)",
+          "TEST_BUTTON": "Test Webhook",
+          "TEST_SENT": "Test webhook sent!"
+        },
         "LLM_PROVIDER": {
           "LABEL": "LLM Provider"
         },
@@ -845,6 +858,169 @@
         }
       }
     },
+    "ASSETS": {
+      "HEADER": "Media Gallery",
+      "DESCRIPTION": "Upload images and reference them in prompts using {{ media.key }}.",
+      "ADD_NEW": "Upload image",
+      "EMPTY_STATE": "No media assets yet. Upload your first image to get started.",
+      "FORM_DESCRIPTION": "Upload an image and set a unique key to use in prompts.",
+      "SHORTCUT_LABEL": "Shortcut",
+      "COPY_SHORTCUT": {
+        "LABEL": "Copy shortcut",
+        "SUCCESS": "Shortcut copied"
+      },
+      "COPY_URL": {
+        "LABEL": "Copy URL",
+        "SUCCESS": "URL copied"
+      },
+      "FORM": {
+        "NAME": {
+          "LABEL": "Key",
+          "PLACEHOLDER": "suite_master",
+          "ERROR": "Key is required"
+        },
+        "FILE": {
+          "LABEL": "Image file",
+          "CHOOSE_FILE": "Choose image",
+          "ERROR": "Image is required",
+          "HELP_TEXT": "PNG, JPG, GIF, or WEBP up to 10MB",
+          "INVALID_TYPE": "Only PNG, JPG, GIF, or WEBP files are allowed",
+          "TOO_LARGE": "File must be smaller than 10MB"
+        }
+      },
+      "CREATE": {
+        "TITLE": "Upload image",
+        "SUCCESS_MESSAGE": "Image uploaded successfully",
+        "ERROR_MESSAGE": "There was an error uploading the image"
+      },
+      "EDIT": {
+        "TITLE": "Update image",
+        "SUCCESS_MESSAGE": "Image updated successfully",
+        "ERROR_MESSAGE": "There was an error updating the image"
+      },
+      "DELETE": {
+        "TITLE": "Delete image",
+        "DESCRIPTION": "This action is permanent. Deleting this image will break any prompts that reference it.",
+        "CONFIRM": "Yes, delete",
+        "SUCCESS_MESSAGE": "Image deleted successfully",
+        "ERROR_MESSAGE": "There was an error deleting the image"
+      }
+    },
+    "RESERVATIONS": {
+      "AUTOMATIONS": {
+        "TITLE": "Automations",
+        "LIST_TITLE": "Existing automations",
+        "EMPTY": "No automations configured",
+        "EDIT": "Edit",
+        "DELETE": "Delete",
+        "TRIGGER_CHECK_IN": "Check-in",
+        "TRIGGER_CHECK_OUT": "Check-out",
+        "TIMING_BEFORE": "Before",
+        "TIMING_AFTER": "After",
+        "FORM": {
+          "TITLE": "Title",
+          "MESSAGE": "Message",
+          "TRIGGER": "Trigger",
+          "TIMING": "Timing",
+          "MINUTES": "Minutes",
+          "SUBMIT": "Add automation",
+          "UPDATE": "Update automation",
+          "CANCEL": "Cancel"
+        },
+        "SUCCESS": {
+          "CREATED": "Automation created",
+          "UPDATED": "Automation updated",
+          "DELETED": "Automation deleted"
+        },
+        "ERRORS": {
+          "LOAD_FAILED": "Could not load automations",
+          "MISSING_FIELDS": "Fill in title and message",
+          "CREATE_FAILED": "Could not create automation",
+          "UPDATE_FAILED": "Could not update automation",
+          "DELETE_FAILED": "Could not delete automation"
+        }
+      },
+      "PAGE": {
+        "HEADER": "Reservations & Reminders",
+        "DESCRIPTION": "Create manual reservations and reminders tied to an inbox.",
+        "INBOX_LABEL": "Inbox",
+        "INBOX_PLACEHOLDER": "Select an inbox",
+        "NO_INBOXES": "No inboxes available",
+        "RESERVATION_TITLE": "Manual reservation",
+        "CONTACT_NAME_LABEL": "Customer name (optional)",
+        "CONTACT_NAME_PLACEHOLDER": "Maria",
+        "PHONE_LABEL": "Customer WhatsApp",
+        "PHONE_PLACEHOLDER": "+55 11 99999-9999",
+        "NO_RESERVATIONS": "No reservations for this inbox",
+        "FILTERS_TITLE": "Filters",
+        "FILTERS_FROM": "From",
+        "FILTERS_TO": "To",
+        "LOAD_MORE": "Load more",
+        "ERRORS": {
+          "INBOX_REQUIRED": "Select an inbox",
+          "PHONE_REQUIRED": "Phone number is required"
+        }
+      },
+      "SECTION_TITLE": "Reservation",
+      "LIST_TITLE": "Upcoming reservations",
+      "NO_SUITE": "Suite not set",
+      "FORM": {
+        "SUITE_LABEL": "Suite",
+        "SUITE_PLACEHOLDER": "102",
+        "CHECK_IN_LABEL": "Check-in time",
+        "DURATION_LABEL": "Duration (hours)",
+        "CHECK_OUT_PREVIEW": "Estimated check-out",
+        "SUBMIT": "Create reservation"
+      },
+      "SETTINGS": {
+        "TITLE": "Automation messages",
+        "ENABLED": "Enable automations",
+        "MENU_DELAY": "Menu delay (minutes)",
+        "MENU_MESSAGE": "Menu message",
+        "FEEDBACK_DELAY": "Feedback delay (minutes)",
+        "FEEDBACK_MESSAGE": "Feedback message",
+        "SAVE": "Save settings",
+        "SAVED": "Settings updated"
+      },
+      "SUCCESS": {
+        "CREATED": "Reservation created",
+        "CANCELLED": "Reservation cancelled"
+      },
+      "ERRORS": {
+        "LOAD_FAILED": "Could not load reservations",
+        "CREATE_FAILED": "Could not create reservation",
+        "MISSING_RESERVATION_FIELDS": "Fill in check-in and duration",
+        "CANCEL_FAILED": "Could not cancel reservation",
+        "SETTINGS_LOAD_FAILED": "Could not load automation settings",
+        "SETTINGS_SAVE_FAILED": "Could not save automation settings"
+      }
+    },
+    "REMINDERS": {
+      "PAGE": {
+        "TITLE": "Manual reminder",
+        "NO_REMINDERS": "No reminders for this inbox",
+        "LOAD_MORE": "Load more"
+      },
+      "SECTION_TITLE": "Reminder",
+      "LIST_TITLE": "Scheduled reminders",
+      "FORM": {
+        "MESSAGE_LABEL": "Message",
+        "MESSAGE_PLACEHOLDER": "Your suite is available...",
+        "TIME_LABEL": "Send at",
+        "SUBMIT": "Schedule reminder"
+      },
+      "SUCCESS": {
+        "CREATED": "Reminder scheduled",
+        "CANCELLED": "Reminder cancelled"
+      },
+      "ERRORS": {
+        "LOAD_FAILED": "Could not load reminders",
+        "MISSING_FIELDS": "Fill in message and time",
+        "PHONE_REQUIRED": "Phone number is required",
+        "CREATE_FAILED": "Could not schedule reminder",
+        "CANCEL_FAILED": "Could not cancel reminder"
+      }
+    },
     "CUSTOM_TOOLS": {
       "HEADER": "Tools",
       "ADD_NEW": "Create a new tool",
@@ -949,8 +1125,21 @@
           "LABEL": "Response Template (Optional)",
           "PLACEHOLDER": "Order {'{{'} order_id {'}}'} status: {'{{'} status {'}}'}"
         },
+        "HEADERS": {
+          "LABEL": "Custom Headers",
+          "HELP_TEXT": "Define static headers that will be sent with every request (e.g. Authorization, PLUG-PLAY-TOKEN)."
+        },
+        "ADD_HEADER": "Add Header",
+        "HEADER_KEY": {
+          "PLACEHOLDER": "Header Name (e.g. X-Auth-Token)"
+        },
+        "HEADER_VALUE": {
+          "PLACEHOLDER": "Value"
+        },
         "ERRORS": {
-          "PARAM_NAME_REQUIRED": "Parameter name is required"
+          "PARAM_NAME_REQUIRED": "Parameter name is required",
+          "HEADER_KEY_REQUIRED": "Header name is required",
+          "HEADER_VALUE_REQUIRED": "Header value is required"
         }
       }
     },
@@ -1043,6 +1232,12 @@
     "INBOXES": {
       "HEADER": "Connected Inboxes",
       "ADD_NEW": "Connect a new inbox",
+      "REMINDER_TOOL": {
+        "LABEL": "Always use reminder tool",
+        "HELP": "When enabled, the assistant must schedule reminders using the reminder tool.",
+        "SUCCESS": "Reminder tool preference updated",
+        "ERROR": "Could not update reminder tool preference"
+      },
       "OPTIONS": {
         "DISCONNECT": "Disconnect"
       },

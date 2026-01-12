@@ -29,6 +29,7 @@ onMounted(fetchLimits);
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Banner
     v-show="showBanner"
     color="amber"

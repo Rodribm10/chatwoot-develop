@@ -3,6 +3,7 @@ import AddNewRulesDialog from './AddNewRulesDialog.vue';
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/Assistant/AddNewRulesDialog"
     :layout="{ type: 'grid', width: '800px' }"

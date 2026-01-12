@@ -3,6 +3,7 @@ import AddNewRulesInput from './AddNewRulesInput.vue';
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/Assistant/AddNewRulesInput"
     :layout="{ type: 'grid', width: '800px' }"

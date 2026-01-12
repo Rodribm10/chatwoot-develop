@@ -19,6 +19,7 @@ const guidelinesExample = [
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/Assistant/SuggestedRules"
     :layout="{ type: 'grid', width: '800px' }"

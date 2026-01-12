@@ -57,6 +57,7 @@ onMounted(() =>
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.INBOXES.HEADER')"
     :button-label="$t('CAPTAIN.INBOXES.ADD_NEW')"
@@ -79,6 +80,7 @@ onMounted(() =>
           :id="captainInbox.id"
           :key="captainInbox.id"
           :inbox="captainInbox"
+          :assistant-id="assistantId"
           @action="handleAction"
         />
       </div>

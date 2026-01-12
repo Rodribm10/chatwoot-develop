@@ -39,3 +39,13 @@
   title: 'Reagir a Mensagens'
   description: 'React to customer messages with emoji (👍, ❤️, 😊)'
   icon: 'emoji'
+
+- id: reminder
+  title: 'Reminder'
+  description: 'Schedule a reminder to send a message to the customer at a specific time'
+  icon: 'clock'
+
+- id: suite_watchdog
+  title: 'Suite Watchdog'
+  description: 'Monitor suite availability and notify the customer when it becomes free'
+  icon: 'search'

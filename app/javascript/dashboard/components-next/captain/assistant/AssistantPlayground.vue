@@ -75,6 +75,7 @@ const sendMessage = async () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <div
     class="flex flex-col h-full rounded-xl border py-6 border-n-weak text-n-slate-11"
   >

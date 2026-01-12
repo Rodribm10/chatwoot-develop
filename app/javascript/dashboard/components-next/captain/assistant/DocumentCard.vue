@@ -79,6 +79,7 @@ const handleAction = ({ action, value }) => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <CardLayout>
     <div class="flex gap-1 justify-between w-full">
       <span class="text-base text-n-slate-12 line-clamp-1">

@@ -117,6 +117,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.ASSISTANTS.SKILLS.HEADER')"
     :header-description="$t('CAPTAIN.ASSISTANTS.SKILLS.DESCRIPTION')"
@@ -152,7 +153,7 @@ onMounted(() => {
           </div>
 
           <div
-            v-if="tool.enabled"
+            v-if="tool.enabled && tool.key !== 'react_to_message'"
             class="flex flex-col gap-4 pl-4 border-l-2 border-n-weak mt-6 pt-2 transition-all"
           >
             <h5

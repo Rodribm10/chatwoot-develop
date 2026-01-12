@@ -270,3 +270,5 @@ group :development, :test do
   gem 'spring'
   gem 'spring-watcher-listen'
 end
+
+gem "rqrcode", "~> 3.2"

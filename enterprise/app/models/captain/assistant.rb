@@ -103,6 +103,15 @@ class Captain::Assistant < ApplicationRecord
       tools << Captain::Tools::ScenarioDelegatorTool.new(scenario)
     end
 
+    # Add enabled built-in tools
+    tool_configs.where(is_enabled: true).each do |tool_config|
+      tool_class = self.class.resolve_tool_class(tool_config.tool_key)
+      next unless tool_class
+
+      # Avoid duplicates if tool is already added (e.g. hardcoded ones)
+      tools << tool_class.new(self) unless tools.any? { |t| t.is_a?(tool_class) }
+    end
+
     # Add enabled custom tools
     account.captain_custom_tools.enabled.each do |custom_tool|
       tools << Captain::Tools::HttpTool.new(self, custom_tool)

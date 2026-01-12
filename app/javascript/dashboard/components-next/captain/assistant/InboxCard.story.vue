@@ -4,6 +4,7 @@ import { inboxes } from 'dashboard/components-next/captain/pageComponents/emptyS
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/Assistant/InboxCard"
     :layout="{ type: 'grid', width: '700px' }"

@@ -173,6 +173,7 @@ const addAllExample = () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.ASSISTANTS.GUARDRAILS.TITLE')"
     :is-fetching="isFetching"

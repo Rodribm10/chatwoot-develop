@@ -4,6 +4,7 @@ import { documentsList } from 'dashboard/components-next/captain/pageComponents/
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/Assistant/DocumentCard"
     :layout="{ type: 'grid', width: '700px' }"

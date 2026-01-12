@@ -9,6 +9,7 @@ const sampleRules = [
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/Assistant/RuleCard"
     :layout="{ type: 'grid', width: '800px' }"

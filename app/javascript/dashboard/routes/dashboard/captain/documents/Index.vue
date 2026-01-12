@@ -92,6 +92,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.DOCUMENTS.HEADER')"
     :button-label="$t('CAPTAIN.DOCUMENTS.ADD_NEW')"

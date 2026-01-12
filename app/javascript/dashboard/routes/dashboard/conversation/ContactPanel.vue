@@ -23,6 +23,7 @@ import ShopifyOrdersList from 'dashboard/components/widgets/conversation/Shopify
 import SidebarActionsHeader from 'dashboard/components-next/SidebarActionsHeader.vue';
 import LinearIssuesList from 'dashboard/components/widgets/conversation/linear/IssuesList.vue';
 import LinearSetupCTA from 'dashboard/components/widgets/conversation/linear/LinearSetupCTA.vue';
+import CaptainReservationPanel from './captain/ReservationPanel.vue';
 
 const props = defineProps({
   conversationId: {
@@ -216,6 +217,24 @@ onMounted(() => {
                 :empty-state-message="
                   $t('CONVERSATION_CUSTOM_ATTRIBUTES.NO_RECORDS_FOUND')
                 "
+              />
+            </AccordionItem>
+          </div>
+          <div v-else-if="element.name === 'captain_reservations'">
+            <AccordionItem
+              :title="$t('CONVERSATION_SIDEBAR.ACCORDION.CAPTAIN_RESERVATIONS')"
+              :is-open="
+                isContactSidebarItemOpen('is_captain_reservations_open')
+              "
+              @toggle="
+                value =>
+                  toggleSidebarUIState('is_captain_reservations_open', value)
+              "
+            >
+              <CaptainReservationPanel
+                :conversation-id="conversationId"
+                :inbox-id="inboxId"
+                :contact="contact"
               />
             </AccordionItem>
           </div>

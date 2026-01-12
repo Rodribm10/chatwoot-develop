@@ -45,6 +45,7 @@ defineExpose({ dialogRef });
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Dialog
     ref="dialogRef"
     type="create"

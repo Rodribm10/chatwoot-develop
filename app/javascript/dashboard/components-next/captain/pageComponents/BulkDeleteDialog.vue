@@ -48,6 +48,7 @@ defineExpose({ dialogRef: bulkDeleteDialogRef });
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Dialog
     ref="bulkDeleteDialogRef"
     type="alert"

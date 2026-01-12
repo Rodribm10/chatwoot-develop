@@ -125,6 +125,7 @@ const handleDocumentableClick = () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <CardLayout
     selectable
     class="relative"

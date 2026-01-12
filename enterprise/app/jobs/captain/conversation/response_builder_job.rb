@@ -65,7 +65,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     return false unless @assistant.config['handoff_on_sentiment']
 
     # Force handoff if user is angry or very frustrated
-    ['angry', 'frustrated'].include?(@response['sentiment']&.downcase)
+    %w[angry frustrated].include?(@response['sentiment']&.downcase)
   end
 
   def trigger_typing_status(status)
@@ -144,6 +144,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
         create_handoff_message
         @conversation.bot_handoff!
         apply_handoff_side_effects
+        deliver_handoff_webhook
         log_handoff_event
         send_out_of_office_message_if_applicable
       end
@@ -217,6 +218,36 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
     allowed_agent_ids = @conversation.inbox.member_ids_with_assignment_capacity
     AutoAssignment::AgentAssignmentService.new(conversation: @conversation, allowed_agent_ids: allowed_agent_ids).perform
+  end
+
+  def deliver_handoff_webhook
+    handoff_context = {
+      trigger: determine_handoff_trigger,
+      sentiment: @response['sentiment'],
+      reason: @response['reasoning'],
+      last_message: @conversation.messages.incoming.last&.content,
+      conversation_summary: build_conversation_summary
+    }
+
+    Captain::HandoffWebhookService.new(
+      conversation: @conversation,
+      assistant: @assistant,
+      handoff_context: handoff_context
+    ).deliver
+  end
+
+  def determine_handoff_trigger
+    return 'sentiment' if negative_sentiment?
+    return 'error' if @response&.dig('error').present?
+
+    'ai_decision'
+  end
+
+  def build_conversation_summary
+    # Use existing CRM insight summary if available
+    @conversation.latest_crm_insight&.summary_text ||
+      # Otherwise, concatenate last 5 messages
+      @conversation.messages.where(private: false).last(5).map(&:content).join(' | ')
   end
 
   def log_handoff_event

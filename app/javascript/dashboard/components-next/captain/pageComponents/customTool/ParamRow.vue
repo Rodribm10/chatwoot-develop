@@ -61,6 +61,7 @@ defineExpose({ validate });
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <li class="list-none">
     <div
       class="flex items-start gap-2 p-3 rounded-lg border border-n-weak bg-n-alpha-2"

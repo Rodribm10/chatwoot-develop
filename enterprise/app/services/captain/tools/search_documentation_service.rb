@@ -51,7 +51,7 @@ class Captain::Tools::SearchDocumentationService < Captain::Tools::BaseTool
   def result_score_payload(response)
     {
       id: response.id,
-      distance: response.respond_to?(:neighbor_distance) ? response.neighbor_distance : nil
+      distance: response.neighbor_distance
     }
   end
 

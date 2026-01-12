@@ -12,6 +12,7 @@ const onClick = () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <EmptyStateLayout
     :title="$t('CAPTAIN.INBOXES.EMPTY_STATE.TITLE')"
     :subtitle="$t('CAPTAIN.INBOXES.EMPTY_STATE.SUBTITLE')"

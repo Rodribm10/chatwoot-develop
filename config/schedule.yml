@@ -13,6 +13,12 @@ trigger_scheduled_items_job:
   class: 'TriggerScheduledItemsJob'
   queue: scheduled_jobs
 
+# executed every minute for captain reminders
+captain_trigger_reminders_job:
+  cron: '*/1 * * * *'
+  class: 'Captain::Reminders::TriggerJob'
+  queue: scheduled_jobs
+
 # executed At every minute..
 trigger_imap_email_inboxes_job:
   cron: '*/1 * * * *'

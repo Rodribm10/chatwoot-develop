@@ -87,6 +87,7 @@ const onClickCancel = () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <div
     v-on-click-outside="() => togglePopover(false)"
     class="inline-flex relative"

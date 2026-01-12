@@ -3,14 +3,20 @@ class Api::V1::Accounts::Captain::InboxesController < Api::V1::Accounts::BaseCon
   before_action -> { check_authorization(Captain::Assistant) }
 
   before_action :set_assistant
+
   def index
-    @inboxes = @assistant.inboxes
+    @captain_inboxes = @assistant.captain_inboxes.includes(:inbox).order(created_at: :desc)
   end
 
   def create
     inbox = Current.account.inboxes.find(assistant_params[:inbox_id])
     @captain_inbox = @assistant.captain_inboxes.build(inbox: inbox)
     @captain_inbox.save!
+  end
+
+  def update
+    @captain_inbox = @assistant.captain_inboxes.find_by!(inbox_id: permitted_params[:inbox_id])
+    @captain_inbox.update!(update_params)
   end
 
   def destroy
@@ -34,6 +40,10 @@ class Api::V1::Accounts::Captain::InboxesController < Api::V1::Accounts::BaseCon
   end
 
   def assistant_params
-    params.require(:inbox).permit(:inbox_id)
+    params.require(:inbox).permit(:inbox_id, :captain_unit_id)
+  end
+
+  def update_params
+    params.require(:inbox).permit(:always_use_reminder_tool, :captain_unit_id)
   end
 end

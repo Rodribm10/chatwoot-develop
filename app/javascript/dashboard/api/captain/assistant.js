@@ -41,6 +41,10 @@ class CaptainAssistant extends ApiClient {
   updateTool(assistantId, toolKey, config) {
     return axios.patch(`${this.url}/${assistantId}/tools/${toolKey}`, config);
   }
+
+  testWebhook(assistantId) {
+    return axios.post(`${this.url}/${assistantId}/test_webhook`);
+  }
 }
 
 export default new CaptainAssistant();

@@ -1,9 +1,10 @@
 <script setup>
-import { reactive, computed } from 'vue';
+import { reactive, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useVuelidate } from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import { useMapGetter } from 'dashboard/composables/store';
+import axios from 'axios';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
@@ -27,9 +28,11 @@ const formState = {
 
 const initialState = {
   inboxId: null,
+  captainUnitId: null,
 };
 
 const state = reactive({ ...initialState });
+const units = reactive([]);
 
 const validationRules = {
   inboxId: { required },
@@ -44,6 +47,13 @@ const inboxList = computed(() => {
       value: inbox.id,
       label: inbox.name,
     }));
+});
+
+const unitList = computed(() => {
+  return units.map(unit => ({
+    value: unit.id,
+    label: unit.name,
+  }));
 });
 
 const v$ = useVuelidate(validationRules, state);
@@ -64,6 +74,7 @@ const handleCancel = () => emit('cancel');
 
 const prepareInboxPayload = () => ({
   inboxId: state.inboxId,
+  captainUnitId: state.captainUnitId,
   assistantId: props.assistantId,
 });
 
@@ -75,9 +86,19 @@ const handleSubmit = async () => {
 
   emit('submit', prepareInboxPayload());
 };
+
+onMounted(async () => {
+  try {
+    const { data } = await axios.get('/api/v1/accounts/captain/units');
+    units.push(...data);
+  } catch (error) {
+    // Silent fail or alert
+  }
+});
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
     <div class="flex flex-col gap-1">
       <label for="inbox" class="mb-0.5 text-sm font-medium text-n-slate-12">
@@ -92,6 +113,23 @@ const handleSubmit = async () => {
         class="[&>div>button]:bg-n-alpha-black2 [&>div>button:not(.focused)]:dark:outline-n-weak [&>div>button:not(.focused)]:hover:!outline-n-slate-6"
         :message="formErrors.inboxId"
       />
+    </div>
+
+    <!-- Unit Selection -->
+    <div class="flex flex-col gap-1">
+      <label for="unit" class="mb-0.5 text-sm font-medium text-n-slate-12">
+        Unidade (Opcional - Pix)
+      </label>
+      <ComboBox
+        id="unit"
+        v-model="state.captainUnitId"
+        :options="unitList"
+        placeholder="Selecione a unidade financeira"
+        class="[&>div>button]:bg-n-alpha-black2 [&>div>button:not(.focused)]:dark:outline-n-weak [&>div>button:not(.focused)]:hover:!outline-n-slate-6"
+      />
+      <span class="text-xs text-n-slate-11">
+        Vincule a uma unidade para ativar Pix automático.
+      </span>
     </div>
 
     <div class="flex items-center justify-between w-full gap-3">

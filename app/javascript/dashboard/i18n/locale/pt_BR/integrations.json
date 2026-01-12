@@ -147,7 +147,8 @@
         "MAKE_FORMAL": "Usar tom formal",
         "SIMPLIFY": "Simplificar"
       },
-      "ASSISTANCE_MODAL": {
+
+      "ASSISTANT_GENERATOR": {
         "DRAFT_TITLE": "Conteúdo do rascunho",
         "GENERATED_TITLE": "Conteúdo gerado",
         "AI_WRITING": "A Inteligência Artificial está escrevendo",
@@ -366,6 +367,41 @@
   },
   "CAPTAIN": {
     "NAME": "Capitão",
+    "UNITS": {
+      "TITLE": "Unidades & Filiais",
+      "HEADER": "Gerenciar Unidades",
+      "DESCRIPTION": "Gerencie as unidades físicas (motéis/hotéis) e suas chaves Pix.",
+      "NEW_UNIT": "Nova Unidade",
+      "ADD_NEW": "Adicionar Nova Unidade",
+      "ADD_TITLE": "Adicionar Nova Unidade",
+      "ADD_DESC": "Cadastre uma nova filial para gerenciar reservas e pagamentos.",
+      "EDIT_TITLE": "Editar Unidade",
+      "EDIT_DESC": "Atualize as informações e configurações da unidade.",
+      "NAME_REQUIRED": "O nome da unidade é obrigatório",
+      "SAVED_SUCCESS": "Unidade salva com sucesso!",
+      "UPDATE_ERROR": "Erro ao atualizar unidade.",
+      "COPY_LINK": "Copiar Link",
+      "OPEN_PAGE": "Abrir Página",
+      "COPY_LINK_SUCCESS": "Link copiado com sucesso!",
+      "COPY_LINK_ERROR": "Erro ao copiar o link.",
+      "SAVED_ERROR": "Erro ao salvar unidade.",
+      "ERROR_FETCHING": "Erro ao buscar unidades",
+      "FORM": {
+        "NAME_LABEL": "Nome da Unidade",
+        "NAME_PLACEHOLDER": "Ex: Unidade Centro",
+        "NAME_ERROR": "O nome é obrigatório",
+        "BRAND_LABEL": "Marca",
+        "BRAND_PLACEHOLDER": "Selecione uma marca",
+        "FORM_DESCRIPTION": "Preencha os dados da unidade e as credenciais do Pix (Banco Inter).",
+        "PIX_CONFIG_TITLE": "Configuração Pix (Banco Inter)",
+        "PIX_KEY": "Chave Pix",
+        "CLIENT_ID": "Client ID",
+        "CLIENT_SECRET": "Client Secret",
+        "CERT_PATH": "Caminho do Certificado (.pem)",
+        "KEY_PATH": "Caminho da Chave (.pem)",
+        "ACCOUNT_NUMBER": "Conta Corrente"
+      }
+    },
     "HEADER_KNOW_MORE": "Know more",
     "ASSISTANT_SWITCHER": {
       "ASSISTANTS": "Assistentes",
@@ -535,6 +571,19 @@
           "ALLOW_MEMORIES": "Capture os principais detalhes como memórias de interações do cliente.",
           "ALLOW_CITATIONS": "Incluir fonte de citações nas respostas",
           "ALLOW_SENTIMENT_HANDOFF": "Transferir automaticamente para humano em caso de sentimento negativo (raiva/frustração)"
+        },
+        "WEBHOOK": {
+          "TITLE": "Webhook de Escalação",
+          "DESCRIPTION": "Notifique sistemas externos quando uma conversa for escalada para atendimento humano",
+          "URL_LABEL": "URL do Webhook",
+          "URL_PLACEHOLDER": "https://api.example.com/handoff",
+          "HEADERS_LABEL": "Headers Personalizados (Opcional)",
+          "HEADERS_HELP": "Adicione headers customizados para autenticação (ex: Authorization: Bearer TOKEN)",
+          "ADD_HEADER": "+ Adicionar Header",
+          "RETRY_LABEL": "Tentativas de Retry",
+          "TIMEOUT_LABEL": "Timeout (segundos)",
+          "TEST_BUTTON": "Testar Webhook",
+          "TEST_SENT": "Webhook de teste enviado!"
         }
       },
       "EDIT": {
@@ -822,6 +871,172 @@
         }
       }
     },
+    "ASSETS": {
+      "HEADER": "Galeria de Midia",
+      "DESCRIPTION": "Envie imagens e referencie nos prompts usando {{ media.chave }}.",
+      "ADD_NEW": "Enviar imagem",
+      "EMPTY_STATE": "Nenhuma imagem ainda. Envie sua primeira imagem para comecar.",
+      "FORM_DESCRIPTION": "Envie uma imagem e defina uma chave unica para usar nos prompts.",
+      "SHORTCUT_LABEL": "Atalho",
+      "COPY_SHORTCUT": {
+        "LABEL": "Copiar atalho",
+        "SUCCESS": "Atalho copiado"
+      },
+      "COPY_URL": {
+        "LABEL": "Copiar URL",
+        "SUCCESS": "URL copiada"
+      },
+      "FORM": {
+        "NAME": {
+          "LABEL": "Chave",
+          "PLACEHOLDER": "suite_master",
+          "ERROR": "A chave e obrigatoria"
+        },
+        "FILE": {
+          "LABEL": "Arquivo de imagem",
+          "CHOOSE_FILE": "Escolher imagem",
+          "ERROR": "A imagem e obrigatoria",
+          "HELP_TEXT": "PNG, JPG, GIF ou WEBP ate 10MB",
+          "INVALID_TYPE": "Apenas arquivos PNG, JPG, GIF ou WEBP sao permitidos",
+          "TOO_LARGE": "O arquivo deve ter menos de 10MB"
+        }
+      },
+      "CREATE": {
+        "TITLE": "Enviar imagem",
+        "SUCCESS_MESSAGE": "Imagem enviada com sucesso",
+        "ERROR_MESSAGE": "Ocorreu um erro ao enviar a imagem"
+      },
+      "EDIT": {
+        "TITLE": "Atualizar imagem",
+        "SUCCESS_MESSAGE": "Imagem atualizada com sucesso",
+        "ERROR_MESSAGE": "Ocorreu um erro ao atualizar a imagem"
+      },
+      "DELETE": {
+        "TITLE": "Excluir imagem",
+        "DESCRIPTION": "Esta acao e permanente. Excluir esta imagem quebrara prompts que a referenciam.",
+        "CONFIRM": "Sim, excluir",
+        "SUCCESS_MESSAGE": "Imagem excluida com sucesso",
+        "ERROR_MESSAGE": "Ocorreu um erro ao excluir a imagem"
+      }
+    },
+    "RESERVATIONS": {
+      "AUTOMATIONS": {
+        "TITLE": "Automacoes",
+        "LIST_TITLE": "Automacoes existentes",
+        "EMPTY": "Nenhuma automacao configurada",
+        "EDIT": "Editar",
+        "DELETE": "Excluir",
+        "TRIGGER_CHECK_IN": "Check-in",
+        "TRIGGER_CHECK_OUT": "Check-out",
+        "TIMING_BEFORE": "Antes",
+        "TIMING_AFTER": "Depois",
+        "FORM": {
+          "TITLE": "Titulo",
+          "MESSAGE": "Mensagem",
+          "TRIGGER": "Disparo",
+          "TIMING": "Momento",
+          "MINUTES": "Minutos",
+          "SUBMIT": "Adicionar automacao",
+          "UPDATE": "Atualizar automacao",
+          "CANCEL": "Cancelar"
+        },
+        "SUCCESS": {
+          "CREATED": "Automacao criada",
+          "UPDATED": "Automacao atualizada",
+          "DELETED": "Automacao excluida"
+        },
+        "ERRORS": {
+          "LOAD_FAILED": "Nao foi possivel carregar as automacoes",
+          "MISSING_FIELDS": "Preencha titulo e mensagem",
+          "CREATE_FAILED": "Nao foi possivel criar a automacao",
+          "UPDATE_FAILED": "Nao foi possivel atualizar a automacao",
+          "DELETE_FAILED": "Nao foi possivel excluir a automacao"
+        }
+      },
+      "PAGE": {
+        "HEADER": "Reservas e lembretes",
+        "DESCRIPTION": "Crie reservas e lembretes manuais vinculados a uma caixa de entrada.",
+        "INBOX_LABEL": "Caixa de entrada",
+        "INBOX_PLACEHOLDER": "Selecione uma caixa de entrada",
+        "NO_INBOXES": "Nenhuma caixa de entrada disponível",
+        "RESERVATION_TITLE": "Reserva manual",
+        "CONTACT_NAME_LABEL": "Nome do cliente (opcional)",
+        "CONTACT_NAME_PLACEHOLDER": "Maria",
+        "PHONE_LABEL": "WhatsApp do cliente",
+        "PHONE_PLACEHOLDER": "+55 11 99999-9999",
+        "NO_RESERVATIONS": "Nenhuma reserva para esta caixa de entrada",
+        "FILTERS_TITLE": "Filtros",
+        "FILTERS_FROM": "De",
+        "FILTERS_TO": "Ate",
+        "LOAD_MORE": "Carregar mais",
+        "ERRORS": {
+          "INBOX_REQUIRED": "Selecione uma caixa de entrada",
+          "PHONE_REQUIRED": "Telefone obrigatorio"
+        }
+      },
+      "SECTION_TITLE": "Reserva",
+      "LIST_TITLE": "Reservas futuras",
+      "NO_SUITE": "Suite nao informada",
+      "FORM": {
+        "UNIT_LABEL": "Unidade",
+        "UNIT_PLACEHOLDER": "Selecione a unidade",
+        "TOTAL_AMOUNT_LABEL": "Valor Total (R$)",
+        "SUITE_LABEL": "Suite",
+        "SUITE_PLACEHOLDER": "102",
+        "CHECK_IN_LABEL": "Horario de entrada",
+        "DURATION_LABEL": "Duracao (horas)",
+        "CHECK_OUT_PREVIEW": "Horario estimado de saida",
+        "SUBMIT": "Criar reserva"
+      },
+      "SETTINGS": {
+        "TITLE": "Mensagens automaticas",
+        "ENABLED": "Ativar automacoes",
+        "MENU_DELAY": "Atraso do cardapio (minutos)",
+        "MENU_MESSAGE": "Mensagem do cardapio",
+        "FEEDBACK_DELAY": "Atraso da pesquisa (minutos)",
+        "FEEDBACK_MESSAGE": "Mensagem da pesquisa",
+        "SAVE": "Salvar configuracoes",
+        "SAVED": "Configuracoes atualizadas"
+      },
+      "SUCCESS": {
+        "CREATED": "Reserva criada",
+        "CANCELLED": "Reserva cancelada"
+      },
+      "ERRORS": {
+        "LOAD_FAILED": "Nao foi possivel carregar as reservas",
+        "CREATE_FAILED": "Nao foi possivel criar a reserva",
+        "MISSING_RESERVATION_FIELDS": "Preencha horario de entrada e duracao",
+        "CANCEL_FAILED": "Nao foi possivel cancelar a reserva",
+        "SETTINGS_LOAD_FAILED": "Nao foi possivel carregar as configuracoes",
+        "SETTINGS_SAVE_FAILED": "Nao foi possivel salvar as configuracoes"
+      }
+    },
+    "REMINDERS": {
+      "PAGE": {
+        "TITLE": "Lembrete manual",
+        "NO_REMINDERS": "Nenhum lembrete para esta caixa de entrada",
+        "LOAD_MORE": "Carregar mais"
+      },
+      "SECTION_TITLE": "Lembrete",
+      "LIST_TITLE": "Lembretes agendados",
+      "FORM": {
+        "MESSAGE_LABEL": "Mensagem",
+        "MESSAGE_PLACEHOLDER": "Sua suite esta disponivel...",
+        "TIME_LABEL": "Enviar em",
+        "SUBMIT": "Agendar lembrete"
+      },
+      "SUCCESS": {
+        "CREATED": "Lembrete agendado",
+        "CANCELLED": "Lembrete cancelado"
+      },
+      "ERRORS": {
+        "LOAD_FAILED": "Nao foi possivel carregar os lembretes",
+        "MISSING_FIELDS": "Preencha mensagem e horario",
+        "PHONE_REQUIRED": "Telefone obrigatorio",
+        "CREATE_FAILED": "Nao foi possivel agendar o lembrete",
+        "CANCEL_FAILED": "Nao foi possivel cancelar o lembrete"
+      }
+    },
     "CUSTOM_TOOLS": {
       "HEADER": "Poderes",
       "ADD_NEW": "Criar poder",
@@ -926,8 +1141,21 @@
           "LABEL": "Response Template (Optional)",
           "PLACEHOLDER": "Order {'{{'} order_id {'}}'} status: {'{{'} status {'}}'}"
         },
+        "HEADERS": {
+          "LABEL": "Headers Personalizados",
+          "HELP_TEXT": "Defina cabeçalhos estáticos para autenticação e segurança (Ex: PLUG-PLAY-TOKEN)."
+        },
+        "ADD_HEADER": "Adicionar Header",
+        "HEADER_KEY": {
+          "PLACEHOLDER": "Nome do Header (Ex: X-Auth-Token)"
+        },
+        "HEADER_VALUE": {
+          "PLACEHOLDER": "Valor"
+        },
         "ERRORS": {
-          "PARAM_NAME_REQUIRED": "Parameter name is required"
+          "PARAM_NAME_REQUIRED": "Nome do parâmetro obrigatório",
+          "HEADER_KEY_REQUIRED": "Nome do header obrigatório",
+          "HEADER_VALUE_REQUIRED": "Valor do header obrigatório"
         }
       }
     },
@@ -1020,6 +1248,12 @@
     "INBOXES": {
       "HEADER": "Caixas de entrada conectadas",
       "ADD_NEW": "Conectar uma nova caixa de entrada",
+      "REMINDER_TOOL": {
+        "LABEL": "Sempre usar a ferramenta de lembretes",
+        "HELP": "Quando ativo, o assistente deve agendar lembretes usando a ferramenta.",
+        "SUCCESS": "Preferencia de lembretes atualizada",
+        "ERROR": "Nao foi possivel atualizar a preferencia"
+      },
       "OPTIONS": {
         "DISCONNECT": "Desconectar"
       },

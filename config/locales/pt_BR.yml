@@ -346,6 +346,15 @@ pt_BR:
       page_processing_error: 'Erro ao processar as páginas %{start}-%{end}: %{error}'
     custom_tool:
       slug_generation_failed: 'Unable to generate unique slug after 5 attempts'
+    reminders:
+      defaults:
+        menu: 'Bem vindo! Aqui esta nosso cardapio digital.'
+        feedback: 'Obrigado pela visita! Pode avaliar sua experiencia?'
+        suite_available: 'Sua suite %{suite} esta disponivel agora.'
+    automations:
+      defaults:
+        menu_title: 'Cardapio'
+        feedback_title: 'Pesquisa'
   public_portal:
     search:
       search_placeholder: Pesquisar por artigo por título ou corpo...

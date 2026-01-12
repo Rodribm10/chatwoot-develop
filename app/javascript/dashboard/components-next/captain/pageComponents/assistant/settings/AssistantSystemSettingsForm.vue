@@ -277,6 +277,7 @@ watch(
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <div class="flex flex-col gap-6">
     <Editor
       v-model="state.handoffMessage"

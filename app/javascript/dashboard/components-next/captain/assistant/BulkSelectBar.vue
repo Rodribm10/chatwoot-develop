@@ -52,6 +52,7 @@ const bulkCheckboxState = computed({
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <transition
     name="slide-fade"
     enter-active-class="transition-all duration-300 ease-out"

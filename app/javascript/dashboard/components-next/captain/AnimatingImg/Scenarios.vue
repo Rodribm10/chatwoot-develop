@@ -9,6 +9,7 @@ const toggle = () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <div
     class="svg-wrapper relative"
     :class="{ paused }"

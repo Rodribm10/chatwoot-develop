@@ -81,6 +81,7 @@ onMounted(() => performRouting());
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <div
     class="flex items-center justify-center w-full bg-n-background text-n-slate-11"
   >

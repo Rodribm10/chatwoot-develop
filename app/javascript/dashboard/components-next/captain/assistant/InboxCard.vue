@@ -1,11 +1,14 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useToggle } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
+import { useAlert } from 'dashboard/composables';
+import { useStore } from 'dashboard/composables/store';
 
 import CardLayout from 'dashboard/components-next/CardLayout.vue';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import Switch from 'dashboard/components-next/switch/Switch.vue';
 import Policy from 'dashboard/components/policy.vue';
 import { INBOX_TYPES, getInboxIconByType } from 'dashboard/helper/inbox';
 
@@ -18,13 +21,29 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  assistantId: {
+    type: [Number, String],
+    required: true,
+  },
 });
 
 const emit = defineEmits(['action']);
 
 const { t } = useI18n();
+const store = useStore();
 
 const [showActionsDropdown, toggleDropdown] = useToggle();
+const isUpdating = ref(false);
+const reminderToolEnabled = ref(
+  props.inbox?.captain_inbox?.always_use_reminder_tool || false
+);
+
+watch(
+  () => props.inbox?.captain_inbox?.always_use_reminder_tool,
+  value => {
+    reminderToolEnabled.value = value || false;
+  }
+);
 
 const inboxName = computed(() => {
   const inbox = props.inbox;
@@ -66,9 +85,30 @@ const handleAction = ({ action, value }) => {
   toggleDropdown(false);
   emit('action', { action, value, id: props.id });
 };
+
+const toggleReminderTool = async value => {
+  if (isUpdating.value) return;
+  isUpdating.value = true;
+  reminderToolEnabled.value = value;
+  try {
+    await store.dispatch('captainInboxes/update', {
+      id: props.id,
+      assistantId: props.assistantId,
+      always_use_reminder_tool: value,
+    });
+    useAlert(t('CAPTAIN.INBOXES.REMINDER_TOOL.SUCCESS'));
+  } catch (error) {
+    reminderToolEnabled.value =
+      props.inbox?.captain_inbox?.always_use_reminder_tool || false;
+    useAlert(t('CAPTAIN.INBOXES.REMINDER_TOOL.ERROR'));
+  } finally {
+    isUpdating.value = false;
+  }
+};
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <CardLayout>
     <div class="flex justify-between w-full gap-1">
       <span
@@ -99,5 +139,16 @@ const handleAction = ({ action, value }) => {
         </Policy>
       </div>
     </div>
+    <div class="flex items-center justify-between mt-3 text-xs text-n-slate-11">
+      <span>{{ t('CAPTAIN.INBOXES.REMINDER_TOOL.LABEL') }}</span>
+      <Switch
+        v-model="reminderToolEnabled"
+        :disabled="isUpdating"
+        @update:model-value="toggleReminderTool"
+      />
+    </div>
+    <p class="mt-1 text-xs text-n-slate-10">
+      {{ t('CAPTAIN.INBOXES.REMINDER_TOOL.HELP') }}
+    </p>
   </CardLayout>
 </template>

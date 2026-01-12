@@ -2,7 +2,7 @@ class Api::V1::Accounts::Captain::AssistantsController < Api::V1::Accounts::Base
   before_action :current_account
   before_action -> { check_authorization(Captain::Assistant) }
 
-  before_action :set_assistant, only: [:show, :update, :destroy, :playground]
+  before_action :set_assistant, only: [:show, :update, :destroy, :playground, :test_webhook]
 
   def index
     @assistants = account_assistants.ordered
@@ -34,24 +34,57 @@ class Api::V1::Accounts::Captain::AssistantsController < Api::V1::Accounts::Base
     history = params[:message_history] || params.dig(:assistant, :message_history) || []
     history = history.map { |m| { role: m[:role] || m['role'], content: m[:content] || m['content'] } }
 
-    if captain_v2_enabled?
-      # For V2, we only pass the history. The current message is already in history from frontend
-      # or should be treated as the last turn.
-      response = Captain::Assistant::AgentRunnerService.new(assistant: @assistant).generate_response(
-        message_history: history
-      )
-    else
-      # V1 Engine (Single Agent)
-      response = Captain::Llm::AssistantChatService.new(assistant: @assistant).generate_response(
-        additional_message: content,
-        message_history: history
-      )
-    end
+    response = if captain_v2_enabled?
+                 # For V2, we only pass the history. The current message is already in history from frontend
+                 # or should be treated as the last turn.
+                 Captain::Assistant::AgentRunnerService.new(assistant: @assistant).generate_response(
+                   message_history: history
+                 )
+               else
+                 # V1 Engine (Single Agent)
+                 Captain::Llm::AssistantChatService.new(assistant: @assistant).generate_response(
+                   additional_message: content,
+                   message_history: history
+                 )
+               end
 
     render json: response
   rescue StandardError => e
     Rails.logger.error "Playground Error: #{e.message}"
     render json: { response: "Erro técnico: #{e.message}", reasoning: e.backtrace.first }, status: :internal_server_error
+  end
+
+  def test_webhook
+    if @assistant.handoff_webhook_config['enabled'] && @assistant.handoff_webhook_config['url'].present?
+      # Create a dummy conversation and contact for testing
+      dummy_contact = Contact.new(name: 'Test Contact', phone_number: '+5511999999999', email: 'test@example.com')
+      dummy_conversation = Conversation.new(id: 0, display_id: 0, status: :open, inbox_id: 0, contact: dummy_contact)
+
+      # Mock the service call
+      service = Captain::HandoffWebhookService.new(
+        conversation: dummy_conversation,
+        assistant: @assistant,
+        handoff_context: {
+          trigger: 'test_button',
+          sentiment: 'test',
+          reason: 'This is a test webhook triggered by the user',
+          last_message: 'Test message content',
+          summary: 'This is a test summary'
+        }
+      )
+
+      response = service.deliver
+
+      if response.success?
+        render json: { message: 'Webhook sent successfully' }, status: :ok
+      else
+        render json: { error: "Webhook failed: #{response.status}" }, status: :unprocessable_entity
+      end
+    else
+      render json: { error: 'Webhook not configured' }, status: :unprocessable_entity
+    end
+  rescue StandardError => e
+    render json: { error: e.message }, status: :internal_server_error
   end
 
   def tools
@@ -81,7 +114,8 @@ class Api::V1::Accounts::Captain::AssistantsController < Api::V1::Accounts::Base
                                            :instructions, :temperature, :playbook, :distance_threshold, :max_rag_results,
                                            :system_prompt, :handoff_on_sentiment,
                                            { system_prompt_blocks: [:key, :title, :content, :order] }
-                                         ])
+                                         ],
+                                         handoff_webhook_config: [:enabled, :url, :retry_attempts, :timeout_seconds, { headers: {} }])
 
     # Handle array parameters separately to allow partial updates
     permitted[:response_guidelines] = assistant_payload[:response_guidelines] if assistant_payload.key?(:response_guidelines)

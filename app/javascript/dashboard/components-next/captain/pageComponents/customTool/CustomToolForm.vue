@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, computed, useTemplateRef, watch } from 'vue';
+import { reactive, computed, useTemplateRef, watch, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useVuelidate } from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
@@ -10,6 +10,7 @@ import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 import ParamRow from './ParamRow.vue';
+import HeaderRow from './HeaderRow.vue';
 import AuthConfig from './AuthConfig.vue';
 
 const props = defineProps({
@@ -45,6 +46,7 @@ const initialState = {
 };
 
 const state = reactive({ ...initialState });
+const customHeaders = ref([]);
 
 // Populate form when in edit mode
 watch(
@@ -60,6 +62,15 @@ watch(
       state.auth_type = newTool.auth_type || 'none';
       state.auth_config = newTool.auth_config || {};
       state.param_schema = newTool.param_schema || [];
+
+      // Extract headers from auth_config if present
+      if (state.auth_config && state.auth_config.headers) {
+        customHeaders.value = Object.entries(state.auth_config.headers).map(
+          ([key, value]) => ({ key, value })
+        );
+      } else {
+        customHeaders.value = [];
+      }
     }
   },
   { immediate: true }
@@ -114,12 +125,20 @@ const formErrors = computed(() => ({
 }));
 
 const paramsRef = useTemplateRef('paramsRef');
+const headersRef = useTemplateRef('headersRef');
 
 const isParamsValid = () => {
   if (!paramsRef.value || paramsRef.value.length === 0) {
     return true;
   }
   return paramsRef.value.every(param => param.validate());
+};
+
+const isHeadersValid = () => {
+  if (!headersRef.value || headersRef.value.length === 0) {
+    return true;
+  }
+  return headersRef.value.every(header => header.validate());
 };
 
 const removeParam = index => {
@@ -130,12 +149,34 @@ const addParam = () => {
   state.param_schema.push({ ...DEFAULT_PARAM });
 };
 
+const removeHeader = index => {
+  customHeaders.value.splice(index, 1);
+};
+
+const addHeader = () => {
+  customHeaders.value.push({ key: '', value: '' });
+};
+
 const handleCancel = () => emit('cancel');
 
 const handleSubmit = async () => {
   const isFormValid = await v$.value.$validate();
-  if (!isFormValid || !isParamsValid()) {
+  if (!isFormValid || !isParamsValid() || !isHeadersValid()) {
     return;
+  }
+
+  // Merge headers into auth_config
+  if (customHeaders.value.length > 0) {
+    const headersHash = customHeaders.value.reduce((acc, header) => {
+      acc[header.key] = header.value;
+      return acc;
+    }, {});
+    state.auth_config = { ...state.auth_config, headers: headersHash };
+  } else {
+    // If headers exist in auth_config but are removed in UI, we need to remove them
+    // but preserve other auth keys.
+    const { headers, ...restIdx } = state.auth_config;
+    state.auth_config = restIdx;
   }
 
   emit('submit', state);
@@ -143,6 +184,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <form
     class="flex flex-col px-4 -mx-4 gap-4 max-h-[calc(100vh-200px)] overflow-y-scroll"
     @submit.prevent="handleSubmit"
@@ -198,6 +240,34 @@ const handleSubmit = async () => {
       v-model:auth-config="state.auth_config"
       :auth-type="state.auth_type"
     />
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-n-slate-12">
+        {{ t('CAPTAIN.CUSTOM_TOOLS.FORM.HEADERS.LABEL') }}
+      </label>
+      <p class="text-xs text-n-slate-11 -mt-1">
+        {{ t('CAPTAIN.CUSTOM_TOOLS.FORM.HEADERS.HELP_TEXT') }}
+      </p>
+      <ul v-if="customHeaders.length > 0" class="grid gap-2 list-none">
+        <HeaderRow
+          v-for="(header, index) in customHeaders"
+          :key="index"
+          ref="headersRef"
+          v-model:key="header.key"
+          v-model:value="header.value"
+          @remove="removeHeader(index)"
+        />
+      </ul>
+      <Button
+        type="button"
+        sm
+        ghost
+        blue
+        icon="i-lucide-plus"
+        :label="t('CAPTAIN.CUSTOM_TOOLS.FORM.ADD_HEADER')"
+        @click="addHeader"
+      />
+    </div>
 
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-n-slate-12">

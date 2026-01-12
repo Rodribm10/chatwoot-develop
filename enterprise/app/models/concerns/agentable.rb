@@ -25,7 +25,10 @@ module Concerns::Agentable
       )
     end
 
-    Captain::PromptRenderer.render(template_name, enhanced_context.with_indifferent_access)
+    rendered = Captain::PromptRenderer.render(template_name, enhanced_context.with_indifferent_access)
+    return rendered unless respond_to?(:account) && account.present?
+
+    Captain::MediaInterpolationService.new(account: account).interpolate(rendered)
   end
 
   private

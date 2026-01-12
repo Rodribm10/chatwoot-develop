@@ -106,15 +106,46 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
     [
       Captain::Tools::SearchDocumentationService.new(@assistant, user: nil, conversation: @conversation),
       Captain::Tools::StatusSuitesTool.new(@assistant, user: nil, conversation: @conversation),
-      Captain::Tools::ReactToMessageTool.new(@assistant, user: nil, conversation: @conversation)
+      Captain::Tools::ReactToMessageTool.new(@assistant, user: nil, conversation: @conversation),
+      Captain::Tools::GeneratePixTool.new(@assistant, user: nil, conversation: @conversation),
+      Captain::Tools::CheckAvailabilityTool.new(@assistant, user: nil, conversation: @conversation)
     ]
   end
 
   def system_message
+    prompt = Captain::Llm::SystemPromptsService.assistant_response_generator(
+      @assistant.name,
+      @assistant.account.name, # Changed from @assistant.config['product_name']
+      @assistant.config
+    )
+
+    prompt = Captain::MediaInterpolationService.new(account: @assistant.account).interpolate(prompt)
+    prompt = append_reminder_tool_instruction(prompt)
+
     {
       role: 'system',
-      content: Captain::Llm::SystemPromptsService.assistant_response_generator(@assistant.name, @assistant.config['product_name'], @assistant.config)
+      content: prompt
     }
+  end
+
+  def append_reminder_tool_instruction(prompt)
+    return prompt unless always_use_reminder_tool?
+
+    <<~PROMPT.squish
+      #{prompt}
+
+      When a customer asks to schedule a reminder or to be reminded later, always call the reminder tool.
+    PROMPT
+  end
+
+  def always_use_reminder_tool?
+    return false if @conversation.blank?
+
+    captain_inbox = CaptainInbox.find_by(
+      inbox_id: @conversation.inbox_id,
+      captain_assistant_id: @assistant.id
+    )
+    captain_inbox&.always_use_reminder_tool?
   end
 
   def date_message

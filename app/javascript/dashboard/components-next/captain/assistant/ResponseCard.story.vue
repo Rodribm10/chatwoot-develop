@@ -4,6 +4,7 @@ import { responsesList } from 'dashboard/components-next/captain/pageComponents/
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/Assistant/ResponseCard"
     :layout="{ type: 'grid', width: '700px' }"

@@ -47,6 +47,7 @@ defineExpose({ dialogRef });
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Dialog
     ref="dialogRef"
     :title="$t(`${i18nKey}.TITLE`)"

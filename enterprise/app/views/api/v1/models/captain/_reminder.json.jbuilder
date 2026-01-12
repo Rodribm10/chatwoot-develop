@@ -1,0 +1,17 @@
+json.id reminder.id
+json.inbox_id reminder.inbox_id
+json.contact_id reminder.contact_id
+json.contact_inbox_id reminder.contact_inbox_id
+json.conversation_id reminder.conversation_id
+json.reminder_type reminder.reminder_type
+json.status reminder.status
+json.message reminder.message
+json.scheduled_at reminder.scheduled_at&.iso8601
+json.sent_at reminder.sent_at&.iso8601
+json.attempt_count reminder.attempt_count
+json.error_message reminder.error_message
+json.metadata reminder.metadata
+json.source_type reminder.source_type
+json.source_id reminder.source_id
+json.created_at reminder.created_at.to_i
+json.updated_at reminder.updated_at.to_i

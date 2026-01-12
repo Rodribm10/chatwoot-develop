@@ -85,6 +85,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.CUSTOM_TOOLS.HEADER')"
     :button-label="$t('CAPTAIN.CUSTOM_TOOLS.ADD_NEW')"

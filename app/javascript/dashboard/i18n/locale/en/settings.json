@@ -312,6 +312,8 @@
     "CAPTAIN": "Captain",
     "CAPTAIN_ASSISTANTS": "Assistants",
     "CAPTAIN_DOCUMENTS": "Documents",
+    "CAPTAIN_ASSETS": "Media Gallery",
+    "CAPTAIN_RESERVATIONS": "Reservations",
     "CAPTAIN_RESPONSES": "FAQs",
     "CAPTAIN_TOOLS": "Tools",
     "CAPTAIN_SCENARIOS": "Scenarios",

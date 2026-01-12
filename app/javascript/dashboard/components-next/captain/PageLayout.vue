@@ -30,6 +30,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  headerDescription: {
+    type: String,
+    default: '',
+  },
   backUrl: {
     type: [String, Object],
     default: '',
@@ -115,6 +119,7 @@ const handleCreateAssistant = () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <section class="flex flex-col w-full h-full overflow-hidden bg-n-background">
     <header class="sticky top-0 z-10 px-6">
       <div class="w-full max-w-[60rem] mx-auto">
@@ -200,7 +205,11 @@ const handleCreateAssistant = () => {
             </div>
           </div>
         </div>
-        <slot name="subHeader" />
+        <slot name="subHeader">
+          <p v-if="headerDescription" class="mt-2 text-sm text-n-slate-11">
+            {{ headerDescription }}
+          </p>
+        </slot>
       </div>
     </header>
     <main class="flex-1 px-6 overflow-y-auto">

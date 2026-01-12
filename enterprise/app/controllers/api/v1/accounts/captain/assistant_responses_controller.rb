@@ -21,6 +21,7 @@ class Api::V1::Accounts::Captain::AssistantResponsesController < Api::V1::Accoun
     @response = Current.account.captain_assistant_responses.new(response_params)
     @response.documentable = Current.user
     @response.save!
+    Captain::Llm::UpdateEmbeddingJob.perform_now(@response, "#{@response.question}: #{@response.answer}")
   end
 
   def update

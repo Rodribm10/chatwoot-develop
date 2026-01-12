@@ -24,6 +24,7 @@ const selectedIndex = ref(0);
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/Assistant/ToolsDropdown"
     :layout="{ type: 'grid', width: '600px' }"

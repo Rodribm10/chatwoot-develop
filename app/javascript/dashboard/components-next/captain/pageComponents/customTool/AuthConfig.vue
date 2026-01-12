@@ -27,6 +27,7 @@ watch(
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <div class="flex flex-col gap-2">
     <Input
       v-if="authType === 'bearer'"

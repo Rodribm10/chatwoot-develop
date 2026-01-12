@@ -6,17 +6,27 @@ import CaptainPageRouteView from './pages/CaptainPageRouteView.vue';
 import AssistantsIndexPage from './pages/AssistantsIndexPage.vue';
 import AssistantEmptyStateIndex from './assistants/Index.vue';
 import CaptainToolsPage from './pages/CaptainToolsPage.vue';
+import AssetsIndex from './assets/Index.vue';
+import ReservationsIndex from './reservations/Index.vue';
+import UnitsIndex from './units/Index.vue';
+import BrandsIndex from './brands/Index.vue';
+import PricingsIndex from './pricings/Index.vue';
+import ExtrasIndex from './extras/Index.vue';
+import RemindersIndex from './reminders/Index.vue';
+import ConfigurationsIndex from './configurations/Index.vue';
 
-import AssistantSettingsIndex from './assistants/settings/Settings.vue';
-import AssistantInboxesIndex from './assistants/inboxes/Index.vue';
-import AssistantPlaygroundIndex from './assistants/playground/Index.vue';
-import AssistantGuardrailsIndex from './assistants/guardrails/Index.vue';
-import AssistantGuidelinesIndex from './assistants/guidelines/Index.vue';
-import AssistantScenariosIndex from './assistants/scenarios/Index.vue';
-import DocumentsIndex from './documents/Index.vue';
+// Missing imports restored
 import ResponsesIndex from './responses/Index.vue';
 import ResponsesPendingIndex from './responses/Pending.vue';
+import DocumentsIndex from './documents/Index.vue';
 import AssistantToolsIndex from './assistants/tools/Index.vue';
+import AssistantScenariosIndex from './assistants/scenarios/Index.vue';
+import AssistantPlaygroundIndex from './assistants/playground/Index.vue';
+import AssistantInboxesIndex from './assistants/inboxes/Index.vue';
+import AssistantSettingsIndex from './assistants/settings/Settings.vue';
+import AssistantGuardrailsIndex from './assistants/guardrails/Index.vue';
+import AssistantGuidelinesIndex from './assistants/guidelines/Index.vue';
+
 const meta = {
   permissions: ['administrator', 'agent'],
   featureFlag: FEATURE_FLAGS.CAPTAIN,
@@ -25,7 +35,7 @@ const meta = {
 
 const metaV2 = {
   permissions: ['administrator', 'agent'],
-  featureFlag: FEATURE_FLAGS.CAPTAIN_V2,
+  featureFlag: FEATURE_FLAGS.CAPTAIN,
   installationTypes: [INSTALLATION_TYPES.CLOUD, INSTALLATION_TYPES.ENTERPRISE],
 };
 
@@ -35,6 +45,96 @@ const globalRoutes = [
     component: CaptainToolsPage,
     name: 'captain_global_tools_index',
     meta,
+  },
+  {
+    path: frontendURL('accounts/:accountId/captain/assets'),
+    component: AssetsIndex,
+    name: 'captain_assets_index',
+    meta,
+  },
+  {
+    path: frontendURL('accounts/:accountId/captain/reservations'),
+    component: ReservationsIndex,
+    name: 'captain_reservations_index',
+    meta,
+  },
+  {
+    path: frontendURL('accounts/:accountId/captain/units'),
+    component: UnitsIndex,
+    name: 'captain_units_index',
+    meta: {
+      permissions: ['administrator'],
+      featureFlag: FEATURE_FLAGS.CAPTAIN,
+      installationTypes: [
+        INSTALLATION_TYPES.CLOUD,
+        INSTALLATION_TYPES.ENTERPRISE,
+      ],
+    },
+  },
+  {
+    path: frontendURL('accounts/:accountId/captain/brands'),
+    component: BrandsIndex,
+    name: 'captain_brands_index',
+    meta: {
+      permissions: ['administrator'],
+      featureFlag: FEATURE_FLAGS.CAPTAIN,
+      installationTypes: [
+        INSTALLATION_TYPES.CLOUD,
+        INSTALLATION_TYPES.ENTERPRISE,
+      ],
+    },
+  },
+  {
+    path: frontendURL('accounts/:accountId/captain/pricings'),
+    component: PricingsIndex,
+    name: 'captain_pricings_index',
+    meta: {
+      permissions: ['administrator'],
+      featureFlag: FEATURE_FLAGS.CAPTAIN,
+      installationTypes: [
+        INSTALLATION_TYPES.CLOUD,
+        INSTALLATION_TYPES.ENTERPRISE,
+      ],
+    },
+  },
+  {
+    path: frontendURL('accounts/:accountId/captain/extras'),
+    component: ExtrasIndex,
+    name: 'captain_extras_index',
+    meta: {
+      permissions: ['administrator'],
+      featureFlag: FEATURE_FLAGS.CAPTAIN,
+      installationTypes: [
+        INSTALLATION_TYPES.CLOUD,
+        INSTALLATION_TYPES.ENTERPRISE,
+      ],
+    },
+  },
+  {
+    path: frontendURL('accounts/:accountId/captain/reminders'),
+    component: RemindersIndex,
+    name: 'captain_reminders_index',
+    meta: {
+      permissions: ['administrator'],
+      featureFlag: FEATURE_FLAGS.CAPTAIN,
+      installationTypes: [
+        INSTALLATION_TYPES.CLOUD,
+        INSTALLATION_TYPES.ENTERPRISE,
+      ],
+    },
+  },
+  {
+    path: frontendURL('accounts/:accountId/captain/configuration'),
+    component: ConfigurationsIndex,
+    name: 'captain_configurations_index',
+    meta: {
+      permissions: ['administrator'],
+      featureFlag: FEATURE_FLAGS.CAPTAIN,
+      installationTypes: [
+        INSTALLATION_TYPES.CLOUD,
+        INSTALLATION_TYPES.ENTERPRISE,
+      ],
+    },
   },
 ];
 

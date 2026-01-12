@@ -3,6 +3,7 @@ import SettingsHeader from './SettingsHeader.vue';
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/PageComponents/SettingsHeader"
     :layout="{ type: 'grid', width: '800px' }"

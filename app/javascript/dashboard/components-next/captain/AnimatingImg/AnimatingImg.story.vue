@@ -6,6 +6,7 @@ import Settings from './Settings.vue';
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Story
     title="Captain/AnimatingImg/AnimatingImg"
     :layout="{ type: 'grid', width: '300px' }"

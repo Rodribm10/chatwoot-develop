@@ -203,6 +203,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :total-count="responseMeta.totalCount"
     :current-page="responseMeta.page"

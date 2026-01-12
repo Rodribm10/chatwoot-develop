@@ -39,6 +39,7 @@ class Channel::Whatsapp < ApplicationRecord
 
   after_create :sync_templates
   after_create_commit :setup_webhooks
+  after_update_commit :setup_webhooks, if: :webhook_configuration_changed?
   before_destroy :teardown_webhooks
 
   def name
@@ -156,6 +157,14 @@ class Channel::Whatsapp < ApplicationRecord
   end
 
   private
+
+  def webhook_configuration_changed?
+    return true if saved_change_to_provider? && provider == 'wuzapi'
+    return false unless provider == 'wuzapi'
+
+    saved_change_to_wuzapi_user_token? ||
+      (saved_change_to_provider_config? && provider_config['wuzapi_base_url'] != provider_config_before_last_save['wuzapi_base_url'])
+  end
 
   def ensure_webhook_verify_token
     provider_config['webhook_verify_token'] ||= SecureRandom.hex(16) if provider.in?(%w[whatsapp_cloud baileys])

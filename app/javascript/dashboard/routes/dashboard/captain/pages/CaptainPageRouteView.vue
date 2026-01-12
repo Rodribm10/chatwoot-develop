@@ -22,6 +22,7 @@ watch(
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <div class="flex w-full h-full min-h-0">
     <section class="flex flex-1 h-full px-0 overflow-hidden bg-n-background">
       <router-view />

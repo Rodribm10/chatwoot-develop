@@ -49,6 +49,7 @@ watch(() => props.messages.length, scrollToBottom);
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <div
     ref="messageContainer"
     class="flex-1 overflow-y-auto mb-4 px-6 space-y-6"

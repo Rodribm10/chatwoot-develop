@@ -21,6 +21,13 @@ class CaptainInboxes extends ApiClient {
     const { assistantId, inboxId } = params;
     return axios.delete(`${this.url}/${assistantId}/inboxes/${inboxId}`);
   }
+
+  update(inboxId, params = {}) {
+    const { assistantId, always_use_reminder_tool } = params;
+    return axios.patch(`${this.url}/${assistantId}/inboxes/${inboxId}`, {
+      inbox: { always_use_reminder_tool },
+    });
+  }
 }
 
 export default new CaptainInboxes();

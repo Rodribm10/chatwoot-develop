@@ -180,6 +180,7 @@ const addAllExample = async () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.ASSISTANTS.RESPONSE_GUIDELINES.TITLE')"
     :is-fetching="isFetching"

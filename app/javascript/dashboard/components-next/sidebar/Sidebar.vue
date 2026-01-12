@@ -230,6 +230,64 @@ const menuItems = computed(() => {
       ],
     },
     {
+      name: 'Reservations',
+      icon: 'i-lucide-calendar',
+      label: 'Reservas',
+      activeOn: [
+        'captain_reservations_index',
+        'captain_reminders_index',
+        'captain_configurations_index',
+        'captain_units_index',
+        'captain_brands_index',
+        'captain_pricings_index',
+        'captain_extras_index',
+      ],
+      children: [
+        {
+          name: 'Dashboard',
+          label: 'Painel',
+          activeOn: ['captain_reservations_index'],
+          to: accountScopedRoute('captain_reservations_index'),
+        },
+        {
+          name: 'Reminders',
+          label: 'Lembretes',
+          activeOn: ['captain_reminders_index'],
+          to: accountScopedRoute('captain_reminders_index'),
+        },
+        {
+          name: 'Settings',
+          label: 'Configurações',
+          activeOn: ['captain_configurations_index'],
+          to: accountScopedRoute('captain_configurations_index'),
+        },
+        {
+          name: 'Units',
+          label: 'Unidades',
+          activeOn: ['captain_units_index'],
+          to: accountScopedRoute('captain_units_index'),
+        },
+        {
+          name: 'Brands',
+          label: 'Marcas',
+          activeOn: ['captain_brands_index'],
+          to: accountScopedRoute('captain_brands_index'),
+        },
+        {
+          name: 'Pricings',
+          label: 'Preços',
+          activeOn: ['captain_pricings_index'],
+          to: accountScopedRoute('captain_pricings_index'),
+        },
+        {
+          name: 'Extras',
+          label: 'Extras',
+          activeOn: ['captain_extras_index'],
+          to: accountScopedRoute('captain_extras_index'),
+        },
+      ],
+    },
+    {
       name: 'Captain',
       icon: 'i-woot-captain',
       label: t('SIDEBAR.CAPTAIN'),
@@ -253,6 +311,12 @@ const menuItems = computed(() => {
           to: accountScopedRoute('captain_assistants_index', {
             navigationPath: 'captain_assistants_documents_index',
           }),
+        },
+        {
+          name: 'Assets',
+          label: t('SIDEBAR.CAPTAIN_ASSETS'),
+          activeOn: ['captain_assets_index'],
+          to: accountScopedRoute('captain_assets_index'),
         },
         {
           name: 'Scenarios',

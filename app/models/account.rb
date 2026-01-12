@@ -92,6 +92,8 @@ class Account < ApplicationRecord
   has_many :notes, dependent: :destroy_async
   has_many :notification_settings, dependent: :destroy_async
   has_many :notifications, dependent: :destroy_async
+  has_many :reservations, class_name: 'Captain::Reservation', dependent: :destroy_async
+  has_many :reminders, class_name: 'Captain::Reminder', dependent: :destroy_async
   has_many :portals, dependent: :destroy_async, class_name: '::Portal'
   has_many :sms_channels, dependent: :destroy_async, class_name: '::Channel::Sms'
   has_many :teams, dependent: :destroy_async
@@ -108,6 +110,12 @@ class Account < ApplicationRecord
   has_many :jasmine_documents, class_name: 'Jasmine::Document', dependent: :destroy
 
   has_many :working_hours, dependent: :destroy_async
+
+  has_many :captain_brands, class_name: 'Captain::Brand', dependent: :destroy_async
+  has_many :captain_pricings, class_name: 'Captain::Pricing', dependent: :destroy_async
+  has_many :captain_extras, class_name: 'Captain::Extra', dependent: :destroy_async
+  has_many :captain_suites, class_name: 'Captain::Suite', dependent: :destroy_async
+  has_one :captain_configuration, class_name: 'Captain::Configuration', dependent: :destroy
 
   has_one_attached :contacts_export
 

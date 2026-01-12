@@ -12,6 +12,7 @@ import PageLayout from 'dashboard/components-next/captain/PageLayout.vue';
 import SettingsHeader from 'dashboard/components-next/captain/pageComponents/settings/SettingsHeader.vue';
 import AssistantBasicSettingsForm from 'dashboard/components-next/captain/pageComponents/assistant/settings/AssistantBasicSettingsForm.vue';
 import AssistantSystemSettingsForm from 'dashboard/components-next/captain/pageComponents/assistant/settings/AssistantSystemSettingsForm.vue';
+import AssistantWebhookSettings from 'dashboard/components-next/captain/pageComponents/assistant/settings/AssistantWebhookSettings.vue';
 import AssistantControlItems from 'dashboard/components-next/captain/pageComponents/assistant/settings/AssistantControlItems.vue';
 import DeleteDialog from 'dashboard/components-next/captain/pageComponents/DeleteDialog.vue';
 
@@ -57,7 +58,8 @@ const controlItems = computed(() => {
     },
     {
       name: 'Assistant Skills',
-      description: 'Configure external tools and integrations available to this assistant.',
+      description:
+        'Configure external tools and integrations available to this assistant.',
       routeName: 'captain_tools_index',
     },
   ];
@@ -108,6 +110,7 @@ const handleDeleteSuccess = () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :is-fetching="isFetching"
     :show-pagination-footer="false"
@@ -144,6 +147,13 @@ const handleDeleteSuccess = () => {
               "
             />
             <AssistantSystemSettingsForm
+              :assistant="assistant"
+              @submit="handleSubmit"
+            />
+          </div>
+          <span class="h-px w-full bg-n-weak mt-2" />
+          <div class="flex flex-col gap-6">
+            <AssistantWebhookSettings
               :assistant="assistant"
               @submit="handleSubmit"
             />

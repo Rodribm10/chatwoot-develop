@@ -10,6 +10,7 @@ json.updated_at resource.updated_at.to_i
 json.llm_provider resource.llm_provider
 json.llm_model resource.llm_model
 json.api_key resource.api_key
+json.handoff_webhook_config resource.handoff_webhook_config
 default_prompt_config = resource.config.merge('system_prompt' => nil, 'system_prompt_blocks' => nil)
 default_blocks = Captain::Llm::SystemPromptsService.assistant_prompt_blocks(
   resource.name,
