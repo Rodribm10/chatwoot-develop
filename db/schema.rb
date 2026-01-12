@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_14_101013) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -357,6 +357,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101013) do
     t.boolean "active", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "phone_number"
     t.index ["account_id"], name: "index_captain_configurations_on_account_id"
   end
 

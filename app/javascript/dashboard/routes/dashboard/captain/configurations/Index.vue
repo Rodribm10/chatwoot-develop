@@ -11,8 +11,8 @@ const route = useRoute();
 const accountId = route.params.accountId;
 
 const formData = ref({
-  page_title: '',
-  page_subtitle: '',
+  title: '',
+  subtitle: '',
   primary_color: '#00af9e',
   phone_number: '',
 });
@@ -24,8 +24,8 @@ const fetchConfig = async () => {
       `/api/v1/accounts/${accountId}/captain/configuration`
     );
     formData.value = {
-      page_title: data.page_title || '',
-      page_subtitle: data.page_subtitle || '',
+      title: data.title || '',
+      subtitle: data.subtitle || '',
       primary_color: data.primary_color || '#00af9e',
       phone_number: data.phone_number || '',
     };
@@ -41,7 +41,7 @@ const saveConfig = async () => {
   try {
     await window.axios.put(
       `/api/v1/accounts/${accountId}/captain/configuration`,
-      formData.value
+      { configuration: formData.value }
     );
     useAlert('Configurações salvas!');
   } catch (error) {
@@ -78,7 +78,7 @@ onMounted(fetchConfig);
             Título da Página
           </label>
           <input
-            v-model="formData.page_title"
+            v-model="formData.title"
             type="text"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
             placeholder="Ex: Reservas Hotel Prime"
@@ -92,7 +92,7 @@ onMounted(fetchConfig);
             Subtítulo
           </label>
           <input
-            v-model="formData.page_subtitle"
+            v-model="formData.subtitle"
             type="text"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
             placeholder="Ex: As melhores suítes da região"

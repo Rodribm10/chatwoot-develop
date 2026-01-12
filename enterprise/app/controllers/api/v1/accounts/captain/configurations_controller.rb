@@ -25,7 +25,7 @@ module Api
           end
 
           def config_params
-            params.require(:configuration).permit(:title, :subtitle, :primary_color, :secondary_color, :active, :logo_url)
+            params.require(:configuration).permit(:title, :subtitle, :primary_color, :secondary_color, :active, :logo_url, :phone_number)
           end
         end
       end

@@ -22,6 +22,9 @@ const submissionStatus = ref({
 const appConfig = reactive({
   title: 'Reserva Premium',
   subtitle: 'Hotel 1001 Noites Prime',
+  phone_number: '',
+  primary_color: '#1E90FF',
+  secondary_color: '#1B3B5F',
 });
 
 const formData = reactive({
@@ -69,6 +72,16 @@ const fetchMasterData = async () => {
     brands.value = data.brands;
     pricings.value = data.pricings;
     extras.value = data.extras;
+
+    if (data.app_config) {
+      appConfig.title = data.app_config.title || appConfig.title;
+      appConfig.subtitle = data.app_config.subtitle || appConfig.subtitle;
+      appConfig.phone_number = data.app_config.phone_number || '';
+      appConfig.primary_color =
+        data.app_config.primary_color || appConfig.primary_color;
+      appConfig.secondary_color =
+        data.app_config.secondary_color || appConfig.secondary_color;
+    }
   } catch (error) {
     // console.error("Master Data Error:", error);
   } finally {
@@ -457,7 +470,7 @@ const viewTitle = computed(() => {
   <!-- eslint-disable vue/no-bare-strings-in-template, vue/no-static-inline-styles -->
   <div
     class="min-h-screen py-6 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center bg-fixed"
-    style="background: linear-gradient(135deg, #0a1a2f 0%, #1b3b5f 100%)"
+    :style="`background: linear-gradient(135deg, ${appConfig.secondary_color} 0%, ${appConfig.primary_color} 100%)`"
   >
     <div
       class="w-full max-w-3xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 relative"
@@ -482,6 +495,13 @@ const viewTitle = computed(() => {
               class="text-[#9CA3AF] text-sm font-medium"
             >
               {{ appConfig.subtitle }}
+            </p>
+            <p
+              v-if="appConfig.phone_number"
+              class="text-sm font-bold text-emerald-600 mt-2"
+            >
+              <i class="i-lucide-phone mr-1" />
+              Suporte: {{ appConfig.phone_number }}
             </p>
           </div>
         </div>
