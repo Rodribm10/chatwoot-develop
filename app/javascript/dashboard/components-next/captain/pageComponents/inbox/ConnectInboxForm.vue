@@ -80,7 +80,7 @@ const handleCancel = () => emit('cancel');
 
 const prepareInboxPayload = () => ({
   inboxId: state.inboxId,
-  captainUnitId: state.captainUnitId,
+  captain_unit_id: state.captainUnitId,
   assistantId: props.assistantId,
 });
 
