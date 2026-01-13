@@ -1,10 +1,10 @@
 <script setup>
-import { reactive, computed, onMounted } from 'vue';
+import { reactive, computed, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useVuelidate } from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import { useMapGetter } from 'dashboard/composables/store';
-import axios from 'axios';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
@@ -19,6 +19,7 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'cancel']);
 
 const { t } = useI18n();
+const route = useRoute();
 
 const formState = {
   uiFlags: useMapGetter('captainInboxes/getUIFlags'),
@@ -37,6 +38,10 @@ const units = reactive([]);
 const validationRules = {
   inboxId: { required },
 };
+
+const accountId = computed(() => {
+  return route.params.accountId || window.chatwootConfig?.account_id;
+});
 
 const inboxList = computed(() => {
   const captainInboxIds = formState.captainInboxes.value.map(inbox => inbox.id);
@@ -62,7 +67,8 @@ const isLoading = computed(() => formState.uiFlags.value.creatingItem);
 
 const getErrorMessage = (field, errorKey) => {
   return v$.value[field].$error
-    ? t(`CAPTAIN.INBOXES.FORM.${errorKey}.ERROR`)
+    ? // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
+      t(`CAPTAIN.INBOXES.FORM.${errorKey}.ERROR`)
     : '';
 };
 
@@ -87,22 +93,36 @@ const handleSubmit = async () => {
   emit('submit', prepareInboxPayload());
 };
 
-const accountId = useMapGetter('auth/getAccountId');
+const fetchUnits = async () => {
+  if (!accountId.value) {
+    return;
+  }
 
-onMounted(async () => {
+  if (!window.axios) {
+    return;
+  }
+
   try {
-    const { data } = await axios.get(
-      `/api/v1/accounts/${accountId.value}/captain/units`
-    );
+    const url = `/api/v1/accounts/${accountId.value}/captain/units`;
+    const { data } = await window.axios.get(url);
     units.push(...data);
   } catch (error) {
-    // Silent fail or alert
+    // Ignore error
   }
+};
+
+onMounted(() => {
+  fetchUnits();
+});
+
+watch(accountId, () => {
+  fetchUnits();
 });
 </script>
 
 <template>
   <!-- eslint-disable vue/no-bare-strings-in-template -->
+  <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
   <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
     <div class="flex flex-col gap-1">
       <label for="inbox" class="mb-0.5 text-sm font-medium text-n-slate-12">
@@ -122,6 +142,7 @@ onMounted(async () => {
     <!-- Unit Selection -->
     <div class="flex flex-col gap-1">
       <label for="unit" class="mb-0.5 text-sm font-medium text-n-slate-12">
+        <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
         Unidade (Opcional - Pix)
       </label>
       <ComboBox
@@ -132,6 +153,7 @@ onMounted(async () => {
         class="[&>div>button]:bg-n-alpha-black2 [&>div>button:not(.focused)]:dark:outline-n-weak [&>div>button:not(.focused)]:hover:!outline-n-slate-6"
       />
       <span class="text-xs text-n-slate-11">
+        <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
         Vincule a uma unidade para ativar Pix automático.
       </span>
     </div>

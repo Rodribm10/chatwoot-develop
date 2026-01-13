@@ -10,7 +10,7 @@ const props = defineProps({
   type: {
     type: String,
     default: 'edit',
-    validator: value => ['alert', 'edit'].includes(value),
+    validator: value => ['alert', 'edit', 'create'].includes(value),
   },
   title: {
     type: String,

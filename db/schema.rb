@@ -448,7 +448,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "always_use_reminder_tool", default: false, null: false
-    t.bigint "captain_unit_id", null: false
+    t.bigint "captain_unit_id"
     t.index ["captain_assistant_id", "inbox_id"], name: "index_captain_inboxes_on_captain_assistant_id_and_inbox_id", unique: true
     t.index ["captain_assistant_id"], name: "index_captain_inboxes_on_captain_assistant_id"
     t.index ["captain_unit_id"], name: "index_captain_inboxes_on_captain_unit_id"

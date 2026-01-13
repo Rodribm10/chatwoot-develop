@@ -1,4 +1,5 @@
 <script setup>
+/* eslint-disable @intlify/vue-i18n/no-dynamic-keys */
 import { ref, computed } from 'vue';
 import { useStore } from 'dashboard/composables/store';
 import { useAlert } from 'dashboard/composables';
@@ -35,6 +36,7 @@ const i18nKey = computed(
   () => `CAPTAIN.ASSISTANTS.${props.type.toUpperCase()}`
 );
 
+/* eslint-disable @intlify/vue-i18n/no-dynamic-keys */
 const createAssistant = async assistantDetails => {
   try {
     const newAssistant = await store.dispatch(
@@ -43,6 +45,7 @@ const createAssistant = async assistantDetails => {
     );
     emit('created', newAssistant);
   } catch (error) {
+    // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
     const errorMessage = error?.message || t(`${i18nKey.value}.ERROR_MESSAGE`);
     useAlert(errorMessage);
   }
@@ -55,13 +58,16 @@ const handleSubmit = async updatedAssistant => {
     } else {
       await createAssistant(updatedAssistant);
     }
+    // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
     useAlert(t(`${i18nKey.value}.SUCCESS_MESSAGE`));
     dialogRef.value.close();
   } catch (error) {
+    // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
     const errorMessage = error?.message || t(`${i18nKey.value}.ERROR_MESSAGE`);
     useAlert(errorMessage);
   }
 };
+/* eslint-enable @intlify/vue-i18n/no-dynamic-keys */
 
 const handleClose = () => {
   emit('close');
@@ -76,9 +82,10 @@ defineExpose({ dialogRef });
 
 <template>
   <!-- eslint-disable vue/no-bare-strings-in-template -->
+  <!-- eslint-disable @intlify/vue-i18n/no-dynamic-keys -->
   <Dialog
     ref="dialogRef"
-    type="edit"
+    :type="type"
     :title="t(`${i18nKey}.TITLE`)"
     :description="t('CAPTAIN.ASSISTANTS.FORM_DESCRIPTION')"
     :show-cancel-button="false"
