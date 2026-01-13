@@ -10,7 +10,10 @@ class Api::V1::Accounts::Captain::InboxesController < Api::V1::Accounts::BaseCon
 
   def create
     inbox = Current.account.inboxes.find(assistant_params[:inbox_id])
-    @captain_inbox = @assistant.captain_inboxes.build(inbox: inbox)
+    @captain_inbox = @assistant.captain_inboxes.build(
+      inbox: inbox,
+      captain_unit_id: assistant_params[:captain_unit_id].presence
+    )
     @captain_inbox.save!
   end
 
