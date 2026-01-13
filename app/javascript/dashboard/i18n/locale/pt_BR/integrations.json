@@ -873,7 +873,7 @@
     },
     "ASSETS": {
       "HEADER": "Galeria de Midia",
-      "DESCRIPTION": "Envie imagens e referencie nos prompts usando {{ media.chave }}.",
+      "DESCRIPTION": "Envie imagens e referencie nos prompts usando {'{{'} media.chave {'}}'}.",
       "ADD_NEW": "Enviar imagem",
       "EMPTY_STATE": "Nenhuma imagem ainda. Envie sua primeira imagem para comecar.",
       "FORM_DESCRIPTION": "Envie uma imagem e defina uma chave unica para usar nos prompts.",

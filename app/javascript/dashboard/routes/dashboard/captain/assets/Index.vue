@@ -16,7 +16,7 @@ const uiFlags = useMapGetter('captainAssets/getUIFlags');
 const assets = useMapGetter('captainAssets/getRecords');
 const assetsMeta = useMapGetter('captainAssets/getMeta');
 
-const isFetching = computed(() => uiFlags.value.fetchingList);
+const isFetching = computed(() => uiFlags.value?.fetchingList || false);
 
 const selectedAsset = ref(null);
 const deleteAssetDialog = ref(null);
@@ -43,10 +43,13 @@ const handleEditDialogClose = () => {
 };
 
 const handleDelete = () => {
-  deleteAssetDialog.value.dialogRef.open();
+  nextTick(() => {
+    deleteAssetDialog.value.dialogRef.open();
+  });
 };
 
 const handleAction = ({ action, id }) => {
+  if (!assets.value) return;
   selectedAsset.value = assets.value.find(asset => id === asset.id);
   if (action === 'delete') {
     handleDelete();
@@ -76,11 +79,11 @@ onMounted(() => {
     :header-description="$t('CAPTAIN.ASSETS.DESCRIPTION')"
     :button-label="$t('CAPTAIN.ASSETS.ADD_NEW')"
     :button-policy="['administrator']"
-    :total-count="assetsMeta.totalCount"
-    :current-page="assetsMeta.page"
-    :show-pagination-footer="!isFetching && !!assets.length"
+    :total-count="assetsMeta?.totalCount || 0"
+    :current-page="assetsMeta?.page || 1"
+    :show-pagination-footer="!isFetching && !!assets?.length"
     :is-fetching="isFetching"
-    :is-empty="!assets.length"
+    :is-empty="!assets?.length"
     :show-know-more="false"
     :show-assistant-switcher="false"
     :feature-flag="FEATURE_FLAGS.CAPTAIN"
@@ -114,7 +117,6 @@ onMounted(() => {
           :key="asset.id"
           :name="asset.name"
           :file-url="asset.file_url"
-          :created-at="asset.created_at"
           @action="handleAction"
         />
       </div>
