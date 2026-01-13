@@ -15,7 +15,7 @@ const route = useRoute();
 const accountId = route.params.accountId;
 
 const openAddModal = () => {
-  selectedPricing.value = null;
+  selectedPricing.value = {};
   showModal.value = true;
 };
 

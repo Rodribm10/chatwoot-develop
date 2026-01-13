@@ -70,7 +70,7 @@ const parseDays = rangeString => {
     .filter(s => daysOptions.includes(s));
 };
 
-const isEditing = computed(() => !!props.pricing.id); // Changed to check for pricing.id to correctly identify editing mode
+const isEditing = computed(() => !!props.pricing?.id); // Changed to check for pricing.id to correctly identify editing mode
 
 const selectedBrand = computed(() => {
   return props.brands.find(b => b.id === formData.value.captain_brand_id);
