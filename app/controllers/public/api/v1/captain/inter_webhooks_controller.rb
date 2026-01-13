@@ -1,6 +1,4 @@
-class Public::Api::V1::Captain::InterWebhooksController < ApplicationController
-  skip_before_action :verify_authenticity_token
-
+class Public::Api::V1::Captain::InterWebhooksController < ActionController::API
   # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
   def create
     payload = JSON.parse(request.body.read)

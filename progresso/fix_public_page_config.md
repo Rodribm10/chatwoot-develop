@@ -18,16 +18,23 @@ The user reported that changing settings in the dashboard had no effect on the p
     - Verified `Public::Api::V1::Captain::MasterDataController` returns the `captain_configuration` data.
 
 2.  **Frontend (`App.vue`)**:
+
     - Updated `fetchMasterData` to consume `app_config` from the API response.
     - Made `appConfig` reactive to the fetched data (`title`, `subtitle`, `phone_number`, `primary_color`, `secondary_color`).
     - Added dynamic background gradient using `primary_color` and `secondary_color`.
     - Added "Suporte: [Phone]" display in the header/subtitle area if a phone number is set.
 
+3.  **Backend Fix (Part 2)**:
+    - Addressed `PG::UndefinedTable` error by explicitly setting `self.table_name = 'captain_configurations'` in `Captain::Configuration` model.
+    - Addressed `ActionController::ParameterMissing` by updating frontend payload structure.
+
 ## Files Changed
 
 - `db/migrate/20260114101014_add_phone_number_to_captain_configurations.rb` (New)
 - `enterprise/app/controllers/api/v1/accounts/captain/configurations_controller.rb`
+- `enterprise/app/models/captain/configuration.rb` (Added table_name)
 - `app/javascript/captain_booking/App.vue`
+- `app/javascript/dashboard/routes/dashboard/captain/configurations/Index.vue`
 
 ## Validation
 
