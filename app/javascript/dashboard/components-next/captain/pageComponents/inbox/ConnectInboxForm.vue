@@ -87,9 +87,13 @@ const handleSubmit = async () => {
   emit('submit', prepareInboxPayload());
 };
 
+const accountId = useMapGetter('auth/getAccountId');
+
 onMounted(async () => {
   try {
-    const { data } = await axios.get('/api/v1/accounts/captain/units');
+    const { data } = await axios.get(
+      `/api/v1/accounts/${accountId.value}/captain/units`
+    );
     units.push(...data);
   } catch (error) {
     // Silent fail or alert
