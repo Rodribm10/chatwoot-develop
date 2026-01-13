@@ -27,7 +27,9 @@ class InstallationConfig < ApplicationRecord
 
   # TODO: Get rid of default scope
   # https://stackoverflow.com/a/1834250/939299
-  default_scope { order(created_at: :desc) }
+  # TODO: Get rid of default scope
+  # https://stackoverflow.com/a/1834250/939299
+  # default_scope { order(created_at: :desc) }
   scope :editable, -> { where(locked: false) }
 
   after_commit :clear_cache
