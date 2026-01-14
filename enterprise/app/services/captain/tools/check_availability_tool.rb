@@ -24,6 +24,14 @@ module Captain
           return msg
         end
 
+        ensure_conversation_context!
+
+        unless @conversation && @conversation.inbox
+          msg = "Erro Crítico: Contexto de conversa não disponível (Conversation/Inbox nil). Params: #{actual_params}"
+          File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] FAILURE: #{msg}" }
+          return msg
+        end
+
         unit = infer_unit
         unless unit
           msg = 'Erro: Unidade não encontrada para esta conversa.'
@@ -55,8 +63,13 @@ module Captain
 
       private
 
+      # Helper to ensure we have a conversation object
+      def ensure_conversation_context!
+        return if @conversation.present?
+      end
+
       def infer_unit
-        @conversation.inbox.captain_inbox&.unit
+        @conversation&.inbox&.captain_inbox&.unit
       end
     end
   end

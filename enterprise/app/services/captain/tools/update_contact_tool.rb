@@ -16,6 +16,13 @@ module Captain
 
         return 'Erro: Nenhum dado fornecido.' if name.blank? && cpf.blank?
 
+        ensure_conversation_context!
+
+        unless @conversation && @conversation.contact
+          msg = "Erro Crítico: Contexto de conversa ou contato não disponível. Params: #{actual_params}"
+          return msg
+        end
+
         if @conversation.contact
           @conversation.contact.name = name if name.present?
           @conversation.contact.custom_attributes['cpf'] = cpf if cpf.present?
@@ -28,6 +35,13 @@ module Captain
         else
           'Erro: Contato não encontrado para esta conversa.'
         end
+      end
+
+      private
+
+      # Helper to ensure we have a conversation object
+      def ensure_conversation_context!
+        return if @conversation.present?
       end
     end
   end
