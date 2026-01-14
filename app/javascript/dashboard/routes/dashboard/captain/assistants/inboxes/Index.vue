@@ -36,7 +36,9 @@ const handleCreate = () => {
   nextTick(() => connectInboxDialog.value.dialogRef.open());
 };
 const handleAction = ({ action, id }) => {
-  selectedInbox.value = captainInboxes.value.find(inbox => id === inbox.id);
+  selectedInbox.value = captainInboxes.value.find(
+    inbox => id === inbox.captain_inbox.id
+  );
   nextTick(() => {
     if (action === 'delete') {
       handleDelete();
@@ -77,7 +79,7 @@ onMounted(() =>
       <div class="flex flex-col gap-4">
         <InboxCard
           v-for="captainInbox in captainInboxes"
-          :id="captainInbox.id"
+          :id="captainInbox.captain_inbox.id"
           :key="captainInbox.id"
           :inbox="captainInbox"
           :assistant-id="assistantId"
@@ -92,7 +94,7 @@ onMounted(() =>
       :entity="selectedInbox"
       :delete-payload="{
         assistantId: assistantId,
-        inboxId: selectedInbox.id,
+        inboxId: selectedInbox.captain_inbox.id,
       }"
       type="Inboxes"
     />

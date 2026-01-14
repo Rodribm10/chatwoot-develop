@@ -18,12 +18,12 @@ class Api::V1::Accounts::Captain::InboxesController < Api::V1::Accounts::BaseCon
   end
 
   def update
-    @captain_inbox = @assistant.captain_inboxes.find_by!(inbox_id: permitted_params[:inbox_id])
+    @captain_inbox = @assistant.captain_inboxes.find(permitted_params[:id])
     @captain_inbox.update!(update_params)
   end
 
   def destroy
-    @captain_inbox = @assistant.captain_inboxes.find_by!(inbox_id: permitted_params[:inbox_id])
+    @captain_inbox = @assistant.captain_inboxes.find(permitted_params[:id])
     @captain_inbox.destroy!
     head :no_content
   end
