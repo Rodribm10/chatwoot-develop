@@ -26,7 +26,7 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
     # Skip brain decision layer if no conversation (playground mode)
     # USER REQUEST: Bypass JasmineBrain temporarily for Live Chat too to match Playground behavior (Direct + Docs).
     # TODO: Re-enable JasmineBrain when tool configurations are ready.
-    if @conversation.present? && false # Disabled temporarily
+    if @conversation.present?
       # 1. Brain Decision Layer (Jasmine)
       brain_decision = Captain::Llm::JasmineBrain.decide(
         assistant: @assistant,
@@ -43,6 +43,8 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
 
       # 3. Handle Tool Strategy
       if brain_decision.strategy == :execute_tool
+        File.open(Rails.root.join('log/brain_debug.log'), 'a') { |f| f.puts "[#{Time.now}] BRAIN DECIDED: #{brain_decision.tool_key}" }
+
         inbox = @conversation.inbox
 
         runner_result = Captain::Tools::ToolRunner.run(
@@ -52,6 +54,8 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
           conversation: @conversation,
           additional_data: { message: additional_message }
         )
+
+        File.open(Rails.root.join('log/brain_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RUNNER RESULT: #{runner_result.inspect}" }
 
         if runner_result[:success]
           # Handle side-effects (e.g., labels for escalate_human)
@@ -103,13 +107,9 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
   end
 
   def build_tools
-    [
-      Captain::Tools::SearchDocumentationService.new(@assistant, user: nil, conversation: @conversation),
-      Captain::Tools::StatusSuitesTool.new(@assistant, user: nil, conversation: @conversation),
-      Captain::Tools::ReactToMessageTool.new(@assistant, user: nil, conversation: @conversation),
-      Captain::Tools::GeneratePixTool.new(@assistant, user: nil, conversation: @conversation),
-      Captain::Tools::CheckAvailabilityTool.new(@assistant, user: nil, conversation: @conversation)
-    ]
+    # Carregamos as ferramentas e cenários dinamicamente do assistente
+    # Injetamos a conversa e o usuário para ferramentas contextuais.
+    @assistant.agent_tools(conversation: @conversation, user: @user)
   end
 
   def system_message

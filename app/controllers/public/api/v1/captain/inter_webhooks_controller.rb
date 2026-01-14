@@ -54,13 +54,12 @@ class Public::Api::V1::Captain::InterWebhooksController < ActionController::API
 
     conversation = Conversation.find(reservation.conversation_id)
 
-    Messages::CreateService.new(
-      conversation: conversation,
-      params: {
-        content: "✅ Pagamento confirmado! Sua reserva ##{reservation.id} na unidade #{reservation.captain_unit.name} está garantida.",
-        message_type: :outgoing
-      }
-    ).perform
+    conversation.messages.create!(
+      content: "✅ Pagamento confirmado! Sua reserva ##{reservation.id} na unidade #{reservation.captain_unit.name} está garantida.",
+      message_type: :outgoing,
+      account: conversation.account,
+      inbox: conversation.inbox
+    )
   rescue StandardError => e
     Rails.logger.error "Failed to notify chat: #{e.message}"
   end

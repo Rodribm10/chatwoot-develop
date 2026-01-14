@@ -60,8 +60,8 @@ class Captain::Scenario < ApplicationRecord
     "#{title} Agent".parameterize(separator: '_')
   end
 
-  def agent_tools
-    resolved_tools.map { |tool| resolve_tool_instance(tool) }
+  def agent_tools(user: nil, conversation: nil)
+    resolved_tools.map { |tool| resolve_tool_instance(tool, user: user, conversation: conversation) }
   end
 
   def resolved_instructions
@@ -77,7 +77,7 @@ class Captain::Scenario < ApplicationRecord
     end
   end
 
-  def resolve_tool_instance(tool_metadata)
+  def resolve_tool_instance(tool_metadata, user: nil, conversation: nil)
     tool_id = tool_metadata[:id]
 
     if tool_metadata[:custom]
@@ -85,7 +85,7 @@ class Captain::Scenario < ApplicationRecord
       custom_tool&.tool(assistant)
     else
       tool_class = self.class.resolve_tool_class(tool_id)
-      tool_class&.new(assistant)
+      tool_class&.new(assistant, user: user, conversation: conversation)
     end
   end
 

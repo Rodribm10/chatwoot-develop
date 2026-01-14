@@ -1,8 +1,10 @@
 require 'agents'
 
 class Captain::Tools::BasePublicTool < Agents::Tool
-  def initialize(assistant)
+  def initialize(assistant, user: nil, conversation: nil)
     @assistant = assistant
+    @user = user
+    @conversation = conversation
     super()
   end
 

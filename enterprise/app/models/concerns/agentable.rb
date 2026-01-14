@@ -1,11 +1,11 @@
 module Concerns::Agentable
   extend ActiveSupport::Concern
 
-  def agent
+  def agent(user: nil, conversation: nil)
     Agents::Agent.new(
       name: agent_name,
       instructions: ->(context) { agent_instructions(context) },
-      tools: agent_tools,
+      tools: agent_tools(user: user, conversation: conversation),
       model: agent_model,
       temperature: temperature.to_f || 0.7,
       response_schema: agent_response_schema

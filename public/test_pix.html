@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Ismael Financeiro - Chatwoot</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; text-align: center; }
+        h1 { color: #1f93ff; }
+        .debug-console { margin-top: 20px; font-size: 12px; color: #666; background: #eee; padding: 10px; border-radius: 4px; text-align: left; max-height: 100px; overflow-y: auto; display: none;}
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bot Pix Tester V2 🤖</h1>
+        <p>O widget deve aparecer abaixo.</p>
+        <button onclick="resetSession()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">🗑️ Reiniciar Conversa</button>
+        <div id="status" class="debug-console" style="display:block">Carregando script...</div>
+    </div>
+
+    <script>
+        function log(msg, isError) {
+            var el = document.getElementById('status');
+            el.innerHTML += '<br>' + (isError ? '<span class="error">' : '') + msg + (isError ? '</span>' : '');
+            console.log(msg);
+        }
+
+        function resetSession() {
+            // Clear LocalStorage
+            Object.keys(localStorage).forEach(function(key){
+               if (/^cw_/.test(key)) {
+                   localStorage.removeItem(key);
+               }
+            });
+            // Clear Cookies
+            document.cookie.split(";").forEach(function(c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            // Reload
+            window.location.reload();
+        }
+
+        (function(d,t) {
+            var BASE_URL="http://localhost:3000";
+            var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.type = "module";
+            g.src=BASE_URL+"/vite-dev/assets/sdk-DGy57ia5.js?t=" + new Date().getTime(); 
+            g.defer = true;
+            g.async = true;
+            s.parentNode.insertBefore(g,s);
+            
+            g.onload = function(){
+                log("Script carregado! Iniciando Chatwoot...");
+                try {
+                    window.chatwootSDK.run({
+                        websiteToken: 'BhyeErFB9gfx9upqPm7HEfgc',
+                        baseUrl: BASE_URL
+                    });
+                    log("Chatwoot iniciado com sucesso!");
+                } catch(e) {
+                    log("Erro ao iniciar Chatwoot: " + e.message, true);
+                }
+            }
+            g.onerror = function() {
+                log("Erro ao carregar o arquivo JS do SDK. Verifique se o caminho existe.", true);
+            }
+        })(document,"script");
+    </script>
+</body>
+</html>

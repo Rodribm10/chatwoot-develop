@@ -8,6 +8,23 @@ class Captain::Tools::BaseTool < RubyLLM::Tool
     super()
   end
 
+  def execute(*args, **params)
+    # Default implementation to be overridden
+  end
+
+  protected
+
+  def resolve_params(args, params)
+    # RubyLLM: [params_hash], {}
+    # Agents: [context], {params_hash}
+    actual_params = if args.first.is_a?(Hash) && params.empty?
+                      args.first
+                    else
+                      params
+                    end
+    actual_params.with_indifferent_access
+  end
+
   def active?
     true
   end

@@ -3,14 +3,6 @@ module Captain
     class JasmineBrain
       Decision = Struct.new(:strategy, :tool_key, :reasoning, keyword_init: true)
 
-      # Intents that trigger tools (SDR Skills)
-      AVAILABLE_INTENTS = {
-        'status_suites' => 'User is asking about availability, status of rooms/suites, vacancies, or prices for specific periods.',
-        'maria_fotos' => 'User is explicitly asking to see photos, pictures, or visual references of the suites or the motel.'
-
-        # 'escalar_humano' => 'User is asking to speak to a human, manager, attendant, or expressing frustration/anger.' (DISABLED TEMPORARILY)
-      }.freeze
-
       def self.decide(assistant:, conversation:, message:, history:)
         new(assistant, conversation, message, history).decide
       end
@@ -53,32 +45,35 @@ module Captain
       end
 
       def ask_brain_for_classification
-        # Use Assistant's configured model or default to cheap model for thinking
-        model = @assistant.try(:llm_model).presence || 'gpt-4o-mini' # Prefer cheap model for classification
-
         system_prompt = build_classification_prompt
+        model = @assistant.try(:llm_model).presence || 'gpt-4o-mini'
 
-        chat = RubyLLM.chat(model: model).with_params(
+        chat = RubyLLM.chat(model: model)
+        chat = chat.with_params(
           response_format: { type: 'json_object' },
-          temperature: 0.1 # Low temperature for classification
+          temperature: 0.1
         )
 
-        chat.add_message(role: 'system', content: system_prompt)
+        chat.add_message({ role: 'system', content: system_prompt })
 
-        # Include history for context if available
-        @history.each { |msg| chat.add_message(role: msg[:role], content: msg[:content]) } if @history.is_a?(Array)
+        if @history.is_a?(Array)
+          @history.each do |msg|
+            chat.add_message({ role: msg[:role], content: msg[:content] })
+          end
+        end
 
         raw_response = chat.ask(@message)
         parse_json(raw_response)
       end
 
       def build_classification_prompt
-        # Filter available intents based on enabled tools for this assistant
-        enabled_intents = AVAILABLE_INTENTS.select do |key, _|
-          @assistant.tool_configs.exists?(tool_key: key, is_enabled: true)
-        end
+        # Carregamos as ferramentas e cenários dinamicamente do assistente
+        # Incluímos as ferramentas básicas e os "Cenários" (que são ScenarioDelegatorTool)
+        available_tools = @assistant.agent_tools(conversation: @conversation, user: nil)
 
-        tools_list = enabled_intents.map { |key, desc| "- #{key}: #{desc}" }.join("\n")
+        tools_list = available_tools.map do |tool|
+          "- #{tool.name}: #{tool.description}"
+        end.join("\n")
 
         <<~PROMPT
           You are Jasmine, the Brain of the operation.
@@ -90,6 +85,7 @@ module Captain
 
           IMPORTANT:
           - If the user says "Oi", "Ola", "Tudo bem?", "Bom dia" -> Use "direct".
+          - If the user's request matches one of the specialized departments (scenarios) above, use that tool.
           - Do NOT trigger "escalar_humano" for greeting messages or simple questions.
           - Only use "escalar_humano" if the user is explicitly requesting a human or is angry.
           - If the list of AVAILABLE INTENTS (TOOLS) above is empty, ALWAYS use "direct".

@@ -50,7 +50,22 @@
   description: 'Monitor suite availability and notify the customer when it becomes free'
   icon: 'search'
 
+- id: update_contact
+  title: 'Atualizar Contato'
+  description: 'Atualiza nome e CPF do contato atual'
+  icon: 'person-edit'
+
+- id: check_availability
+  title: 'Consultar Disponibilidade'
+  description: 'Verifica preço e disponibilidade de suíte'
+  icon: 'calendar-check'
+
+- id: create_reservation_intent
+  title: 'Criar Intenção de Reserva'
+  description: 'Salva rascunho da reserva com valor acordado'
+  icon: 'bookmark-add'
+
 - id: generate_pix
-  title: 'Gerar Pix'
-  description: 'Gera uma chave Copia e Cola do Pix para pagamento'
+  title: 'Gerar Pix (Finalizar)'
+  description: 'Gera Pix para a reserva em rascunho atual'
   icon: 'bank-note'

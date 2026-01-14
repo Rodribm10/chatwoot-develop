@@ -6,43 +6,57 @@ module Captain
       end
 
       def description
-        'Checks for available suites for a given date range. Input: check_in (YYYY-MM-DD), duration (days).'
+        'Checks availability and price for a hotel suite. Requires "suite" (e.g., Stilo, Master) and "duration" (default 1). Returns the calculated price.'
       end
 
-      def execute(params = {})
-        check_in = params['check_in'] || Date.today.to_s
-        duration = (params['duration'] || 1).to_i
-
-        # Simplified Logic: Check Captain::Suite availability (Mocked for now as we don't have full calendar logic yet)
-        # We need to list available categories.
-
-        unit = infer_unit(params)
-        return 'Erro: Unidade não identificada.' unless unit
-
-        categories = unit.visible_suite_categories # defined in Captain::Unit
-
-        response = "Disponibilidade para #{check_in} (#{duration} diárias) em #{unit.name}:\n"
-        categories.each do |cat|
-          pricing = Captain::Pricing.find_by(
-            captain_brand: unit.brand,
-            suite_category: cat,
-            duration: 'pernoite' # Simplification
-          )&.price || 150.00
-
-          response += "- #{cat}: R$ #{pricing}\n"
+      def execute(*args, **params)
+        actual_params = resolve_params(args, params)
+        File.open(Rails.root.join('log/tool_debug.log'), 'a') do |f|
+          f.puts "[#{Time.now}] STARTING CheckAvailabilityTool with params: #{actual_params}"
         end
 
-        response
+        suite_category = actual_params[:suite]
+        actual_params[:duration] || 'pernoite'
+
+        if suite_category.blank?
+          msg = 'Erro: Categoria da suíte não especificada.'
+          File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RETURN: #{msg}" }
+          return msg
+        end
+
+        unit = infer_unit
+        unless unit
+          msg = 'Erro: Unidade não encontrada para esta conversa.'
+          File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RETURN: #{msg}" }
+          return msg
+        end
+
+        # Find pricing strategy (Simplified for MVP)
+        # Ideally, we query based on Day of Week and Date.
+        # For now, we take the first active pricing for this suite/brand.
+
+        pricing = Captain::Pricing.where(
+          captain_brand_id: unit.captain_brand_id,
+          suite_category: suite_category
+        ).first
+
+        if pricing
+          msg = "Disponível! A Suíte #{suite_category} está saindo por #{ActiveSupport::NumberHelper.number_to_currency(pricing.price, unit: 'R$ ',
+                                                                                                                                       separator: ',', delimiter: '.')} (#{pricing.day_range})."
+          File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] SUCCESS: #{msg}" }
+          return msg
+        else
+          # Fallback if no pricing found (or dynamic pricing logic not yet active)
+          msg = 'Disponível. Por favor, verifique o valor atualizado no balcão ou site.'
+          File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] SUCCESS: #{msg}" }
+          return msg
+        end
       end
 
       private
 
-      def infer_unit(_params)
-        # 1. Deterministic: Inbox -> CaptainInbox -> Unit
-        return @conversation.inbox.captain_inbox.unit if @conversation&.inbox&.captain_inbox&.unit
-
-        # 2. Fallback
-        Captain::Unit.active.first
+      def infer_unit
+        @conversation.inbox.captain_inbox&.unit
       end
     end
   end

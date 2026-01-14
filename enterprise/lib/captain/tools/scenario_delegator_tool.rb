@@ -3,9 +3,9 @@ module Captain::Tools
   class ScenarioDelegatorTool < Captain::Tools::BasePublicTool
     attr_reader :scenario
 
-    def initialize(scenario)
+    def initialize(scenario, user: nil, conversation: nil)
       @scenario = scenario
-      super(@scenario.assistant)
+      super(@scenario.assistant, user: user, conversation: conversation)
     end
 
     def name
@@ -20,7 +20,7 @@ module Captain::Tools
 
     def perform(_tool_context, pergunta_interna:)
       # Instanciamos o agente do cenário, que já carrega suas próprias ferramentas (custom tools, etc)
-      agent = @scenario.agent
+      agent = @scenario.agent(user: @user, conversation: @conversation)
 
       # Usamos o Runner padrão (Agents gem) para permitir o loop de Pensamento/Ação
       # Isso permite que este sub-agente decida se precisa chamar ferramentas ou apenas responder
@@ -33,14 +33,18 @@ module Captain::Tools
 
       Rails.logger.info "[ScenarioDelegatorTool] Sub-agente (#{@scenario.title}) finished. Output: #{result.output.inspect}"
 
-      # Log steps to debug why tool might not have been called
-      Rails.logger.info "[ScenarioDelegatorTool] Thoughts: #{result.thoughts.inspect}" if result.respond_to?(:thoughts)
+      if result.failed? || result.output.nil?
+        Rails.logger.info "[ScenarioDelegatorTool] Falha no sub-agente (#{@scenario.title}):"
+        # Agents::RunResult names: failed?, error, messages
+        Rails.logger.info "  - Error: #{result.error}"
+        Rails.logger.info "  - Last Messages: #{result.messages.last(3).map { |m| m.slice(:role, :content, :tool_calls) }.inspect}"
+        return "O departamento #{@scenario.title} encontrou um erro: #{result.error || 'sem resposta clara'}."
+      end
 
-      # Extraímos a resposta final (mesma lógica do AgentRunnerService)
-      result.output['response'] || result.output.to_s
+      result.output.is_a?(Hash) ? (result.output['response'] || result.output.to_s) : result.output.to_s
     rescue StandardError => e
-      Rails.logger.error "[ScenarioDelegatorTool] Erro no sub-agente #{@scenario.title}: #{e.message}"
-      "Erro ao consultar o departamento #{@scenario.title}: #{e.message}"
+      Rails.logger.error "[ScenarioDelegatorTool] ERRO CRÍTICO no sub-agente #{@scenario.title}: #{e.message}\n#{e.backtrace.first(10).join("\n")}"
+      "Erro técnico ao consultar o departamento #{@scenario.title}: #{e.message}"
     end
   end
 end

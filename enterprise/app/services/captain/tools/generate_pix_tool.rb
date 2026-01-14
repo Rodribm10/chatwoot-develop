@@ -6,52 +6,34 @@ module Captain
       end
 
       def description
-        'Generates a Pix payment (copia e cola) for a new reservation. Requires name, cpf, category, and unit_id.'
+        'Generates a Pix payment for the ACTIVE DRAFT reservation. Does not require parameters. Fails if no draft exists.'
       end
 
-      def execute(params = {})
-        name = params['nome']
-        cpf = params['cpf']
-        category = params['categoria']
-        unit_id = params['unidade_id'] || infer_unit_id(params)
+      def execute(*args, **params)
+        _actual_params = resolve_params(args, params)
+        # 1. Validate Contact Info
+        contact = @conversation.contact
+        return 'Erro: CPF não cadastrado. Use a ferramenta de atualizar contato primeiro.' if contact.custom_attributes['cpf'].blank?
+        return 'Erro: Nome não cadastrado. Use a ferramenta de atualizar contato primeiro.' if contact.name.blank?
 
-        return 'Erro: Unidade não especificada ou não encontrada.' unless unit_id
+        # 2. Find Draft Reservation
+        reservation = Captain::Reservation.where(conversation_id: @conversation.id, status: 'draft').last
+        return 'Erro: Nenhuma reserva em rascunho encontrada. Use a ferramenta de criar intenção de reserva primeiro.' unless reservation
 
-        unit = Captain::Unit.find_by(id: unit_id)
-
-        return 'Erro: Unidade inválida.' unless unit
-
-        # Update contact if info provided
-        if @assistant.contact
-          @assistant.contact.name = name if name.present?
-          @assistant.contact.custom_attributes['cpf'] = cpf if cpf.present?
-          @assistant.contact.save
-        end
-
-        # Create Reservation
-        reservation = unit.reservations.create!(
-          contact: @assistant.contact, # Assuming context has contact
-          inbox: @assistant.inbox,     # Assuming context has inbox
-          suite_identifier: category, # Or logic to pick suite
-          check_in_at: Time.current,  # Simplified: immediate check-in
-          check_out_at: 1.day.from_now, # Default or from params
-          status: 'pending',
-          payment_status: 'pending',
-          total_amount: calculate_price(unit, category), # Placeholder logic
-          account_id: unit.account_id
-        )
-
-        # Generate Pix
+        # 3. Generate Pix
         begin
           service = Captain::Inter::CobService.new(reservation)
           charge = service.call
+
+          # Update status to pending payment
+          reservation.update!(status: 'pending_payment')
 
           # Send Message to Chat
           send_pix_message(charge.pix_copia_e_cola)
 
           "Cobrança Pix gerada com sucesso. Copia e Cola enviado para o chat. ID Reserva: #{reservation.id}. Aguardando pagamento."
         rescue StandardError => e
-          reservation.update(status: 'cancelled', payment_status: 'failed')
+          # Don't cancel immediately on error, allow retry
           "Erro ao gerar Pix: #{e.message}"
         end
       end
@@ -74,17 +56,13 @@ module Captain
       def send_pix_message(pix_code)
         message_content = "Aqui está o seu Pix Copia e Cola para confirmar a reserva:\n\n#{pix_code}\n\nAssim que o pagamento for confirmado, te aviso!"
 
-        Messages::CreateService.new(
-          conversation: @assistant.conversation, # Accessing via BaseTool assistant context wrapper?
-          # Note: BaseTool typically wraps @assistant. We need conversation context.
-          # Assuming `context[:conversation]` or similar is available in Tools.
-          # If not, we might need to pass it in initialize.
-          # Refactoring to ensure we have conversation access.
-          params: {
-            content: message_content,
-            message_type: :outgoing
-          }
-        ).perform
+        @conversation.messages.create!(
+          content: message_content,
+          message_type: :outgoing,
+          account: @conversation.account,
+          inbox: @conversation.inbox,
+          sender: @assistant
+        )
       end
     end
   end

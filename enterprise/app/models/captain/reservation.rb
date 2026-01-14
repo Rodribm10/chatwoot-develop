@@ -12,7 +12,7 @@ module Captain
 
     has_many :reminders, class_name: 'Captain::Reminder', as: :source, dependent: :destroy
 
-    enum status: { scheduled: 0, active: 1, completed: 2, cancelled: 3, pending_payment: 4 }
+    enum status: { scheduled: 0, active: 1, completed: 2, cancelled: 3, pending_payment: 4, draft: 5 }
     enum payment_status: { pending: 'pending', paid: 'paid', failed: 'failed' }, _prefix: :payment
 
     scope :filter_by_unit, ->(unit_id) { where(captain_unit_id: unit_id) if unit_id.present? }

@@ -86,21 +86,15 @@ class Captain::Assistant < ApplicationRecord
     }
   end
 
-  private
-
-  def agent_name
-    name.parameterize(separator: '_')
-  end
-
-  def agent_tools
+  def agent_tools(conversation: nil, user: nil)
     tools = [
-      self.class.resolve_tool_class('faq_lookup').new(self),
-      self.class.resolve_tool_class('handoff').new(self)
+      self.class.resolve_tool_class('faq_lookup').new(self, conversation: conversation, user: user),
+      self.class.resolve_tool_class('handoff').new(self, conversation: conversation, user: user)
     ]
 
     # Add each enabled scenario as a tool
     scenarios.enabled.each do |scenario|
-      tools << Captain::Tools::ScenarioDelegatorTool.new(scenario)
+      tools << Captain::Tools::ScenarioDelegatorTool.new(scenario, user: user, conversation: conversation)
     end
 
     # Add enabled built-in tools
@@ -109,7 +103,9 @@ class Captain::Assistant < ApplicationRecord
       next unless tool_class
 
       # Avoid duplicates if tool is already added (e.g. hardcoded ones)
-      tools << tool_class.new(self) unless tools.any? { |t| t.is_a?(tool_class) }
+      next if tools.any? { |t| t.is_a?(tool_class) }
+
+      tools << tool_class.new(self, conversation: conversation, user: user)
     end
 
     # Add enabled custom tools
@@ -137,6 +133,12 @@ class Captain::Assistant < ApplicationRecord
       response_guidelines: response_guidelines || [],
       guardrails: guardrails || []
     }
+  end
+
+  private
+
+  def agent_name
+    name.parameterize(separator: '_')
   end
 
   def default_avatar_url
