@@ -71,7 +71,7 @@ module Captain
         tool = Captain::Tools::ScenarioDelegatorTool.new(scenario, user: @contact, conversation: @conversation)
 
         # ScenarioDelegatorTool expects 'pergunta_interna'
-        params = { 'pergunta_interna' => @additional_data[:message] }
+        params = { pergunta_interna: @additional_data[:message] }
         execution_result = tool.execute(params)
 
         if execution_result.is_a?(String)

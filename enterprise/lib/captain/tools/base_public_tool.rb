@@ -19,6 +19,13 @@ class Captain::Tools::BasePublicTool < Agents::Tool
     []
   end
 
+  def execute(*args, **kwargs)
+    # Adapter for RubyLLM -> Agents::Tool compatibility
+    # RubyLLM calls execute(**params), Agents::Tool expects execute(input)
+    input = args.first || kwargs
+    super(input)
+  end
+
   private
 
   def account_scoped(model_class)

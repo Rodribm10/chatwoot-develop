@@ -18,7 +18,9 @@ module Captain::Tools
 
     param :pergunta_interna, type: 'string', desc: 'A pergunta ou instrução detalhada que você quer enviar para este departamento.'
 
-    def perform(_tool_context, pergunta_interna:)
+    def perform(_tool_context, args = {})
+      pergunta_interna = args[:pergunta_interna] || args['pergunta_interna']
+
       # Instanciamos o agente do cenário, que já carrega suas próprias ferramentas (custom tools, etc)
       agent = @scenario.agent(user: @user, conversation: @conversation)
 

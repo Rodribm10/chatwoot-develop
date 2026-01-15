@@ -182,7 +182,7 @@ class Captain::Assistant::AgentRunnerService
   def build_and_wire_agents
     # In Delegation Mode, we only use the orchestrator agent.
     # The sub-agents (scenarios) are now dynamic tools of this agent.
-    [@assistant.agent]
+    [@assistant.agent(user: @conversation&.contact, conversation: @conversation)]
   end
 
   def sanitize_global_api_key

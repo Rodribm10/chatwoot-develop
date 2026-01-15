@@ -31,7 +31,7 @@ class Captain::Tools::HandoffTool < Captain::Tools::BasePublicTool
       sender: @assistant,
       account: conversation.account,
       inbox: conversation.inbox,
-      content: reason
+      content: reason || 'Solicitação de atendimento humano'
     )
 
     # Trigger the bot handoff (sets status to open + dispatches events)
