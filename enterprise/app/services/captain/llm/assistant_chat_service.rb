@@ -100,7 +100,6 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
   def handle_tool_side_effects(tool_key, conversation)
     return unless tool_key == 'escalar_humano'
 
-    conversation.contact.add_labels(['desligar_ia'])
     conversation.add_labels(['desligar_ia'])
     conversation.custom_attributes['ai_disabled'] = true
     conversation.save!

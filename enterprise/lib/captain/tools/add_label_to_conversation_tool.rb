@@ -4,7 +4,7 @@ class Captain::Tools::AddLabelToConversationTool < Captain::Tools::BasePublicToo
 
   def perform(tool_context, args = {})
     label_name = args[:label_name] || args['label_name']
-    conversation = find_conversation(tool_context.state)
+    conversation = find_conversation(resolve_context(tool_context))
     return 'Conversation not found' unless conversation
 
     label_name = label_name&.strip&.downcase

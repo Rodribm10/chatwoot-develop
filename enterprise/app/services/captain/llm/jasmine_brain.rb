@@ -39,7 +39,7 @@ module Captain
       private
 
       def contact_has_disabled_label?
-        @contact.labels.exists?(name: 'desligar_ia')
+        @conversation.labels.exists?(name: 'desligar_ia')
       rescue StandardError
         false
       end

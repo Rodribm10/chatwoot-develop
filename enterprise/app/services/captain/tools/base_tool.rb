@@ -25,6 +25,16 @@ class Captain::Tools::BaseTool < RubyLLM::Tool
     actual_params.with_indifferent_access
   end
 
+  def resolve_context(tool_context)
+    if tool_context.respond_to?(:state)
+      tool_context.state
+    elsif tool_context.is_a?(Hash)
+      tool_context
+    else
+      {}
+    end.with_indifferent_access
+  end
+
   def active?
     true
   end

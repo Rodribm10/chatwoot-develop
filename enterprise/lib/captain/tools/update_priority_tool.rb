@@ -4,7 +4,7 @@ class Captain::Tools::UpdatePriorityTool < Captain::Tools::BasePublicTool
 
   def perform(tool_context, args = {})
     priority = args[:priority] || args['priority']
-    @conversation = find_conversation(tool_context.state)
+    @conversation = find_conversation(resolve_context(tool_context))
     return 'Conversation not found' unless @conversation
 
     @normalized_priority = normalize_priority(priority)

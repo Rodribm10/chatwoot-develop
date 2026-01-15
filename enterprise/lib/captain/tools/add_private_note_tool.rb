@@ -4,7 +4,7 @@ class Captain::Tools::AddPrivateNoteTool < Captain::Tools::BasePublicTool
 
   def perform(tool_context, args = {})
     note = args[:note] || args['note']
-    conversation = find_conversation(tool_context.state)
+    conversation = find_conversation(resolve_context(tool_context))
     return 'Conversation not found' unless conversation
 
     return 'Note content is required' if note.blank?

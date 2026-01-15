@@ -39,6 +39,18 @@ class Captain::Tools::BasePublicTool < Agents::Tool
     end.with_indifferent_access
   end
 
+  def resolve_context(tool_context)
+    # Handle the case where tool_context is a Hash (Agents gem / Sub-agents)
+    # or an Object with a state reader (RubyLLM / Main Agent)
+    if tool_context.respond_to?(:state)
+      tool_context.state
+    elsif tool_context.is_a?(Hash)
+      tool_context
+    else
+      {}
+    end.with_indifferent_access
+  end
+
   private
 
   def account_scoped(model_class)
