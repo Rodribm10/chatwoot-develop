@@ -2,7 +2,8 @@ class Captain::Tools::UpdatePriorityTool < Captain::Tools::BasePublicTool
   description 'Update the priority of a conversation'
   param :priority, type: 'string', desc: 'The priority level: low, medium, high, urgent, or nil to remove priority'
 
-  def perform(tool_context, priority:)
+  def perform(tool_context, args = {})
+    priority = args[:priority] || args['priority']
     @conversation = find_conversation(tool_context.state)
     return 'Conversation not found' unless @conversation
 

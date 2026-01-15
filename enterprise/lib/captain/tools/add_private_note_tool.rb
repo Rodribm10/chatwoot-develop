@@ -2,7 +2,8 @@ class Captain::Tools::AddPrivateNoteTool < Captain::Tools::BasePublicTool
   description 'Add a private note to a conversation'
   param :note, type: 'string', desc: 'The private note content'
 
-  def perform(tool_context, note:)
+  def perform(tool_context, args = {})
+    note = args[:note] || args['note']
     conversation = find_conversation(tool_context.state)
     return 'Conversation not found' unless conversation
 

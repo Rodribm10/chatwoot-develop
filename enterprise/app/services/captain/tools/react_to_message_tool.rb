@@ -14,7 +14,8 @@ module Captain
         super(assistant, user: user)
       end
 
-      def execute(emoji:)
+      def execute(args = {})
+        emoji = args[:emoji] || args['emoji']
         return error_response('Conversation not found') unless @conversation.present?
         return error_response('Emoji is required') if emoji.blank?
 

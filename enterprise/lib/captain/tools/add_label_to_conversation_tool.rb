@@ -2,7 +2,8 @@ class Captain::Tools::AddLabelToConversationTool < Captain::Tools::BasePublicToo
   description 'Add a label to a conversation'
   param :label_name, type: 'string', desc: 'The name of the label to add'
 
-  def perform(tool_context, label_name:)
+  def perform(tool_context, args = {})
+    label_name = args[:label_name] || args['label_name']
     conversation = find_conversation(tool_context.state)
     return 'Conversation not found' unless conversation
 
