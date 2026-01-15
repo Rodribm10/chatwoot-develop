@@ -19,11 +19,24 @@ class Captain::Tools::BasePublicTool < Agents::Tool
     []
   end
 
-  def execute(*args, **kwargs)
-    # Adapter for RubyLLM -> Agents::Tool compatibility
-    # RubyLLM calls execute(**params), Agents::Tool expects execute(input)
-    input = args.first || kwargs
-    super(input)
+  def execute(*args, **params)
+    # Adapter for flexible argument handling (RubyLLM vs Agents)
+    actual_params = resolve_params(args, params)
+
+    # Agents::Tool#execute expects a single hash argument for run
+    super(actual_params)
+  end
+
+  protected
+
+  def resolve_params(args, params)
+    # RubyLLM: [params_hash], {}
+    # Agents: [context], {params_hash}
+    if args.first.is_a?(Hash) && params.empty?
+      args.first
+    else
+      params
+    end.with_indifferent_access
   end
 
   private

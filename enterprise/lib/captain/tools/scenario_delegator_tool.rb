@@ -45,7 +45,13 @@ module Captain::Tools
 
       result.output.is_a?(Hash) ? (result.output['response'] || result.output.to_s) : result.output.to_s
     rescue StandardError => e
-      Rails.logger.error "[ScenarioDelegatorTool] ERRO CRÍTICO no sub-agente #{@scenario.title}: #{e.message}\n#{e.backtrace.first(10).join("\n")}"
+      Rails.logger.error "[ScenarioDelegatorTool] ERRO CRÍTICO no sub-agente #{@scenario.title}: #{e.message}"
+      if e.respond_to?(:record) && e.record
+        Rails.logger.error "[ScenarioDelegatorTool] Invalid Record Class: #{e.record.class.name}"
+        Rails.logger.error "[ScenarioDelegatorTool] Invalid Record Errors: #{e.record.errors.full_messages.inspect}"
+        Rails.logger.error "[ScenarioDelegatorTool] Invalid Record Attributes: #{e.record.attributes.inspect}"
+      end
+      Rails.logger.error "[ScenarioDelegatorTool] Backtrace:\n#{e.backtrace.first(15).join("\n")}"
       "Erro técnico ao consultar o departamento #{@scenario.title}: #{e.message}"
     end
   end

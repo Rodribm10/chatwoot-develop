@@ -114,9 +114,9 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          TAG="${{ env.IMAGE_NAME }}:latest"
-
-          docker buildx imagetools create -t "$TAG" \
+          docker buildx imagetools create \
+            -t "${{ env.IMAGE_NAME }}:latest" \
+            -t "${{ env.IMAGE_NAME }}:v${{ github.run_number }}" \
             $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
