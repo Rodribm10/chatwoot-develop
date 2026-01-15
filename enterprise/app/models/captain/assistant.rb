@@ -86,6 +86,10 @@ class Captain::Assistant < ApplicationRecord
     }
   end
 
+  def pubsub_token
+    "captain_assistant_#{id}"
+  end
+
   def agent_tools(conversation: nil, user: nil)
     tools = [
       self.class.resolve_tool_class('faq_lookup').new(self, conversation: conversation, user: user),

@@ -13,15 +13,14 @@ module Captain
         @tool_key = tool_key
         @inbox = inbox
         @conversation = conversation
-        @definition = Captain::Tools::Definitions::ALL[tool_key]
-        @config = Captain::ToolConfig.find_by(captain_assistant_id: assistant.id, tool_key: tool_key) ||
-                  Captain::ToolConfig.find_by(inbox: inbox, account: inbox.account, tool_key: tool_key)
+        @definition = resolve_definition
+        @config = resolve_config
         @contact = conversation.contact
         @additional_data = additional_data
       end
 
       def run
-        return failed_response('Tool not configured or disabled') unless @config&.is_enabled
+        return failed_response('Tool not configured or disabled') unless tool_enabled?
         return failed_response('Tool definition not found') unless @definition
 
         start_time = Time.current
@@ -29,6 +28,7 @@ module Captain
                  when :http then execute_http
                  when :webhook then execute_webhook
                  when :internal then execute_internal
+                 when :scenario then execute_scenario
                  else failed_response('Unknown tool type')
                  end
 
@@ -37,6 +37,51 @@ module Captain
       end
 
       private
+
+      def resolve_definition
+        return Captain::Tools::Definitions::ALL[@tool_key] if Captain::Tools::Definitions::ALL.key?(@tool_key)
+
+        scenario = find_scenario_by_tool_key
+        return { type: :scenario, scenario: scenario } if scenario
+
+        nil
+      end
+
+      def resolve_config
+        Captain::ToolConfig.find_by(captain_assistant_id: @assistant.id, tool_key: @tool_key) ||
+          Captain::ToolConfig.find_by(inbox: @inbox, account: @inbox.account, tool_key: @tool_key)
+      end
+
+      def find_scenario_by_tool_key
+        @assistant.scenarios.enabled.find do |scenario|
+          "consultar_#{scenario.title.parameterize.underscore}" == @tool_key
+        end
+      end
+
+      def tool_enabled?
+        return true if @definition && @definition[:type] == :scenario
+
+        @config&.is_enabled
+      end
+
+      def execute_scenario
+        scenario = @definition[:scenario]
+        # We pass the contact (user) and conversation context.
+        # We use the full user message as the 'pergunta_interna' for the sub-agent.
+        tool = Captain::Tools::ScenarioDelegatorTool.new(scenario, user: @contact, conversation: @conversation)
+
+        # ScenarioDelegatorTool expects 'pergunta_interna'
+        params = { 'pergunta_interna' => @additional_data[:message] }
+        execution_result = tool.execute(params)
+
+        if execution_result.is_a?(String)
+          { success: true, body: { message: execution_result } }
+        else
+          { success: true, body: execution_result }
+        end
+      rescue StandardError => e
+        { success: false, error: "Scenario Error: #{e.message}" }
+      end
 
       def execute_http
         uri = URI(@definition[:url])
@@ -67,7 +112,7 @@ module Captain
 
         return failed_response("Tool Class #{tool_class_name} not found") unless klass
 
-        tool_instance = klass.new(@assistant, user: nil, conversation: @conversation)
+        tool_instance = klass.new(@assistant, user: @contact, conversation: @conversation)
 
         # Merge additional data into params if the tool expects them
         # Typically internal tools take a params hash.

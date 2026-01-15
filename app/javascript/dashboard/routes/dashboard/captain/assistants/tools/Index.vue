@@ -26,6 +26,16 @@ const deleteDialogRef = ref(null);
 const selectedTool = ref(null);
 const dialogType = ref('');
 
+const nativeToolKeys = [
+  'react_to_message',
+  'check_availability',
+  'update_contact',
+  'create_reservation_intent',
+  'generate_pix',
+  'status_suites',
+  'suite_watchdog',
+];
+
 const assistantId = computed(() => route.params.assistantId);
 
 const fetchTools = async () => {
@@ -153,7 +163,7 @@ onMounted(() => {
           </div>
 
           <div
-            v-if="tool.enabled && tool.key !== 'react_to_message'"
+            v-if="tool.enabled && !nativeToolKeys.includes(tool.key)"
             class="flex flex-col gap-4 pl-4 border-l-2 border-n-weak mt-6 pt-2 transition-all"
           >
             <h5
