@@ -20,19 +20,23 @@ module Captain
       end
 
       def run
-        return failed_response('Tool not configured or disabled') unless tool_enabled?
-        return failed_response('Tool definition not found') unless @definition
-
         start_time = Time.current
-        result = case @definition[:type]
-                 when :http then execute_http
-                 when :webhook then execute_webhook
-                 when :internal then execute_internal
-                 when :scenario then execute_scenario
-                 else failed_response('Unknown tool type')
+        result = if !tool_enabled?
+                   failed_response('Tool not configured or disabled')
+                 elsif !@definition
+                   failed_response('Tool definition not found')
+                 else
+                   case @definition[:type]
+                   when :http then execute_http
+                   when :webhook then execute_webhook
+                   when :internal then execute_internal
+                   when :scenario then execute_scenario
+                   else failed_response('Unknown tool type')
+                   end
                  end
 
         duration = (Time.current - start_time) * 1000
+        result = apply_fallback(result)
         result.merge(duration_ms: duration)
       end
 
@@ -44,6 +48,7 @@ module Captain
         scenario = find_scenario_by_tool_key
         return { type: :scenario, scenario: scenario } if scenario
 
+        Rails.logger.warn "[ToolRunner] Unknown tool_key: #{@tool_key}"
         nil
       end
 
@@ -60,6 +65,7 @@ module Captain
 
       def tool_enabled?
         return true if @definition && @definition[:type] == :scenario
+        return true if @definition && @definition[:always_on]
 
         @config&.is_enabled
       end
@@ -71,7 +77,8 @@ module Captain
         tool = Captain::Tools::ScenarioDelegatorTool.new(scenario, user: @contact, conversation: @conversation)
 
         # ScenarioDelegatorTool expects 'pergunta_interna'
-        params = { pergunta_interna: @additional_data[:message] }
+        params = tool_params
+        params[:pergunta_interna] ||= @additional_data[:message]
         execution_result = tool.execute(params)
 
         if execution_result.is_a?(String)
@@ -185,7 +192,7 @@ module Captain
         # I will implement the execution.
         # If I see "Missing suite" in the logs, I know `AssistantChatService` needs to pass parameters.
 
-        execution_result = tool_instance.execute(@additional_data.with_indifferent_access)
+        execution_result = tool_instance.execute(tool_params)
 
         # Normalize result. Tool execute usually returns a String or Hash.
         if execution_result.is_a?(String)
@@ -219,6 +226,12 @@ module Captain
         { success: true, status: response.code, body: { message: 'Webhook sent' } }
       rescue StandardError => e
         { success: false, error: e.message }
+      end
+
+      def tool_params
+        params = @additional_data[:tool_input]
+        params = {} unless params.is_a?(Hash)
+        params.with_indifferent_access
       end
 
       def build_webhook_payload
@@ -267,6 +280,25 @@ module Captain
 
       def failed_response(msg)
         { success: false, error: msg }
+      end
+
+      def apply_fallback(result)
+        return result if result[:success]
+        return result unless fallback_configured?
+
+        {
+          success: true,
+          body: { message: @config.fallback_message.to_s },
+          fallback: true,
+          error: result[:error]
+        }
+      end
+
+      def fallback_configured?
+        return false unless @config&.fallback_message.present?
+        return false if %w[faq_lookup react_to_message].include?(@tool_key)
+
+        true
       end
     end
   end

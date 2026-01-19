@@ -14,6 +14,9 @@ import CardLayout from 'dashboard/components-next/CardLayout.vue';
 import Checkbox from 'dashboard/components-next/checkbox/Checkbox.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import TagMultiSelectComboBox from 'dashboard/components-next/combobox/TagMultiSelectComboBox.vue';
+import ScenariosAPI from 'dashboard/api/captain/scenarios';
+import { useRoute } from 'vue-router';
+import { useAlert } from 'dashboard/composables';
 
 const props = defineProps({
   id: {
@@ -44,9 +47,17 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  triggerKeywords: {
+    type: String,
+    default: '',
+  },
+  enabled: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-const emit = defineEmits(['select', 'hover', 'delete', 'update']);
+const emit = defineEmits(['select', 'hover', 'delete', 'update', 'duplicate']);
 
 const { t } = useI18n();
 const { formatMessage } = useMessageFormatter();
@@ -61,13 +72,17 @@ const state = reactive({
   title: '',
   description: '',
   instruction: '',
+  trigger_keywords: '',
   tools: [],
+  enabled: true,
 });
 
 const instructionContentRef = ref();
 
 const [isEditing, toggleEditing] = useToggle();
 const [isInstructionExpanded, toggleInstructionExpanded] = useToggle();
+const isSuggesting = ref(false);
+const route = useRoute();
 
 const { height: contentHeight } = useElementSize(instructionContentRef);
 const needsOverlay = computed(() => contentHeight.value > 160);
@@ -88,7 +103,9 @@ const startEdit = () => {
     title: props.title,
     description: props.description,
     instruction: props.instruction,
+    trigger_keywords: props.triggerKeywords,
     tools: props.tools || [],
+    enabled: props.enabled,
   });
   toggleEditing(true);
 };
@@ -126,6 +143,14 @@ const instructionError = computed(() =>
     : ''
 );
 
+const onDeleteOrArchive = () => {
+  if (props.selectable) {
+    emit('update', { id: props.id, enabled: false });
+  } else {
+    emit('delete', props.id);
+  }
+};
+
 const LINK_INSTRUCTION_CLASS =
   '[&_a[href^="tool://"]]:text-n-iris-11 [&_a:not([href^="tool://"])]:text-n-slate-12 [&_a]:pointer-events-none [&_a]:cursor-default';
 
@@ -134,6 +159,54 @@ const renderInstruction = instruction => () =>
     class: `text-sm text-n-slate-12 py-4 mb-0 prose prose-sm min-w-0 break-words max-w-none ${LINK_INSTRUCTION_CLASS}`,
     innerHTML: instruction,
   });
+
+const emitDuplicate = () => {
+  emit('duplicate', {
+    id: props.id,
+    title: props.title,
+    description: props.description,
+    instruction: props.instruction,
+    tools: props.tools || [],
+  });
+};
+
+const onSuggestTriggers = async () => {
+  if (!state.instruction && !state.title) {
+    // using generic error message for now, can be extracted to i18n
+    useAlert(
+      t(
+        'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.SUGGEST_ERROR'
+      )
+    );
+    return;
+  }
+
+  isSuggesting.value = true;
+  try {
+    const assistantId = route.params.assistantId;
+    const response = await ScenariosAPI.suggestTriggers({
+      assistantId,
+      title: state.title,
+      description: state.description,
+      instruction: state.instruction,
+    });
+
+    if (response.data.keywords) {
+      state.trigger_keywords = response.data.keywords;
+      useAlert(
+        t(
+          'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.SUGGEST_SUCCESS'
+        )
+      );
+    }
+  } catch (error) {
+    const errorMessage =
+      error?.response?.data?.error || 'Failed to suggest keywords';
+    useAlert(errorMessage);
+  } finally {
+    isSuggesting.value = false;
+  }
+};
 </script>
 
 <template>
@@ -144,6 +217,7 @@ const renderInstruction = instruction => () =>
     :class="{
       '[&>div]:ltr:!pr-4 [&>div]:rtl:!pl-4': !isEditing,
       '[&>div]:ltr:!pr-10 [&>div]:rtl:!pl-10': isEditing,
+      'opacity-60 saturate-50': !enabled && !isEditing,
     }"
     layout="row"
     @mouseenter="emit('hover', true)"
@@ -159,7 +233,17 @@ const renderInstruction = instruction => () =>
     <div v-if="!isEditing" class="flex flex-col w-full">
       <div class="flex items-start justify-between w-full gap-2">
         <div class="flex flex-col items-start">
-          <span class="text-sm text-n-slate-12 font-medium">{{ title }}</span>
+          <span class="text-sm text-n-slate-12 font-medium">
+            {{ title }}
+            <span
+              v-if="!enabled"
+              class="text-n-slate-11 text-xs font-normal ml-2"
+            >
+              {{
+                `(${t('CAPTAIN.ASSISTANTS.SCENARIOS.DISABLED') || 'Desativado'})`
+              }}
+            </span>
+          </span>
           <span class="text-sm text-n-slate-11 mt-2">
             {{ description }}
           </span>
@@ -167,14 +251,21 @@ const renderInstruction = instruction => () =>
         <div class="flex items-center gap-2">
           <!-- <Button label="Test" slate xs ghost class="!text-sm" />
           <span class="w-px h-4 bg-n-weak" /> -->
+          <Button icon="i-lucide-copy" slate xs ghost @click="emitDuplicate" />
+          <span class="w-px h-4 bg-n-weak" />
           <Button icon="i-lucide-pen" slate xs ghost @click="startEdit" />
           <span class="w-px h-4 bg-n-weak" />
           <Button
-            icon="i-lucide-trash"
+            :icon="selectable ? 'i-lucide-archive' : 'i-lucide-trash'"
             slate
             xs
             ghost
-            @click="emit('delete', id)"
+            :title="
+              selectable
+                ? t('CAPTAIN.ASSISTANTS.SCENARIOS.ARCHIVE')
+                : t('CAPTAIN.ASSISTANTS.SCENARIOS.DELETE')
+            "
+            @click="onDeleteOrArchive"
           />
         </div>
       </div>
@@ -250,6 +341,40 @@ const renderInstruction = instruction => () =>
         :show-character-count="false"
         enable-captain-tools
       />
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-medium text-n-slate-11">
+            {{
+              t(
+                'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.LABEL'
+              )
+            }}
+          </label>
+          <Button
+            :label="
+              t(
+                'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.SUGGEST_BUTTON'
+              )
+            "
+            icon="i-lucide-sparkles"
+            xs
+            ghost
+            slate
+            :is-loading="isSuggesting"
+            @click="onSuggestTriggers"
+          />
+        </div>
+        <TextArea
+          v-model="state.trigger_keywords"
+          :placeholder="
+            t(
+              'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.PLACEHOLDER'
+            )
+          "
+          min-height="80px"
+        />
+      </div>
+
       <div class="flex flex-col gap-2">
         <label class="text-xs font-medium text-n-slate-11">
           {{ t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TOOLS.LABEL') }}

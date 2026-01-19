@@ -1,6 +1,10 @@
 require 'agents'
 
 class Captain::Assistant::AgentRunnerService
+  MAX_CONTEXT_MESSAGES = 12
+  MAX_MESSAGE_CHARS = 500
+  MAX_SUMMARY_CHARS = 400
+
   CONVERSATION_STATE_ATTRIBUTES = %i[
     id display_id inbox_id contact_id status priority
     label_list custom_attributes additional_attributes
@@ -20,8 +24,20 @@ class Captain::Assistant::AgentRunnerService
   def generate_response(message_history: [])
     sanitize_global_api_key
     agents = build_and_wire_agents
-    context = build_context(message_history)
     message_to_process = extract_last_user_message(message_history)
+
+    # [FEATURE] Intent Classification MVP
+    # Fire-and-forget job to classify user intent for analytics
+    Captain::IntentClassificationJob.perform_later(@conversation.id, message_to_process) if @conversation.present? && message_to_process.present?
+
+    # [FEATURE] Short-circuit for thank you/emoji messages to ensure reaction tool usage
+    Rails.logger.info "[Captain V2] Checking for reaction. Message: #{message_to_process.inspect}"
+    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] AgentRunnerService: checking reaction for #{message_to_process.inspect}" }
+
+    reaction_response = check_and_react_to_message(message_to_process)
+    return reaction_response if reaction_response
+
+    context = build_context(message_history, last_user_message: message_to_process)
     runner = Agents::Runner.with_agents(*agents)
     runner = add_callbacks_to_runner(runner) if @callbacks.any?
 
@@ -29,7 +45,11 @@ class Captain::Assistant::AgentRunnerService
 
     # Use assistant's API key if present, otherwise fallback to global config
     result = with_assistant_api_key do
+      Thread.current[:captain_last_user_message] = message_to_process
+      # [FIX] with_agents pre-registers agents, so run() only takes (input, options)
       runner.run(message_to_process, context: context, max_turns: 100)
+    ensure
+      Thread.current[:captain_last_user_message] = nil
     end
 
     process_agent_result(result)
@@ -45,7 +65,61 @@ class Captain::Assistant::AgentRunnerService
 
   private
 
-  def build_context(message_history)
+  def check_and_react_to_message(message)
+    text = message.to_s.strip.downcase
+    return nil if text.blank?
+
+    # Simple substrings for thank you messages
+    # Using simple include? is more robust for "obrigado ...." cases where regex might fail on boundaries
+    thank_you_keywords = [
+      'obrigad', # catches obrigado, obrigada, obrigados
+      'valeu',
+      'agradeço',
+      'agradecid',
+      'muito obrigad',
+      'brigadao',
+      'brigadão',
+      'brigadinha',
+      'gratidao',
+      'gratidão',
+      'thanks'
+    ]
+
+    # Check if message is ONLY emoji(s) (simple heuristic)
+    only_emoji = text.gsub(/[\s\p{Emoji}]/u, '').empty? && text.match?(/\p{Emoji}/u)
+
+    match_found = thank_you_keywords.any? { |kw| text.include?(kw) } || only_emoji
+
+    Rails.logger.info "[Captain V2] Reaction Pre-Check: Text='#{text}' Match=#{match_found}"
+    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] AgentRunnerService: Text='#{text}' Match=#{match_found}" }
+
+    if match_found
+      Rails.logger.info '[Captain V2] Detected thank you/emoji. Executing ReactToMessageTool directly.'
+
+      begin
+        tool = Captain::Tools::ReactToMessageTool.new(
+          assistant: @assistant,
+          user: @conversation.contact,
+          conversation: @conversation
+        )
+        tool.execute(emoji: '❤️')
+      rescue StandardError => e
+        Rails.logger.error "[Captain V2] Failed to execute ReactToMessageTool: #{e.message}"
+        # Fallback to normal flow if tool fails
+        return nil
+      end
+
+      return {
+        'response' => 'De nada! ❤️',
+        'reasoning' => 'Auto-reaction triggered by thank you/emoji detection',
+        'agent_name' => @assistant.name
+      }
+    end
+
+    nil
+  end
+
+  def build_context(message_history, last_user_message: nil)
     # Remove the last user message from history because it will be passed as the main message to the runner
     last_user_index = message_history.rindex { |msg| msg[:role] == 'user' || msg[:role] == :user }
     filtered_history = if last_user_index
@@ -54,19 +128,22 @@ class Captain::Assistant::AgentRunnerService
                          message_history
                        end
 
-    conversation_history = filtered_history.map do |msg|
+    conversation_history = filtered_history.filter_map do |msg|
       content = extract_text_from_content(msg[:content])
+      next if content.blank?
 
       {
         role: msg[:role].to_sym,
-        content: content,
+        content: content.to_s[0, MAX_MESSAGE_CHARS],
         agent_name: msg[:agent_name]
       }
     end
 
+    conversation_history = trim_conversation_history(conversation_history)
+
     {
       conversation_history: conversation_history,
-      state: build_state
+      state: build_state(last_user_message: last_user_message)
     }
   end
 
@@ -94,10 +171,10 @@ class Captain::Assistant::AgentRunnerService
     # If the LLM returned an error (like Unauthorized), show a user-friendly message
     if result.error.present?
       Rails.logger.error "[Captain V2] LLM Error: #{result.error.message}"
-      return {
-        'response' => 'Desculpe, estou com dificuldades técnicas no momento. Por favor, tente novamente em alguns instantes.',
-        'reasoning' => "LLM Error: #{result.error.message}"
-      }
+      Rails.logger.error result.error.backtrace.take(30).join("\n") if result.error.respond_to?(:backtrace) && result.error.backtrace.present?
+      response = error_response(result.error.message)
+      response['reasoning'] ||= "LLM Error: #{result.error.message}"
+      return response
     end
 
     # Extract response from direct output or history
@@ -143,25 +220,71 @@ class Captain::Assistant::AgentRunnerService
   end
 
   def error_response(error_message)
-    {
-      'response' => 'conversation_handoff',
-      'reasoning' => "Error occurred: #{error_message}"
-    }
+    action = handoff_action('handoff_on_llm_error_action', default: 'handoff')
+    message = handoff_message('handoff_on_llm_error_message')
+
+    response = case action
+               when 'handoff'
+                 { 'response' => 'conversation_handoff', 'handoff_trigger' => 'llm_error' }
+               when 'reply'
+                 { 'response' => message, 'handoff_trigger' => 'llm_error' }
+               when 'ignore'
+                 { 'response' => message, 'handoff_trigger' => 'llm_error' }
+               else
+                 { 'response' => 'conversation_handoff', 'handoff_trigger' => 'llm_error' }
+               end
+
+    response['reasoning'] = "Error occurred: #{error_message}"
+    response
   end
 
-  def build_state
+  def handoff_action(key, default:)
+    value = @assistant.config[key].to_s
+    return value if %w[handoff reply ignore].include?(value)
+
+    default
+  end
+
+  def handoff_message(key)
+    message = @assistant.config[key].to_s.strip
+    return message if message.present?
+
+    I18n.t('captain.handoff_default_message',
+           default: 'Desculpe, estou com dificuldades tecnicas no momento. Por favor, tente novamente em alguns instantes.')
+  end
+
+  def build_state(last_user_message: nil)
     state = {
       account_id: @assistant.account_id,
       assistant_id: @assistant.id,
       assistant_config: @assistant.config
     }
 
+    state[:last_user_message] = last_user_message if last_user_message.present?
+
     if @conversation
       state[:conversation] = @conversation.attributes.symbolize_keys.slice(*CONVERSATION_STATE_ATTRIBUTES)
       state[:contact] = @conversation.contact.attributes.symbolize_keys.slice(*CONTACT_STATE_ATTRIBUTES) if @conversation.contact
+      summary_text = @conversation.latest_crm_insight&.summary_text.to_s.strip
+      state[:conversation_summary] = summary_text[0, MAX_SUMMARY_CHARS] if summary_text.present?
     end
 
     state
+  end
+
+  def trim_conversation_history(history)
+    return history if history.size <= MAX_CONTEXT_MESSAGES
+
+    trimmed = history.last(MAX_CONTEXT_MESSAGES)
+    summary_text = @conversation&.latest_crm_insight&.summary_text.to_s.strip
+    return trimmed if summary_text.blank?
+
+    summary_text = summary_text[0, MAX_SUMMARY_CHARS]
+    summary_message = {
+      role: :system,
+      content: "Resumo da conversa anterior: #{summary_text}"
+    }
+    [summary_message] + trimmed
   end
 
   def with_assistant_api_key

@@ -16,7 +16,11 @@ module Captain
         super(assistant, user: user)
       end
 
-      def execute(message:, scheduled_at: nil, minutes_from_now: nil)
+      def execute(*args, **params)
+        actual_params = resolve_params(args, params)
+        message = actual_params[:message]
+        scheduled_at = actual_params[:scheduled_at]
+        minutes_from_now = actual_params[:minutes_from_now]
         return error_response('Conversation not found') unless @conversation.present?
         return error_response('Message is required') if message.blank?
 

@@ -21,10 +21,11 @@ class Captain::Tools::BasePublicTool < Agents::Tool
 
   def execute(*args, **params)
     # Adapter for flexible argument handling (RubyLLM vs Agents)
-    actual_params = resolve_params(args, params)
+    tool_context, remaining_args = extract_tool_context(args)
+    actual_params = resolve_params(remaining_args, params)
 
-    # Agents::Tool#execute expects a single hash argument for run
-    super(actual_params)
+    # Agents::Tool#execute expects (tool_context, **params)
+    super(tool_context, **actual_params.symbolize_keys)
   end
 
   protected
@@ -37,6 +38,17 @@ class Captain::Tools::BasePublicTool < Agents::Tool
     else
       params
     end.with_indifferent_access
+  end
+
+  def extract_tool_context(args)
+    return [nil, []] if args.empty?
+
+    first = args.first
+    if first.respond_to?(:state) || first.respond_to?(:context)
+      [first, args.drop(1)]
+    else
+      [nil, args]
+    end
   end
 
   def resolve_context(tool_context)

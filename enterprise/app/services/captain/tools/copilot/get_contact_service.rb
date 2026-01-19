@@ -5,7 +5,9 @@ class Captain::Tools::Copilot::GetContactService < Captain::Tools::BaseTool
   description 'Get details of a contact including their profile information'
   param :contact_id, type: :number, desc: 'The ID of the contact to retrieve', required: true
 
-  def execute(contact_id:)
+  def execute(*args, **params)
+    actual_params = resolve_params(args, params)
+    contact_id = actual_params[:contact_id]
     contact = Contact.find_by(id: contact_id, account_id: @assistant.account_id)
     return 'Contact not found' if contact.nil?
 

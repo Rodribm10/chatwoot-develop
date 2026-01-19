@@ -37,6 +37,7 @@ const initialState = {
     memories: false,
     citations: false,
     handoffOnSentiment: false,
+    allowHandoff: true,
   },
 };
 
@@ -75,6 +76,7 @@ const updateStateFromAssistant = assistant => {
     memories: config.feature_memory || false,
     citations: config.feature_citation || false,
     handoffOnSentiment: config.handoff_on_sentiment || false,
+    allowHandoff: config.allow_handoff !== false,
   };
 };
 
@@ -100,6 +102,7 @@ const handleBasicInfoUpdate = async () => {
       feature_memory: state.features.memories,
       feature_citation: state.features.citations,
       handoff_on_sentiment: state.features.handoffOnSentiment,
+      allow_handoff: state.features.allowHandoff,
     },
   };
 
@@ -257,6 +260,10 @@ onMounted(() => {
         <label class="flex items-center gap-2">
           <input v-model="state.features.handoffOnSentiment" type="checkbox" />
           {{ t('CAPTAIN.ASSISTANTS.FORM.FEATURES.ALLOW_SENTIMENT_HANDOFF') }}
+        </label>
+        <label class="flex items-center gap-2">
+          <input v-model="state.features.allowHandoff" type="checkbox" />
+          {{ t('CAPTAIN.ASSISTANTS.FORM.FEATURES.ALLOW_HANDOFF') }}
         </label>
       </div>
     </div>

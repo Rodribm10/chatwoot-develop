@@ -9,6 +9,8 @@ import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useMessageFormatter } from 'shared/composables/useMessageFormatter';
 import Button from 'dashboard/components-next/button/Button.vue';
 import Input from 'dashboard/components-next/input/Input.vue';
+import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
+import SelectMenu from 'dashboard/components-next/selectmenu/SelectMenu.vue';
 
 import PageLayout from 'dashboard/components-next/captain/PageLayout.vue';
 import SettingsHeader from 'dashboard/components-next/captain/pageComponents/settings/SettingsHeader.vue';
@@ -27,8 +29,12 @@ const assistantId = computed(() => Number(route.params.assistantId));
 const uiFlags = useMapGetter('captainScenarios/getUIFlags');
 const isFetching = computed(() => uiFlags.value.fetchingList);
 const scenarios = useMapGetter('captainScenarios/getRecords');
+const assistants = useMapGetter('captainAssistants/getRecords');
 
 const searchQuery = ref('');
+const duplicateDialogRef = ref(null);
+const duplicateScenario = ref(null);
+const duplicateTargetId = ref(null);
 
 const LINK_INSTRUCTION_CLASS =
   '[&_a[href^="tool://"]]:text-n-iris-11 [&_a:not([href^="tool://"])]:text-n-slate-12 [&_a]:pointer-events-none [&_a]:cursor-default';
@@ -40,23 +46,41 @@ const renderInstruction = instruction =>
   });
 
 // Suggested example scenarios for quick add
-const scenariosExample = [
+const scenariosExample = computed(() => [
   {
     id: 1,
-    title: 'Prospective Buyer',
-    description:
-      'Handle customers who are showing interest in purchasing a license',
-    instruction:
-      'If someone is interested in purchasing a license, ask them for following:\n\n1. How many licenses are they willing to purchase?\n2. Are they migrating from another platform?\n. Once these details are collected, do the following steps\n1. add a private note to with the information you collected using [Add Private Note](tool://add_private_note)\n2. Add label "sales" to the contact using [Add Label to Conversation](tool://add_label_to_conversation)\n3. Reply saying "one of us will reach out soon" and provide an estimated timeline for the response and [Handoff to Human](tool://handoff)',
+    title: t('CAPTAIN.ASSISTANTS.SCENARIOS.EXAMPLES.PROSPECTIVE_BUYER.TITLE'),
+    description: t(
+      'CAPTAIN.ASSISTANTS.SCENARIOS.EXAMPLES.PROSPECTIVE_BUYER.DESCRIPTION'
+    ),
+    instruction: t(
+      'CAPTAIN.ASSISTANTS.SCENARIOS.EXAMPLES.PROSPECTIVE_BUYER.INSTRUCTION'
+    ),
     tools: ['add_private_note', 'add_label_to_conversation', 'handoff'],
   },
-];
+]);
 
 const filteredScenarios = computed(() => {
   const query = searchQuery.value.trim();
   const source = scenarios.value;
   if (!query) return source;
   return picoSearch(source, query, ['title', 'description', 'instruction']);
+});
+
+const assistantOptions = computed(() =>
+  assistants.value
+    .filter(assistant => assistant.id !== assistantId.value)
+    .map(assistant => ({
+      label: assistant.name,
+      value: assistant.id,
+    }))
+);
+
+const selectedAssistantLabel = computed(() => {
+  const option = assistantOptions.value.find(
+    item => item.value === duplicateTargetId.value
+  );
+  return option?.label || t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.SELECT');
 });
 
 const shouldShowSuggestedRules = computed(() => {
@@ -172,9 +196,57 @@ const addScenario = async scenario => {
   }
 };
 
+const openDuplicateDialog = scenario => {
+  if (!assistantOptions.value.length) {
+    useAlert(t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.NO_TARGETS'));
+    return;
+  }
+
+  duplicateScenario.value = scenario;
+  duplicateTargetId.value = assistantOptions.value[0]?.value || null;
+  duplicateDialogRef.value?.open();
+};
+
+const closeDuplicateDialog = () => {
+  duplicateDialogRef.value?.close();
+  duplicateScenario.value = null;
+  duplicateTargetId.value = null;
+};
+
+const handleDuplicateConfirm = async () => {
+  if (!duplicateScenario.value || !duplicateTargetId.value) return;
+
+  try {
+    const instructionTools = getToolsFromInstruction(
+      duplicateScenario.value.instruction
+    );
+    const combinedTools = [
+      ...new Set([
+        ...(duplicateScenario.value.tools || []),
+        ...instructionTools,
+      ]),
+    ];
+    const titleSuffix = t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.COPY_SUFFIX');
+    await store.dispatch('captainScenarios/create', {
+      assistantId: duplicateTargetId.value,
+      title: `${duplicateScenario.value.title}${titleSuffix}`,
+      description: duplicateScenario.value.description,
+      instruction: duplicateScenario.value.instruction,
+      tools: combinedTools,
+    });
+    useAlert(t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.SUCCESS'));
+    closeDuplicateDialog();
+  } catch (error) {
+    const errorMessage =
+      error?.response?.message ||
+      t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.ERROR');
+    useAlert(errorMessage);
+  }
+};
+
 const addAllExampleScenarios = async () => {
   try {
-    scenariosExample.forEach(async scenario => {
+    scenariosExample.value.forEach(async scenario => {
       await store.dispatch('captainScenarios/create', {
         assistantId: assistantId.value,
         ...scenario,
@@ -193,12 +265,12 @@ onMounted(() => {
   store.dispatch('captainScenarios/get', {
     assistantId: assistantId.value,
   });
+  store.dispatch('captainAssistants/get', { page: 1 });
   store.dispatch('captainTools/getTools');
 });
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.DOCUMENTS.HEADER')"
     :is-fetching="isFetching"
@@ -259,21 +331,20 @@ onMounted(() => {
               $t('CAPTAIN.ASSISTANTS.SCENARIOS.BULK_ACTION.BULK_DELETE_BUTTON')
             "
             @bulk-delete="bulkDeleteScenarios"
-          >
-            <template #default-actions>
-              <AddNewScenariosDialog @add="addScenario" />
-            </template>
-          </BulkSelectBar>
-          <div
-            v-if="scenarios.length && bulkSelectedIds.size === 0"
-            class="max-w-[22.5rem] w-full min-w-0"
-          >
-            <Input
-              v-model="searchQuery"
-              :placeholder="
-                t('CAPTAIN.ASSISTANTS.SCENARIOS.LIST.SEARCH_PLACEHOLDER')
-              "
-            />
+          />
+          <div class="flex items-center gap-2 ml-auto">
+            <div
+              v-if="scenarios.length && bulkSelectedIds.size === 0"
+              class="max-w-[22.5rem] w-full min-w-0"
+            >
+              <Input
+                v-model="searchQuery"
+                :placeholder="
+                  t('CAPTAIN.ASSISTANTS.SCENARIOS.LIST.SEARCH_PLACEHOLDER')
+                "
+              />
+            </div>
+            <AddNewScenariosDialog @add="addScenario" />
           </div>
         </div>
         <div v-if="scenarios.length === 0" class="mt-1 mb-2">
@@ -295,6 +366,8 @@ onMounted(() => {
             :description="scenario.description"
             :instruction="scenario.instruction"
             :tools="scenario.tools"
+            :trigger-keywords="scenario.trigger_keywords"
+            :enabled="scenario.enabled"
             :is-selected="bulkSelectedIds.has(scenario.id)"
             :selectable="
               hoveredCard === scenario.id || bulkSelectedIds.size > 0
@@ -302,10 +375,44 @@ onMounted(() => {
             @select="handleRuleSelect"
             @delete="deleteScenario(scenario.id)"
             @update="updateScenario"
+            @duplicate="openDuplicateDialog"
             @hover="isHovered => handleRuleHover(isHovered, scenario.id)"
           />
         </div>
       </div>
     </template>
+    <Dialog
+      ref="duplicateDialogRef"
+      :title="t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.TITLE')"
+      :description="t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.DESCRIPTION')"
+      :confirm-button-label="
+        t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.CONFIRM')
+      "
+      :disable-confirm-button="!duplicateTargetId"
+      @confirm="handleDuplicateConfirm"
+      @close="closeDuplicateDialog"
+    >
+      <div class="flex flex-col gap-4">
+        <div class="text-sm text-n-slate-12">
+          <span class="font-medium">
+            {{ t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.SCENARIO_LABEL') }}
+          </span>
+          <span class="ml-2">
+            {{ duplicateScenario?.title || '' }}
+          </span>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-n-slate-12">
+            {{ t('CAPTAIN.ASSISTANTS.SCENARIOS.DUPLICATE.TARGET_LABEL') }}
+          </label>
+          <SelectMenu
+            v-model="duplicateTargetId"
+            :options="assistantOptions"
+            :label="selectedAssistantLabel"
+            sub-menu-position="bottom"
+          />
+        </div>
+      </div>
+    </Dialog>
   </PageLayout>
 </template>

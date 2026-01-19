@@ -9,7 +9,12 @@ class Captain::Tools::Copilot::SearchConversationsService < Captain::Tools::Base
   param :priority, type: :string, desc: 'Priority of conversation'
   param :labels, type: :string, desc: 'Labels available'
 
-  def execute(status: nil, contact_id: nil, priority: nil, labels: nil)
+  def execute(*args, **params)
+    actual_params = resolve_params(args, params)
+    status = actual_params[:status]
+    contact_id = actual_params[:contact_id]
+    priority = actual_params[:priority]
+    labels = actual_params[:labels]
     conversations = get_conversations(status, contact_id, priority, labels)
 
     return 'No conversations found' unless conversations.exists?

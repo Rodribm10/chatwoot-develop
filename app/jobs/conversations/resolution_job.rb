@@ -16,10 +16,23 @@ class Conversations::ResolutionJob < ApplicationJob
   private
 
   def conversation_scope(account)
-    if account.auto_resolve_ignore_waiting
-      account.conversations.resolvable_not_waiting(account.auto_resolve_after)
-    else
-      account.conversations.resolvable_all(account.auto_resolve_after)
+    ids = []
+
+    # 1. Inboxes with specific configuration
+    account.inboxes.where.not(auto_resolve_duration: nil).find_each do |inbox|
+      scope = account.conversations.open.where(inbox_id: inbox.id)
+      scope = scope.where(waiting_since: nil) if account.auto_resolve_ignore_waiting
+      ids += scope.where('last_activity_at < ?', Time.now.utc - inbox.auto_resolve_duration.minutes).limit(Limits::BULK_ACTIONS_LIMIT).pluck(:id)
     end
+
+    # 2. Account level configuration (for inboxes without specific config)
+    if account.auto_resolve_after.present?
+      inbox_ids_with_config = account.inboxes.where.not(auto_resolve_duration: nil).select(:id)
+      scope = account.conversations.open.where.not(inbox_id: inbox_ids_with_config)
+      scope = scope.where(waiting_since: nil) if account.auto_resolve_ignore_waiting
+      ids += scope.where('last_activity_at < ?', Time.now.utc - account.auto_resolve_after.minutes).limit(Limits::BULK_ACTIONS_LIMIT).pluck(:id)
+    end
+
+    Conversation.where(id: ids.uniq)
   end
 end

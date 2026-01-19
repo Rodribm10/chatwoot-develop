@@ -10,6 +10,7 @@ import Button from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Editor from 'dashboard/components-next/Editor/Editor.vue';
 import Input from 'dashboard/components-next/input/Input.vue';
+import SelectMenu from 'dashboard/components-next/selectmenu/SelectMenu.vue';
 import Draggable from 'vuedraggable';
 
 const props = defineProps({
@@ -30,6 +31,15 @@ const isCaptainV2Enabled = computed(() =>
 
 const initialState = {
   handoffMessage: '',
+  handoffInstructions: '',
+  handoffOnToolFailureAction: 'ignore',
+  handoffOnToolFailureMessage: '',
+  handoffOnLlmErrorAction: 'handoff',
+  handoffOnLlmErrorMessage: '',
+  handoffOnUserRequestAction: 'handoff',
+  handoffOnUserRequestMessage: '',
+  handoffOnSentimentAction: 'handoff',
+  handoffOnSentimentMessage: '',
   resolutionMessage: '',
   instructions: '',
   playbook: '',
@@ -54,6 +64,7 @@ const hasSystemPromptVersions = computed(
 
 const validationRules = {
   handoffMessage: { minLength: minLength(1) },
+  handoffInstructions: { minLength: minLength(1) },
   resolutionMessage: { minLength: minLength(1) },
   instructions: { minLength: minLength(1) },
   playbook: { minLength: minLength(1) },
@@ -67,6 +78,7 @@ const getErrorMessage = field => {
 
 const formErrors = computed(() => ({
   handoffMessage: getErrorMessage('handoffMessage'),
+  handoffInstructions: getErrorMessage('handoffInstructions'),
   resolutionMessage: getErrorMessage('resolutionMessage'),
   instructions: getErrorMessage('instructions'),
   playbook: getErrorMessage('playbook'),
@@ -83,7 +95,31 @@ const normalizeBlocks = blocks =>
 
 const updateStateFromAssistant = assistant => {
   const { config = {} } = assistant;
+  const hasHandoffInstructions = Object.prototype.hasOwnProperty.call(
+    config,
+    'handoff_instructions'
+  );
+  const defaultHandoffInstructions = t(
+    'CAPTAIN.ASSISTANTS.FORM.HANDOFF_INSTRUCTIONS.DEFAULT'
+  );
   state.handoffMessage = config.handoff_message || '';
+  state.handoffInstructions = hasHandoffInstructions
+    ? config.handoff_instructions || ''
+    : defaultHandoffInstructions;
+  state.handoffOnToolFailureAction =
+    config.handoff_on_tool_failure_action || 'ignore';
+  state.handoffOnToolFailureMessage =
+    config.handoff_on_tool_failure_message || '';
+  state.handoffOnLlmErrorAction =
+    config.handoff_on_llm_error_action || 'handoff';
+  state.handoffOnLlmErrorMessage = config.handoff_on_llm_error_message || '';
+  state.handoffOnUserRequestAction =
+    config.handoff_on_user_request_action || 'handoff';
+  state.handoffOnUserRequestMessage =
+    config.handoff_on_user_request_message || '';
+  state.handoffOnSentimentAction =
+    config.handoff_on_sentiment_action || 'handoff';
+  state.handoffOnSentimentMessage = config.handoff_on_sentiment_message || '';
   state.resolutionMessage = config.resolution_message || '';
   state.instructions = config.instructions || '';
   state.playbook = config.playbook || '';
@@ -157,6 +193,15 @@ const buildPayload = (extra = {}) => {
   const config = {
     ...props.assistant.config,
     handoff_message: state.handoffMessage,
+    handoff_instructions: state.handoffInstructions,
+    handoff_on_tool_failure_action: state.handoffOnToolFailureAction,
+    handoff_on_tool_failure_message: state.handoffOnToolFailureMessage,
+    handoff_on_llm_error_action: state.handoffOnLlmErrorAction,
+    handoff_on_llm_error_message: state.handoffOnLlmErrorMessage,
+    handoff_on_user_request_action: state.handoffOnUserRequestAction,
+    handoff_on_user_request_message: state.handoffOnUserRequestMessage,
+    handoff_on_sentiment_action: state.handoffOnSentimentAction,
+    handoff_on_sentiment_message: state.handoffOnSentimentMessage,
     resolution_message: state.resolutionMessage,
     temperature: state.temperature !== undefined ? state.temperature : 1,
     playbook: state.playbook,
@@ -183,6 +228,9 @@ const handleSystemMessagesUpdate = async () => {
     v$.value.handoffMessage.$validate(),
     v$.value.resolutionMessage.$validate(),
   ];
+  if (state.handoffInstructions?.length) {
+    validations.push(v$.value.handoffInstructions.$validate());
+  }
 
   if (!isCaptainV2Enabled.value) {
     validations.push(v$.value.instructions.$validate());
@@ -200,6 +248,32 @@ const handleSystemMessagesUpdate = async () => {
   }
 
   emit('submit', payload);
+};
+
+const handleRestoreHandoffInstructions = () => {
+  state.handoffInstructions = t(
+    'CAPTAIN.ASSISTANTS.FORM.HANDOFF_INSTRUCTIONS.DEFAULT'
+  );
+};
+
+const handoffActionOptions = computed(() => [
+  {
+    value: 'handoff',
+    label: t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_ACTIONS.HANDOFF'),
+  },
+  {
+    value: 'reply',
+    label: t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_ACTIONS.REPLY'),
+  },
+  {
+    value: 'ignore',
+    label: t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_ACTIONS.IGNORE'),
+  },
+]);
+
+const handoffActionLabel = action => {
+  const option = handoffActionOptions.value.find(opt => opt.value === action);
+  return option ? option.label : action;
 };
 
 const handleSaveSystemPromptVersion = () => {
@@ -287,6 +361,112 @@ watch(
       :message-type="formErrors.handoffMessage ? 'error' : 'info'"
       class="z-0"
     />
+
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between">
+        <label class="text-sm font-medium text-n-slate-12">
+          {{ t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_INSTRUCTIONS.LABEL') }}
+        </label>
+        <Button
+          :label="t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_INSTRUCTIONS.RESTORE')"
+          variant="faded"
+          color="slate"
+          @click="handleRestoreHandoffInstructions"
+        />
+      </div>
+      <Editor
+        v-model="state.handoffInstructions"
+        :placeholder="
+          t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_INSTRUCTIONS.PLACEHOLDER')
+        "
+        :message="formErrors.handoffInstructions"
+        :message-type="formErrors.handoffInstructions ? 'error' : 'info'"
+        :max-length="1000"
+        class="z-0"
+      />
+    </div>
+
+    <div class="flex flex-col gap-4 rounded-xl border border-n-slate-5 p-4">
+      <h6 class="text-sm font-medium text-n-slate-12">
+        {{ t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.LABEL') }}
+      </h6>
+
+      <div class="flex flex-col gap-3">
+        <label class="text-sm font-medium text-n-slate-12">
+          {{ t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.USER_REQUEST') }}
+        </label>
+        <SelectMenu
+          v-model="state.handoffOnUserRequestAction"
+          :options="handoffActionOptions"
+          :label="handoffActionLabel(state.handoffOnUserRequestAction)"
+        />
+        <Input
+          v-if="state.handoffOnUserRequestAction === 'reply'"
+          v-model="state.handoffOnUserRequestMessage"
+          :label="t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.MESSAGE')"
+          :placeholder="
+            t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.MESSAGE_PLACEHOLDER')
+          "
+        />
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <label class="text-sm font-medium text-n-slate-12">
+          {{ t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.SENTIMENT') }}
+        </label>
+        <SelectMenu
+          v-model="state.handoffOnSentimentAction"
+          :options="handoffActionOptions"
+          :label="handoffActionLabel(state.handoffOnSentimentAction)"
+        />
+        <Input
+          v-if="state.handoffOnSentimentAction === 'reply'"
+          v-model="state.handoffOnSentimentMessage"
+          :label="t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.MESSAGE')"
+          :placeholder="
+            t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.MESSAGE_PLACEHOLDER')
+          "
+        />
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <label class="text-sm font-medium text-n-slate-12">
+          {{ t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.TOOL_FAILURE') }}
+        </label>
+        <SelectMenu
+          v-model="state.handoffOnToolFailureAction"
+          :options="handoffActionOptions"
+          :label="handoffActionLabel(state.handoffOnToolFailureAction)"
+        />
+        <Input
+          v-if="state.handoffOnToolFailureAction === 'reply'"
+          v-model="state.handoffOnToolFailureMessage"
+          :label="t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.MESSAGE')"
+          :placeholder="
+            t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.MESSAGE_PLACEHOLDER')
+          "
+        />
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <label class="text-sm font-medium text-n-slate-12">
+          {{ t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.LLM_ERROR') }}
+        </label>
+        <SelectMenu
+          v-model="state.handoffOnLlmErrorAction"
+          :options="handoffActionOptions"
+          :label="handoffActionLabel(state.handoffOnLlmErrorAction)"
+        />
+        <Input
+          v-if="state.handoffOnLlmErrorAction === 'reply'"
+          v-model="state.handoffOnLlmErrorMessage"
+          :label="t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.MESSAGE')"
+          :placeholder="
+            t('CAPTAIN.ASSISTANTS.FORM.HANDOFF_RULES.MESSAGE_PLACEHOLDER')
+          "
+        />
+      </div>
+    </div>
 
     <Editor
       v-model="state.resolutionMessage"

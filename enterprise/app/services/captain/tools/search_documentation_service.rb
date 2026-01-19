@@ -13,7 +13,9 @@ class Captain::Tools::SearchDocumentationService < Captain::Tools::BaseTool
     super(assistant, user: user)
   end
 
-  def execute(query:)
+  def execute(*args, **params)
+    actual_params = resolve_params(args, params)
+    query = actual_params[:query]
     Rails.logger.info { "#{self.class.name}: #{query}" }
 
     responses = assistant.responses.approved.search(query)

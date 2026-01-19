@@ -1,21 +1,35 @@
 module Captain
   module Tools
     class ReactToMessageTool < BaseTool
-      def self.name
+      def name
         'react_to_message'
       end
 
-      description 'React to the last customer message with an emoji reaction. Use this to acknowledge messages positively (e.g., 👍, ❤️, 😊). Only use when appropriate to show engagement.'
+      def description
+        'Envia uma reação de emoji à última mensagem do cliente no WhatsApp. Use SEMPRE quando o cliente enviar agradecimentos, elogios ou emojis.'
+      end
 
-      param :emoji, type: 'string', desc: 'The emoji to react with, e.g. 👍, ❤️, 😊, 👏, 🙏'
+      def tool_parameters_schema
+        {
+          type: 'object',
+          properties: {
+            emoji: {
+              type: 'string',
+              description: 'O emoji para reagir. Use ❤️ para agradecimentos, 👍 para confirmações, 😊 para saudações.'
+            }
+          },
+          required: ['emoji']
+        }
+      end
 
       def initialize(assistant, user: nil, conversation: nil)
         @conversation = conversation
         super(assistant, user: user)
       end
 
-      def execute(args = {})
-        emoji = args[:emoji] || args['emoji']
+      def execute(*args, **params)
+        actual_params = resolve_params(args, params)
+        emoji = actual_params[:emoji]
         return error_response('Conversation not found') unless @conversation.present?
         return error_response('Emoji is required') if emoji.blank?
 
@@ -47,7 +61,7 @@ module Captain
           message_type: :outgoing,
           content: emoji,
           content_attributes: {
-            'in_reply_to' => external_id,
+            'in_reply_to_external_id' => external_id,
             'is_reaction' => true
           }
         )

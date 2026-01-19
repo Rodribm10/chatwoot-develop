@@ -26,6 +26,7 @@ import BotConfiguration from './components/BotConfiguration.vue';
 import AccountHealth from './components/AccountHealth.vue';
 import WuzapiConfiguration from './channels/wuzapi/WuzapiConfiguration.vue';
 import JasmineConfiguration from './JasmineConfiguration.vue';
+import InboxAutoResolve from './components/InboxAutoResolve.vue';
 import { FEATURE_FLAGS } from '../../../../featureFlags';
 import SenderNameExamplePreview from './components/SenderNameExamplePreview.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
@@ -59,6 +60,7 @@ export default {
     AccountHealth,
     WuzapiConfiguration,
     JasmineConfiguration,
+    InboxAutoResolve,
   },
   mixins: [inboxMixin],
   setup() {
@@ -595,6 +597,7 @@ export default {
             "
             @blur="v$.selectedInboxName.$touch"
           />
+          <InboxAutoResolve :inbox="inbox" class="mb-4" />
           <woot-input
             v-if="isAPIInbox"
             v-model="webhookUrl"

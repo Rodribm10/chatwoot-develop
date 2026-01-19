@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_19_150720) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -474,6 +474,15 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
     t.index ["unit_id"], name: "index_captain_pix_charges_on_unit_id"
   end
 
+  create_table "captain_pricing_inboxes", force: :cascade do |t|
+    t.bigint "captain_pricing_id", null: false
+    t.bigint "inbox_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["captain_pricing_id", "inbox_id"], name: "index_captain_pricing_inboxes_on_pricing_and_inbox", unique: true
+    t.index ["inbox_id"], name: "index_captain_pricing_inboxes_on_inbox_id"
+  end
+
   create_table "captain_pricings", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.bigint "captain_brand_id", null: false
@@ -483,8 +492,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
     t.decimal "price", precision: 10, scale: 2, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "inbox_id"
     t.index ["account_id"], name: "index_captain_pricings_on_account_id"
     t.index ["captain_brand_id"], name: "index_captain_pricings_on_captain_brand_id"
+    t.index ["inbox_id"], name: "index_captain_pricings_on_inbox_id"
   end
 
   create_table "captain_reminders", force: :cascade do |t|
@@ -561,6 +572,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
     t.bigint "account_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "trigger_keywords"
     t.index ["account_id"], name: "index_captain_scenarios_on_account_id"
     t.index ["assistant_id", "enabled"], name: "index_captain_scenarios_on_assistant_id_and_enabled"
     t.index ["assistant_id"], name: "index_captain_scenarios_on_assistant_id"
@@ -590,6 +602,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "captain_assistant_id"
+    t.text "fallback_message"
     t.index ["account_id", "inbox_id", "tool_key"], name: "index_captain_tool_configs_on_context", unique: true
     t.index ["account_id"], name: "index_captain_tool_configs_on_account_id"
     t.index ["captain_assistant_id", "tool_key"], name: "index_captain_tool_configs_on_assistant_id_and_tool_key", unique: true
@@ -945,10 +958,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
     t.datetime "waiting_since"
     t.text "cached_label_list"
     t.bigint "assignee_agent_bot_id"
+    t.string "active_scenario_key"
+    t.datetime "active_scenario_expires_at"
+    t.jsonb "active_scenario_state", default: {}, null: false
     t.index ["account_id", "display_id"], name: "index_conversations_on_account_id_and_display_id", unique: true
     t.index ["account_id", "id"], name: "index_conversations_on_id_and_account_id"
     t.index ["account_id", "inbox_id", "status", "assignee_id"], name: "conv_acid_inbid_stat_asgnid_idx"
     t.index ["account_id"], name: "index_conversations_on_account_id"
+    t.index ["active_scenario_key"], name: "index_conversations_on_active_scenario_key"
     t.index ["assignee_id", "account_id"], name: "index_conversations_on_assignee_id_and_account_id"
     t.index ["campaign_id"], name: "index_conversations_on_campaign_id"
     t.index ["contact_id"], name: "index_conversations_on_contact_id"
@@ -1085,6 +1102,17 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
+  create_table "frequent_questions", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "label"
+    t.string "question_text"
+    t.integer "occurrence_count"
+    t.date "cluster_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_frequent_questions_on_account_id"
+  end
+
   create_table "inbox_assignment_policies", force: :cascade do |t|
     t.bigint "inbox_id", null: false
     t.bigint "assignment_policy_id", null: false
@@ -1137,6 +1165,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
     t.integer "sender_name_type", default: 0, null: false
     t.string "business_name"
     t.jsonb "csat_config", default: {}, null: false
+    t.integer "auto_resolve_duration"
     t.index ["account_id"], name: "index_inboxes_on_account_id"
     t.index ["channel_id", "channel_type"], name: "index_inboxes_on_channel_id_and_channel_type"
     t.index ["portal_id"], name: "index_inboxes_on_portal_id"
@@ -1666,6 +1695,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_101014) do
   add_foreign_key "conversation_crm_insights", "accounts"
   add_foreign_key "conversation_crm_insights", "contacts"
   add_foreign_key "conversation_crm_insights", "conversations"
+  add_foreign_key "frequent_questions", "accounts"
   add_foreign_key "inboxes", "portals"
   add_foreign_key "jasmine_collections", "accounts"
   add_foreign_key "jasmine_collections", "inboxes", column: "owner_inbox_id"

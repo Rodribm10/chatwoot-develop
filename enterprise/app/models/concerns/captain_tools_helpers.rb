@@ -22,8 +22,24 @@ module Concerns::CaptainToolsHelpers
     # @param tool_id [String] The snake_case tool identifier
     # @return [Class, nil] The tool class if found, nil if not resolvable
     def resolve_tool_class(tool_id)
-      class_name = "Captain::Tools::#{tool_id.classify}Tool"
-      class_name.safe_constantize
+      class_name = "Captain::Tools::#{tool_id.camelize}Tool"
+      klass = class_name.safe_constantize
+      return klass if klass
+
+      tool_filename = "#{tool_id}_tool.rb"
+      [
+        Rails.root.join('app/services/captain/tools', tool_filename),
+        Rails.root.join('enterprise/app/services/captain/tools', tool_filename),
+        Rails.root.join('enterprise/lib/captain/tools', tool_filename)
+      ].each do |tool_path|
+        next unless tool_path.exist?
+
+        require_dependency tool_path.to_s
+        klass = class_name.safe_constantize
+        return klass if klass
+      end
+
+      nil
     end
 
     # Returns an array of all built-in tool IDs.

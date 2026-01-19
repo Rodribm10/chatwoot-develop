@@ -1,8 +1,10 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { useRoute } from 'vue-router';
 import WootModal from 'dashboard/components/Modal.vue';
+import Button from 'dashboard/components-next/button/Button.vue';
 
 const props = defineProps({
   show: Boolean,
@@ -14,14 +16,20 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  inboxes: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(['close', 'save']);
+const { t } = useI18n();
 const route = useRoute();
 const accountId = route.params.accountId;
 
 const formData = ref({
   captain_brand_id: '',
+  inbox_ids: [],
   day_range: '',
   suite_category: '',
   duration: '',
@@ -38,6 +46,7 @@ const daysOptions = [
   'DOMINGO',
 ];
 const selectedDays = ref([]);
+const selectedInboxes = ref([]);
 
 const toggleDay = day => {
   if (selectedDays.value.includes(day)) {
@@ -70,6 +79,20 @@ const parseDays = rangeString => {
     .filter(s => daysOptions.includes(s));
 };
 
+const toggleInbox = inboxId => {
+  if (selectedInboxes.value.includes(inboxId)) {
+    selectedInboxes.value = selectedInboxes.value.filter(id => id !== inboxId);
+  } else {
+    selectedInboxes.value = [...selectedInboxes.value, inboxId];
+  }
+  formData.value.inbox_ids = selectedInboxes.value;
+};
+
+const removeInbox = inboxId => {
+  selectedInboxes.value = selectedInboxes.value.filter(id => id !== inboxId);
+  formData.value.inbox_ids = selectedInboxes.value;
+};
+
 const isEditing = computed(() => !!props.pricing?.id); // Changed to check for pricing.id to correctly identify editing mode
 
 const selectedBrand = computed(() => {
@@ -100,17 +123,26 @@ watch(
   newVal => {
     if (newVal && Object.keys(newVal).length > 0) {
       // Check if newVal is not empty object
-      formData.value = { ...newVal };
+      let normalizedInboxIds = [];
+      if (newVal.inbox_ids?.length) {
+        normalizedInboxIds = newVal.inbox_ids;
+      } else if (newVal.inbox_id) {
+        normalizedInboxIds = [newVal.inbox_id];
+      }
+      formData.value = { ...newVal, inbox_ids: normalizedInboxIds };
       selectedDays.value = parseDays(newVal.day_range || newVal.dayRange);
+      selectedInboxes.value = normalizedInboxIds;
     } else {
       formData.value = {
         captain_brand_id: props.brands.length > 0 ? props.brands[0].id : '',
+        inbox_ids: props.inboxes.length > 0 ? [props.inboxes[0].id] : [],
         day_range: '',
         suite_category: '',
         duration: '',
         price: '',
       };
       selectedDays.value = [];
+      selectedInboxes.value = formData.value.inbox_ids;
     }
   },
   { immediate: true }
@@ -136,47 +168,72 @@ const savePricing = async () => {
     }
     emit('save', response.data);
     emit('close');
-    useAlert('Preço salvo!');
+    useAlert(t('CAPTAIN.PRICINGS.MODAL.SAVE_SUCCESS'));
   } catch (error) {
-    useAlert('Erro ao salvar preço');
+    useAlert(t('CAPTAIN.PRICINGS.MODAL.SAVE_ERROR'));
   }
 };
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <WootModal :show="show" :on-close="() => emit('close')">
     <div class="flex flex-col h-auto overflow-visible">
       <div class="flex items-center justify-between px-6 py-4 border-b">
         <h3 class="text-base font-medium text-slate-800 dark:text-slate-100">
-          {{ isEditing ? 'Editar Regra' : 'Nova Regra de Preço' }}
+          {{
+            isEditing
+              ? $t('CAPTAIN.PRICINGS.MODAL.EDIT_TITLE')
+              : $t('CAPTAIN.PRICINGS.MODAL.ADD_TITLE')
+          }}
         </h3>
-        <button
-          class="text-slate-500 hover:text-slate-800"
-          @click="emit('close')"
-        >
-          <span class="sr-only">Close</span>
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
       </div>
 
       <div class="p-6 space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1"
-            >Marca</label
-          >
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            {{ $t('CAPTAIN.PRICINGS.FIELDS.INBOX') }}
+          </label>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="inbox in inboxes"
+              :key="inbox.id"
+              type="button"
+              class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+              :class="[
+                selectedInboxes.includes(inbox.id)
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+              ]"
+              @click="toggleInbox(inbox.id)"
+            >
+              {{ inbox.name }}
+            </button>
+          </div>
+          <div v-if="selectedInboxes.length" class="flex flex-wrap gap-2 mt-2">
+            <span
+              v-for="inboxId in selectedInboxes"
+              :key="inboxId"
+              class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+            >
+              {{
+                inboxes.find(i => i.id === inboxId)?.name || `Inbox ${inboxId}`
+              }}
+              <button
+                type="button"
+                :aria-label="$t('CAPTAIN.PRICINGS.MODAL.REMOVE_INBOX')"
+                class="text-slate-500 hover:text-slate-700"
+                @click="removeInbox(inboxId)"
+              >
+                {{ $t('CAPTAIN.PRICINGS.MODAL.CLOSE') }}
+              </button>
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            {{ $t('CAPTAIN.PRICINGS.FIELDS.BRAND') }}
+          </label>
           <select
             v-model="formData.captain_brand_id"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
@@ -188,9 +245,9 @@ const savePricing = async () => {
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-2"
-            >Dias da Semana</label
-          >
+          <label class="block text-sm font-medium text-slate-700 mb-2">
+            {{ $t('CAPTAIN.PRICINGS.MODAL.FIELDS.DAYS_WEEK') }}
+          </label>
           <div class="flex flex-wrap gap-2">
             <button
               v-for="day in daysOptions"
@@ -199,8 +256,8 @@ const savePricing = async () => {
               class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
               :class="[
                 selectedDays.includes(day)
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
               ]"
               @click="toggleDay(day)"
             >
@@ -211,20 +268,22 @@ const savePricing = async () => {
             v-if="selectedDays.length === 0"
             class="text-xs text-orange-500 mt-1"
           >
-            Selecione pelo menos um dia.
+            {{ $t('CAPTAIN.PRICINGS.MODAL.SELECT_DAYS_REQUIRED') }}
           </p>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1"
-            >Categoria de Suíte</label
-          >
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            {{ $t('CAPTAIN.PRICINGS.FIELDS.CATEGORY') }}
+          </label>
           <select
             v-model="formData.suite_category"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
             :disabled="!brandCategories.length"
           >
-            <option value="" disabled>Selecione uma categoria</option>
+            <option value="" disabled>
+              {{ $t('CAPTAIN.PRICINGS.MODAL.SELECT_CATEGORY') }}
+            </option>
             <option v-for="cat in brandCategories" :key="cat" :value="cat">
               {{ cat }}
             </option>
@@ -233,26 +292,28 @@ const savePricing = async () => {
             v-if="!formData.captain_brand_id"
             class="text-xs text-slate-500 mt-1"
           >
-            Selecione uma marca primeiro.
+            {{ $t('CAPTAIN.PRICINGS.MODAL.SELECT_BRAND_FIRST') }}
           </p>
           <p
             v-else-if="!brandCategories.length"
             class="text-xs text-orange-500 mt-1"
           >
-            Nenhuma categoria cadastrada nesta marca.
+            {{ $t('CAPTAIN.PRICINGS.MODAL.NO_CATEGORIES') }}
           </p>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1"
-            >Duração</label
-          >
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            {{ $t('CAPTAIN.PRICINGS.FIELDS.DURATION') }}
+          </label>
           <select
             v-model="formData.duration"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
             :disabled="!brandDurations.length"
           >
-            <option value="" disabled>Selecione uma duração</option>
+            <option value="" disabled>
+              {{ $t('CAPTAIN.PRICINGS.MODAL.SELECT_DURATION') }}
+            </option>
             <option v-for="dur in brandDurations" :key="dur" :value="dur">
               {{ dur }}
             </option>
@@ -261,26 +322,26 @@ const savePricing = async () => {
             v-if="!formData.captain_brand_id"
             class="text-xs text-slate-500 mt-1"
           >
-            Selecione uma marca primeiro.
+            {{ $t('CAPTAIN.PRICINGS.MODAL.SELECT_BRAND_FIRST') }}
           </p>
           <p
             v-else-if="!brandDurations.length"
             class="text-xs text-orange-500 mt-1"
           >
-            Nenhuma duração cadastrada nesta marca.
+            {{ $t('CAPTAIN.PRICINGS.MODAL.NO_DURATIONS') }}
           </p>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1"
-            >Preço (R$)</label
-          >
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            {{ $t('CAPTAIN.PRICINGS.FIELDS.PRICE') }}
+          </label>
           <input
             v-model="formData.price"
             type="number"
             step="0.01"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-            placeholder="0.00"
+            :placeholder="$t('CAPTAIN.PRICINGS.MODAL.PRICE_PLACEHOLDER')"
           />
         </div>
       </div>
@@ -292,14 +353,12 @@ const savePricing = async () => {
           class="text-slate-600 hover:text-slate-800 px-4 py-2"
           @click="emit('close')"
         >
-          Cancelar
+          {{ $t('CAPTAIN.PRICINGS.MODAL.CANCEL') }}
         </button>
-        <button
-          class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+        <Button
+          :label="$t('CAPTAIN.PRICINGS.MODAL.SAVE')"
           @click="savePricing"
-        >
-          Salvar
-        </button>
+        />
       </div>
     </div>
   </WootModal>

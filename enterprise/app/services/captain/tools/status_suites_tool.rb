@@ -12,7 +12,7 @@ module Captain
         super(assistant, user: user)
       end
 
-      def execute
+      def execute(*_args, **_params)
         config = find_tool_config
         return { success: false, error: 'Tool not configured' }.to_json unless config&.is_enabled
 

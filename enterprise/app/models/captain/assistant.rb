@@ -37,7 +37,8 @@ class Captain::Assistant < ApplicationRecord
   has_many :copilot_threads, dependent: :destroy_async
   has_many :scenarios, class_name: 'Captain::Scenario', dependent: :destroy_async
 
-  store_accessor :config, :temperature, :feature_faq, :feature_memory, :product_name, :role_name, :playbook, :distance_threshold, :max_rag_results
+  store_accessor :config, :temperature, :feature_faq, :feature_memory, :product_name, :role_name, :playbook, :distance_threshold, :max_rag_results,
+                 :allow_handoff
 
   validates :name, presence: true
   validates :description, presence: true
@@ -92,9 +93,9 @@ class Captain::Assistant < ApplicationRecord
 
   def agent_tools(conversation: nil, user: nil)
     tools = [
-      self.class.resolve_tool_class('faq_lookup').new(self, conversation: conversation, user: user),
-      self.class.resolve_tool_class('handoff').new(self, conversation: conversation, user: user)
+      self.class.resolve_tool_class('faq_lookup').new(self, conversation: conversation, user: user)
     ]
+    tools << self.class.resolve_tool_class('handoff').new(self, conversation: conversation, user: user) if allow_handoff_enabled?
 
     # Add each enabled scenario as a tool
     scenarios.enabled.each do |scenario|
@@ -118,6 +119,13 @@ class Captain::Assistant < ApplicationRecord
     end
 
     tools
+  end
+
+  def allow_handoff_enabled?
+    value = config['allow_handoff']
+    return true if value.nil?
+
+    value == true || value.to_s == 'true'
   end
 
   def prompt_context

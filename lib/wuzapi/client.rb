@@ -45,6 +45,14 @@ module Wuzapi
       request(:post, '/chat/react', payload, user_auth_headers(user_token))
     end
 
+    def send_chat_presence(user_token, phone_number, state, media = nil)
+      # State: "composing" or "paused"
+      # Media: "audio" (optional)
+      payload = { 'Phone' => phone_number, 'State' => state }
+      payload['Media'] = media if media
+      request(:post, '/chat/presence', payload, user_auth_headers(user_token))
+    end
+
     def session_status(user_token)
       request(:get, '/session/status', nil, user_auth_headers(user_token))
     end

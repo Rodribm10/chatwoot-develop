@@ -69,3 +69,8 @@
   title: 'Gerar Pix (Finalizar)'
   description: 'Gera Pix para a reserva em rascunho atual'
   icon: 'bank-note'
+
+- id: list_reservations
+  title: 'Listar Reservas'
+  description: 'Lista as ultimas reservas do contato atual'
+  icon: 'list'

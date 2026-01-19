@@ -9,11 +9,15 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     @inbox = conversation.inbox
     @assistant = assistant
     @start_time = Time.zone.now
+    @response_delivered = false
 
     Current.executed_by = @assistant
     Current.account = conversation.account
 
     trigger_typing_status('on')
+
+    Rails.logger.info "[ResponseBuilderJob] Captain V2 Enabled? #{captain_v2_enabled?}"
+    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] ResponseBuilderJob: V2 Enabled? #{captain_v2_enabled?}" }
 
     if captain_v2_enabled?
       generate_response_with_v2
@@ -36,8 +40,27 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
   def generate_and_process_response
     Rails.logger.info 'ResponseBuilderJob: Generating response...'
     extract_contact_identity
+    faq_response = maybe_answer_from_faq
+    if faq_response.present?
+      @response = {
+        'response' => faq_response,
+        'reasoning' => 'faq_lookup_direct',
+        'sentiment' => 'neutral',
+        'agent_name' => @assistant.name
+      }
+      process_response
+      Rails.logger.info 'ResponseBuilderJob: FAQ response generated and processed.'
+      return
+    end
+
+    # Aggregation Logic
+    new_messages = fetch_new_incoming_messages
+    aggregated_text = new_messages.map(&:content).join("\n")
+    exclude_ids = new_messages.map(&:id)
+
     @response = Captain::Llm::AssistantChatService.new(assistant: @assistant, conversation: @conversation).generate_response(
-      message_history: collect_previous_messages
+      additional_message: aggregated_text,
+      message_history: collect_previous_messages(exclude_ids: exclude_ids)
     )
     process_response
     Rails.logger.info 'ResponseBuilderJob: Response generated and processed.'
@@ -45,15 +68,42 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
   def generate_response_with_v2
     extract_contact_identity
+    faq_response = maybe_answer_from_faq
+    if faq_response.present?
+      @response = {
+        'response' => faq_response,
+        'reasoning' => 'faq_lookup_direct',
+        'sentiment' => 'neutral',
+        'agent_name' => @assistant.name
+      }
+      process_response
+      return
+    end
+
+    # Aggregation Logic (V2)
+    new_messages = fetch_new_incoming_messages
+    aggregated_text = new_messages.map(&:content).join("\n")
+    exclude_ids = new_messages.map(&:id)
+
+    history = collect_previous_messages(exclude_ids: exclude_ids)
+    history << { role: 'user', content: aggregated_text } if aggregated_text.present?
+
     @response = Captain::Assistant::AgentRunnerService.new(assistant: @assistant, conversation: @conversation).generate_response(
-      message_history: collect_previous_messages
+      message_history: history
     )
     process_response
   end
 
   def process_response
     trigger_typing_status('off')
-    return process_action('handoff') if handoff_requested? || negative_sentiment?
+    handled = if @response['handoff_trigger'].present?
+                apply_handoff_behavior(@response['handoff_trigger'])
+              elsif handoff_requested?
+                apply_handoff_behavior('user_request')
+              elsif negative_sentiment?
+                apply_handoff_behavior('sentiment')
+              end
+    return if handled
 
     humanized_delay(@response['response'])
     create_messages
@@ -66,6 +116,73 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
     # Force handoff if user is angry or very frustrated
     %w[angry frustrated].include?(@response['sentiment']&.downcase)
+  end
+
+  def apply_handoff_behavior(trigger_key)
+    action = handoff_action_for(trigger_key)
+    case action
+    when 'handoff'
+      if handoff_allowed?
+        process_action('handoff')
+        return true
+      else
+        @response['response'] = fallback_handoff_blocked_message
+        @response['agent_name'] ||= @assistant.name
+      end
+    when 'reply'
+      @response['response'] = handoff_message_for(trigger_key)
+      @response['agent_name'] ||= @assistant.name
+    when 'ignore'
+      return unless @response['response'].to_s.strip == 'conversation_handoff'
+
+      @response['response'] = fallback_handoff_blocked_message
+      @response['agent_name'] ||= @assistant.name
+    end
+
+    false
+  end
+
+  def handoff_action_for(trigger_key)
+    config = @assistant.config || {}
+    key = case trigger_key.to_s
+          when 'tool_failure' then 'handoff_on_tool_failure_action'
+          when 'llm_error' then 'handoff_on_llm_error_action'
+          when 'sentiment' then 'handoff_on_sentiment_action'
+          when 'user_request' then 'handoff_on_user_request_action'
+          end
+
+    action = key ? config[key].to_s : ''
+    action = action.presence || default_handoff_action(trigger_key)
+    %w[handoff reply ignore].include?(action) ? action : default_handoff_action(trigger_key)
+  end
+
+  def default_handoff_action(trigger_key)
+    return 'handoff' if %w[llm_error user_request sentiment].include?(trigger_key.to_s)
+
+    'ignore'
+  end
+
+  def handoff_message_for(trigger_key)
+    config = @assistant.config || {}
+    key = case trigger_key.to_s
+          when 'tool_failure' then 'handoff_on_tool_failure_message'
+          when 'llm_error' then 'handoff_on_llm_error_message'
+          when 'sentiment' then 'handoff_on_sentiment_message'
+          when 'user_request' then 'handoff_on_user_request_message'
+          end
+
+    message = key ? config[key].to_s.strip : ''
+    return message if message.present?
+
+    I18n.t('captain.handoff_default_message',
+           default: 'Desculpe, estou com dificuldades tecnicas no momento. Por favor, tente novamente em alguns instantes.')
+  end
+
+  def handoff_allowed?
+    value = @assistant.config['allow_handoff']
+    return true if value.nil?
+
+    value == true || value.to_s == 'true'
   end
 
   def trigger_typing_status(status)
@@ -94,11 +211,31 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     sleep(remaining_delay) if remaining_delay > 0
   end
 
-  def collect_previous_messages
+  def fetch_new_incoming_messages
+    # Fetch all messages ordered by creation
+    all_messages = @conversation.messages.order(:created_at)
+
+    # Find the last message sent by the assistant (outgoing)
+    last_outgoing_index = all_messages.rindex { |m| m.outgoing? }
+
+    potential_messages = if last_outgoing_index
+                           # Get all messages after the last outgoing one
+                           all_messages[(last_outgoing_index + 1)..-1] || []
+                         else
+                           # If no outgoing messages, use all messages
+                           all_messages
+                         end
+
+    # Filter for valid incoming messages (not private, incoming type)
+    potential_messages.select { |m| m.incoming? && !m.private? }
+  end
+
+  def collect_previous_messages(exclude_ids: [])
     @conversation
       .messages
       .where(message_type: [:incoming, :outgoing])
       .where(private: false)
+      .where.not(id: exclude_ids)
       .map do |message|
       message_hash = {
         content: prepare_multimodal_message_content(message),
@@ -125,6 +262,47 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     ).extract_and_update
   end
 
+  def maybe_answer_from_faq
+    return nil unless @assistant.config['feature_faq']
+
+    last_message = ::Message
+                   .where(conversation_id: @conversation.id, message_type: :incoming, private: false)
+                   .order(created_at: :desc)
+                   .first
+    return nil if last_message.blank?
+
+    query = last_message.content.to_s.strip
+    return nil unless faq_question_like?(query)
+
+    Rails.logger.info("[CAPTAIN][FAQ] Forcing FAQ lookup for query: #{query.inspect}")
+
+    tool = Captain::Tools::FaqLookupTool.new(@assistant, conversation: @conversation, user: @conversation.contact)
+    result = tool.perform({ conversation: { id: @conversation.id }, last_user_message: query }, { query: query })
+    return nil if result.to_s.match?(/No relevant FAQs found/i)
+
+    extract_faq_answer(result)
+  rescue StandardError => e
+    Rails.logger.warn("[CAPTAIN][FAQ] Prelookup failed: #{e.message}")
+    nil
+  end
+
+  def extract_faq_answer(result)
+    match = result.to_s.match(/Answer:\s*(.+)$/m)
+    return result.to_s.strip if match.blank?
+
+    match[1].to_s.strip
+  end
+
+  def faq_question_like?(query)
+    normalized = query.to_s.downcase.strip
+    return false if normalized.blank?
+
+    greeting = normalized.gsub(/[^a-z0-9]/, '')
+    return false if %w[oi ola bomdia boatarde boanoite].include?(greeting)
+
+    normalized.match?(/\?|qual|quanto|valor|preco|preço|como|onde|horario|hora|cardapio|cardápio/)
+  end
+
   def determine_role(message)
     message.message_type == 'incoming' ? 'user' : 'assistant'
   end
@@ -137,12 +315,26 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     @response['response'] == 'conversation_handoff'
   end
 
+  def fallback_handoff_blocked_message
+    I18n.t('conversations.captain.error',
+           default: 'Desculpe, estou com dificuldades técnicas no momento. Por favor, tente novamente em alguns instantes.')
+  end
+
   def process_action(action)
     case action
     when 'handoff'
       I18n.with_locale(@assistant.account.locale) do
         create_handoff_message
-        @conversation.bot_handoff!
+        # @conversation.bot_handoff!
+        # [FIX] Use manual handoff with 'pausar_ia' to avoid Automation Rule loop
+        @conversation.open!
+        @conversation.account.labels.find_or_create_by!(title: 'pausar_ia') do |label|
+          label.description = 'Pausa a IA e evita loops de regras externas'
+          label.color = '#f59e0b'
+          label.show_on_sidebar = true
+        end
+        @conversation.add_labels(['pausar_ia'])
+        @conversation.save!
         apply_handoff_side_effects
         deliver_handoff_webhook
         log_handoff_event
@@ -184,6 +376,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
       content: message_content,
       additional_attributes: additional_attrs
     )
+    @response_delivered = true
   end
 
   def inject_preferred_name(content)
@@ -265,7 +458,16 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
   def handle_error(error)
     log_error(error)
-    process_action('handoff')
+    return true if @response_delivered
+
+    @response ||= {
+      'response' => fallback_handoff_blocked_message,
+      'sentiment' => 'neutral',
+      'agent_name' => @assistant.name
+    }
+
+    handled = apply_handoff_behavior('llm_error')
+    create_messages unless handled
     true
   end
 

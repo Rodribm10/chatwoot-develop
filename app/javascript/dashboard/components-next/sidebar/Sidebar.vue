@@ -132,6 +132,11 @@ const newReportRoutes = () => [
     to: accountScopedRoute('team_reports_index'),
     activeOn: ['team_reports_show'],
   },
+  {
+    name: 'Reports Frequent Questions',
+    label: t('FREQUENT_QUESTIONS.HEADER'),
+    to: accountScopedRoute('frequent_questions_reports'),
+  },
 ];
 
 const reportRoutes = computed(() => newReportRoutes());

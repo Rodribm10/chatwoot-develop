@@ -29,6 +29,14 @@ class CaptainReservations extends ApiClient {
       },
     });
   }
+
+  update(id, data) {
+    return axios.patch(`${this.url}/${id}`, data);
+  }
+
+  delete(id) {
+    return axios.delete(`${this.url}/${id}`);
+  }
 }
 
 export default new CaptainReservations();

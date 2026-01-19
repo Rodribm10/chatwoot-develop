@@ -19,7 +19,8 @@ class Api::V1::Accounts::Captain::ToolsController < Api::V1::Accounts::BaseContr
         enabled: config&.is_enabled || false,
         webhook_url: config&.webhook_url,
         plug_play_id: config&.plug_play_id,
-        plug_play_token: config&.plug_play_token
+        plug_play_token: config&.plug_play_token,
+        fallback_message: config&.fallback_message
       }
     end
 
@@ -38,6 +39,7 @@ class Api::V1::Accounts::Captain::ToolsController < Api::V1::Accounts::BaseContr
     config.webhook_url = params[:webhook_url]
     config.plug_play_id = params[:plug_play_id]
     config.plug_play_token = params[:plug_play_token]
+    config.fallback_message = params[:fallback_message]
 
     if config.save
       render json: config

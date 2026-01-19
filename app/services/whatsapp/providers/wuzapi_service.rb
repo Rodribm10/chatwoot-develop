@@ -12,9 +12,7 @@ module Whatsapp::Providers
       # Normalize phone number: remove +, space, -, (, )
       normalized_phone = phone_number.gsub(/[\+\s\-\(\)]/, '')
 
-      if message.content_attributes['is_reaction'] || message.content_attributes[:is_reaction]
-        return send_reaction_message(normalized_phone, message)
-      end
+      return send_reaction_message(normalized_phone, message) if message.content_attributes['is_reaction'] || message.content_attributes[:is_reaction]
 
       if message.attachments.present?
         send_attachment_message(user_token, normalized_phone, message)
@@ -42,14 +40,24 @@ module Whatsapp::Providers
 
       # Assuming message content is the emoji
       reaction_emoji = message.content
-      # Prefer external message id, fallback to in_reply_to if already external.
-      message_id = message.content_attributes['in_reply_to_external_id'] || message.content_attributes['in_reply_to']
+
+      # Resolve the correct external message ID
+      message_id = message.content_attributes['in_reply_to_external_id']
+
+      # Fallback to internal ID resolution if external is missing
+      if message_id.blank? && message.content_attributes['in_reply_to'].present?
+        target_msg = message.conversation.messages.find_by(id: message.content_attributes['in_reply_to'])
+        message_id = target_msg&.source_id
+      end
+
       use_me_prefix = reaction_to_own_message?(message)
 
       if use_me_prefix
         normalized_phone = "me:#{normalized_phone}" unless normalized_phone.start_with?('me:')
         message_id = "me:#{message_id}" if message_id.present? && !message_id.start_with?('me:')
       end
+
+      Rails.logger.info "[WuzapiService] Attempting reaction: phone=#{normalized_phone}, msg_id=#{message_id}, emoji=#{reaction_emoji}"
 
       if message_id.present?
         # Wuzapi client needs to implement send_reaction
@@ -59,7 +67,9 @@ module Whatsapp::Providers
         # We'll assume the client wrapper will have a send_reaction method.
         # If not visible in the existing codebase, we might need to add it to the client class too.
         # checking...
-        client.send_reaction(user_token, normalized_phone, message_id, reaction_emoji)
+        response = client.send_reaction(user_token, normalized_phone, message_id, reaction_emoji)
+        Rails.logger.info "[WuzapiService] Reaction response: #{response}"
+        response
       else
         Rails.logger.warn 'Wuzapi: Cannot send reaction without in_reply_to message ID'
       end

@@ -194,15 +194,15 @@
         "TESTED_LABEL": "Testado",
         "VALIDATED_COUNT": "Modelos validadeos: ",
         "STATUS": {
-           "NOT_TESTED": "Não testado",
-           "OK": "OK (testado)",
-           "FAIL": "Falha",
-           "SUCCESS": "Modelo {model} testado com sucesso",
-           "ERROR": "Falha ao testar modelo"
+          "NOT_TESTED": "Não testado",
+          "OK": "OK (testado)",
+          "FAIL": "Falha",
+          "SUCCESS": "Modelo {model} testado com sucesso",
+          "ERROR": "Falha ao testar modelo"
         },
         "BUTTON": {
-           "TESTING": "Testando...",
-           "TEST": "Testar"
+          "TESTING": "Testando...",
+          "TEST": "Testar"
         }
       }
     },
@@ -531,6 +531,26 @@
           "LABEL": "Mensagem de transferência",
           "PLACEHOLDER": "Digite a mensagem de transferência"
         },
+        "HANDOFF_INSTRUCTIONS": {
+          "LABEL": "Instruções de handoff (interno)",
+          "PLACEHOLDER": "Explique quando e como a assistente deve fazer handoff",
+          "RESTORE": "Voltar ao padrao",
+          "DEFAULT": "Use handoff apenas quando o cliente pedir atendimento humano ou quando houver erro critico. Se houver falha de ferramenta, explique o problema e peça para tentar novamente. Nunca prometa handoff se ele estiver desativado."
+        },
+        "HANDOFF_RULES": {
+          "LABEL": "Regras de handoff",
+          "USER_REQUEST": "Pedido de humano",
+          "SENTIMENT": "Sentimento negativo",
+          "TOOL_FAILURE": "Falha de ferramenta",
+          "LLM_ERROR": "Erro do LLM",
+          "MESSAGE": "Mensagem personalizada",
+          "MESSAGE_PLACEHOLDER": "Digite a mensagem que deve ser enviada"
+        },
+        "HANDOFF_ACTIONS": {
+          "HANDOFF": "Transferir para humano",
+          "REPLY": "Responder com mensagem",
+          "IGNORE": "Ignorar"
+        },
         "RESOLUTION_MESSAGE": {
           "LABEL": "Mensagem de resolução",
           "PLACEHOLDER": "Digite a mensagem de resolução"
@@ -570,7 +590,8 @@
           "ALLOW_CONVERSATION_FAQS": "Gerar perguntas frequentes a partir de conversas resolvidas",
           "ALLOW_MEMORIES": "Capture os principais detalhes como memórias de interações do cliente.",
           "ALLOW_CITATIONS": "Incluir fonte de citações nas respostas",
-          "ALLOW_SENTIMENT_HANDOFF": "Transferir automaticamente para humano em caso de sentimento negativo (raiva/frustração)"
+          "ALLOW_SENTIMENT_HANDOFF": "Transferir automaticamente para humano em caso de sentimento negativo (raiva/frustração)",
+          "ALLOW_HANDOFF": "Permitir handoff automatico para humano"
         },
         "WEBHOOK": {
           "TITLE": "Webhook de Escalação",
@@ -764,6 +785,14 @@
                 "LABEL": "Capacidades / Poderes",
                 "PLACEHOLDER": "Selecione os poderes que este sub-agente pode usar"
               },
+              "TRIGGER_KEYWORDS": {
+                "LABEL": "Palavras-chave Gatilho",
+                "PLACEHOLDER": "Ex: orçamento, preço... (Pressione Enter)",
+                "SUGGEST_BUTTON": "Sugestão Mágica",
+                "SUGGEST_LOADING": "Sugerindo...",
+                "SUGGEST_SUCCESS": "Palavras-chave sugeridas com sucesso!",
+                "SUGGEST_ERROR": "Erro ao sugerir palavras-chave."
+              },
               "CREATE": "Criar",
               "CANCEL": "Cancelar"
             }
@@ -778,6 +807,18 @@
         },
         "EMPTY_MESSAGE": "Nenhum cenário encontrado. Crie ou adicione exemplos para começar.",
         "SEARCH_EMPTY_MESSAGE": "Nenhum cenário encontrado para esta pesquisa.",
+        "DUPLICATE": {
+          "TITLE": "Duplicar cenário",
+          "DESCRIPTION": "Escolha o assistente de destino para copiar este cenário.",
+          "CONFIRM": "Duplicar",
+          "SUCCESS": "Cenário duplicado com sucesso",
+          "ERROR": "Ocorreu um erro ao duplicar o cenário, por favor tente novamente.",
+          "NO_TARGETS": "Nenhum outro assistente encontrado para duplicar o cenário.",
+          "TARGET_LABEL": "Assistente de destino",
+          "SCENARIO_LABEL": "Cenário",
+          "SELECT": "Selecione um assistente",
+          "COPY_SUFFIX": " (copia)"
+        },
         "API": {
           "ADD": {
             "SUCCESS": "Cenários adicionados com sucesso",
@@ -792,8 +833,7 @@
             "ERROR": "Ocorreu um erro ao excluir os cenários, por favor tente novamente."
           }
         }
-      }
-      ,
+      },
       "SKILLS": {
         "HEADER": "Skills do assistente",
         "DESCRIPTION": "Configure as capacidades e ferramentas disponíveis para este assistente.",
@@ -811,7 +851,15 @@
         "PLUG_PLAY_TOKEN": {
           "LABEL": "Plug&Play Token",
           "PLACEHOLDER": "Token"
-        }
+        },
+        "FALLBACK": {
+          "TITLE": "Fallback",
+          "LABEL": "Mensagem de fallback (opcional)",
+          "PLACEHOLDER": "Ex: Se não conseguir concluir aqui, finalize pelo link ...",
+          "SAVE": "Salvar fallback",
+          "HELP_TEXT": "Se vazio, o sistema usa o fallback padrão da ferramenta."
+        },
+        "ALWAYS_ACTIVE": "Sempre ativo"
       }
     },
     "DOCUMENTS": {
@@ -921,36 +969,37 @@
     },
     "RESERVATIONS": {
       "AUTOMATIONS": {
-        "TITLE": "Automacoes",
-        "LIST_TITLE": "Automacoes existentes",
-        "EMPTY": "Nenhuma automacao configurada",
-        "EDIT": "Editar",
-        "DELETE": "Excluir",
+        "TITLE": "Automações de Inbox",
         "TRIGGER_CHECK_IN": "Check-in",
         "TRIGGER_CHECK_OUT": "Check-out",
         "TIMING_BEFORE": "Antes",
         "TIMING_AFTER": "Depois",
+        "LIST_TITLE": "Automações Configuradas",
+        "EMPTY": "Nenhuma automação configurada para este Inbox",
+        "EDIT": "Editar",
+        "DELETE": "Excluir",
+        "SUMMARY": "{trigger} · {timing} · {minutes}m",
         "FORM": {
-          "TITLE": "Titulo",
+          "TITLE": "Título",
           "MESSAGE": "Mensagem",
-          "TRIGGER": "Disparo",
+          "TRIGGER": "Gatilho",
           "TIMING": "Momento",
           "MINUTES": "Minutos",
-          "SUBMIT": "Adicionar automacao",
-          "UPDATE": "Atualizar automacao",
+          "SUBMIT": "Criar Automação",
+          "UPDATE": "Atualizar",
           "CANCEL": "Cancelar"
         },
         "SUCCESS": {
-          "CREATED": "Automacao criada",
-          "UPDATED": "Automacao atualizada",
-          "DELETED": "Automacao excluida"
+          "CREATED": "Automação criada",
+          "UPDATED": "Automação atualizada",
+          "DELETED": "Automação excluída"
         },
         "ERRORS": {
-          "LOAD_FAILED": "Nao foi possivel carregar as automacoes",
-          "MISSING_FIELDS": "Preencha titulo e mensagem",
-          "CREATE_FAILED": "Nao foi possivel criar a automacao",
-          "UPDATE_FAILED": "Nao foi possivel atualizar a automacao",
-          "DELETE_FAILED": "Nao foi possivel excluir a automacao"
+          "LOAD_FAILED": "Falha ao carregar automações",
+          "CREATE_FAILED": "Falha ao criar automação",
+          "UPDATE_FAILED": "Falha ao atualizar automação",
+          "DELETE_FAILED": "Falha ao excluir automação",
+          "MISSING_FIELDS": "Preencha todos os campos"
         }
       },
       "PAGE": {
@@ -988,6 +1037,11 @@
         "CHECK_OUT_PREVIEW": "Horario estimado de saida",
         "SUBMIT": "Criar reserva"
       },
+      "EDIT": {
+        "TITLE": "Editar Reserva",
+        "DESCRIPTION": "Altere os detalhes da reserva conforme necessário.",
+        "CONFIRM": "Salvar Alterações"
+      },
       "SETTINGS": {
         "TITLE": "Mensagens automaticas",
         "ENABLED": "Ativar automacoes",
@@ -1009,6 +1063,44 @@
         "CANCEL_FAILED": "Nao foi possivel cancelar a reserva",
         "SETTINGS_LOAD_FAILED": "Nao foi possivel carregar as configuracoes",
         "SETTINGS_SAVE_FAILED": "Nao foi possivel salvar as configuracoes"
+      },
+      "LIST": {
+        "HEADER_TITLE": "Gestão de Reservas",
+        "HEADER_DESCRIPTION": "Visualize e gerencie todas as reservas das suas unidades em um único lugar.",
+        "UNITS": "Unidade",
+        "ALL_UNITS": "Todas as Unidades",
+        "TOTAL_STATUS": "Todos os Status",
+        "FROM": "De",
+        "TO": "Até",
+        "EMPTY": "Nenhuma reserva encontrada",
+        "EMPTY_DESC": "Tente ajustar os filtros.",
+        "GUEST": "Hóspede",
+        "DEFAULT_SUITE": "Suíte Padrão",
+        "UNKNOWN_UNIT": "Unidade Desconhecida",
+        "VIEW_CONVERSATION": "Ver Conversa",
+        "EDIT": "Editar",
+        "DELETE": "Excluir",
+        "LOAD_MORE": "Carregar Mais",
+        "RESERVATION_ID": "Reserva #{id}",
+        "CPF_FORMAT": "- {cpf}",
+        "CHECK_IN": "Check-in: {time}",
+        "CHECK_OUT": "Check-out: {time}",
+        "NO_NAME": "Contato desconhecido",
+        "DELETE_CONFIRMATION": "Tem certeza que deseja excluir a reserva #{id}?",
+        "DELETE_SUCCESS": "Reserva excluída com sucesso",
+        "DELETE_ERROR": "Erro ao excluir reserva",
+        "UPDATE_SUCCESS": "Reserva atualizada com sucesso",
+        "UPDATE_ERROR": "Erro ao atualizar reserva"
+      },
+      "STATUS": {
+        "ALL": "Todos os Status",
+        "SCHEDULED": "Agendada",
+        "ACTIVE": "Confirmada",
+        "PENDING_PAYMENT": "Pendente Pagamento",
+        "CANCELLED": "Cancelada",
+        "COMPLETED": "Concluída",
+        "PAID": "Pago",
+        "PENDING": "Pendente"
       }
     },
     "REMINDERS": {
@@ -1035,6 +1127,102 @@
         "PHONE_REQUIRED": "Telefone obrigatorio",
         "CREATE_FAILED": "Nao foi possivel agendar o lembrete",
         "CANCEL_FAILED": "Nao foi possivel cancelar o lembrete"
+      },
+      "BRANDS": {
+        "TITLE": "Gestão de Marcas",
+        "ADMIN_PANEL": "Painel Administrativo",
+        "HEADER": "Gerenciar Marcas",
+        "ADD_NEW": "Adicionar Nova Marca",
+        "TABLE": {
+          "NAME": "Nome",
+          "CATEGORIES": "Categorias",
+          "STAYS": "Permanências",
+          "ACTIONS": "Ações"
+        },
+        "VIEW_IMAGE": "Ver Imagem",
+        "EDIT": "Editar",
+        "DELETE": "Excluir",
+        "EMPTY_STATE_TITLE": "Nenhuma marca cadastrada",
+        "EMPTY_STATE_DESC": "Clique no botão acima para adicionar a primeira marca.",
+        "DELETE_CONFIRMATION": "Tem certeza que deseja excluir esta marca?",
+        "SUCCESS": {
+          "CREATED": "Marca criada com sucesso",
+          "UPDATED": "Marca atualizada com sucesso",
+          "DELETED": "Marca excluída com sucesso"
+        },
+        "ERRORS": {
+          "FETCH_FAILED": "Erro ao buscar marcas",
+          "SAVE_FAILED": "Erro ao salvar marca",
+          "DELETE_FAILED": "Erro ao excluir marca"
+        },
+        "BRAND_MODAL": {
+          "TITLE_NEW": "Nova Marca",
+          "TITLE_EDIT": "Editar Marca",
+          "NAME_LABEL": "Nome da Marca",
+          "NAME_PLACEHOLDER": "Ex: Hotel Prime",
+          "SUITE_CATEGORIES_LABEL": "Categorias de Suíte e Fotos",
+          "SUITE_NAME_PLACEHOLDER": "Nome (Ex: Presidencial)",
+          "SUITE_IMAGE_PLACEHOLDER": "URL da Imagem (https://...)",
+          "ADD_CATEGORY": "Adicionar Categoria",
+          "REMOVE_CATEGORY": "Remover",
+          "SUITE_CATEGORIES_HELP": "Insira o nome da categoria e opcionalmente a URL da foto.",
+          "STAYS_LABEL": "Permanências (separadas por vírgula)",
+          "STAYS_PLACEHOLDER": "Ex: 2h, 4h, Pernoite, Diária",
+          "CANCEL": "Cancelar",
+          "CREATE": "Criar",
+          "UPDATE": "Atualizar"
+        },
+        "CONFIGURATIONS": {
+          "TITLE": "Configurações Gerais",
+          "DESCRIPTION": "Personalize a aparência e dados da página pública de reservas.",
+          "FORM": {
+            "PAGE_TITLE_LABEL": "Título da Página",
+            "PAGE_TITLE_PLACEHOLDER": "Ex: Reservas Hotel Prime",
+            "SUBTITLE_LABEL": "Subtítulo",
+            "SUBTITLE_PLACEHOLDER": "Ex: As melhores suítes da região",
+            "PHONE_LABEL": "Telefone de Suporte / WhatsApp",
+            "PHONE_PLACEHOLDER": "Ex: 5511999999999",
+            "PRIMARY_COLOR_LABEL": "Cor Primária",
+            "SUBMIT": "Salvar Alterações"
+          },
+          "SUCCESS": "Configurações salvas!",
+          "ERROR": "Erro ao salvar configurações"
+        },
+        "EXTRAS": {
+          "TITLE": "Configuração de Extras",
+          "ADD_NEW": "Adicionar Extra",
+          "EMPTY_STATE_TITLE": "Nenhum extra cadastrado",
+          "EMPTY_STATE_DESC": "Clique no botão acima para adicionar o primeiro serviço extra.",
+          "TABLE": {
+            "TITLE": "Título",
+            "PRICE": "Preço",
+            "ACTIONS": "Ações"
+          },
+          "EDIT": "Editar",
+          "DELETE": "Excluir",
+          "DELETE_CONFIRMATION": "Tem certeza que deseja excluir este extra?",
+          "MODAL": {
+            "TITLE_NEW": "Novo Extra",
+            "TITLE_EDIT": "Editar Extra",
+            "TITLE_LABEL": "Título",
+            "TITLE_PLACEHOLDER": "Ex: Decoração Romântica",
+            "DESCRIPTION_LABEL": "Descrição",
+            "DESCRIPTION_PLACEHOLDER": "Detalhes...",
+            "PRICE_LABEL": "Preço (R$)",
+            "PRICE_PREFIX": "R$",
+            "CANCEL": "Cancelar",
+            "SUBMIT": "Salvar"
+          },
+          "SUCCESS": {
+            "SAVED": "Extra salvo!",
+            "DELETED": "Extra excluído com sucesso"
+          },
+          "ERRORS": {
+            "FETCH_FAILED": "Erro ao buscar extras",
+            "SAVE_FAILED": "Erro ao salvar extra",
+            "DELETE_FAILED": "Erro ao excluir extra"
+          }
+        }
       }
     },
     "CUSTOM_TOOLS": {
@@ -1280,6 +1468,111 @@
       "EMPTY_STATE": {
         "TITLE": "Caixa de entrada não conectada",
         "SUBTITLE": "Conectar uma caixa de entrada permite ao assistente lidar com perguntas iniciais de seus clientes antes de transferi-las para você."
+      }
+    },
+    "PRICINGS": {
+      "HEADER": "Painel Administrativo",
+      "TITLE": "Tabela de Preços",
+      "DESCRIPTION": "Configure as regras de preço por inbox, marca, dia e categoria.",
+      "ADD_BUTTON": "Nova Regra",
+      "EMPTY_STATE": "Nenhuma regra encontrada com os filtros atuais.",
+      "FIELDS": {
+        "INBOX": "Inbox",
+        "BRAND": "Marca",
+        "DAY": "Dia",
+        "DAYS": "Dias",
+        "CATEGORY": "Categoria",
+        "DURATION": "Duração",
+        "PRICE": "Preço",
+        "PRICE_DISPLAY": "R$ {price}",
+        "ACTIONS": "Ações",
+        "MIN_PRICE": "Preço mínimo",
+        "MAX_PRICE": "Preço máximo"
+      },
+      "FILTERS": {
+        "TITLE": "Filtros",
+        "ALL": "Todas",
+        "ALL_DAYS": "Todos",
+        "CLEAR": "Limpar filtros"
+      },
+      "DELETE_CONFIRMATION": "Tem certeza que deseja excluir esta regra?",
+      "DELETE_SUCCESS": "Regra removida",
+      "DELETE_ERROR": "Erro ao remover regra",
+      "FETCH_ERROR": "Erro ao buscar dados",
+      "MODAL": {
+        "ADD_TITLE": "Nova Regra de Preço",
+        "EDIT_TITLE": "Editar Regra",
+        "SELECT_DAYS_REQUIRED": "Selecione pelo menos um dia.",
+        "SELECT_BRAND_FIRST": "Selecione uma marca primeiro.",
+        "NO_CATEGORIES": "Nenhuma categoria cadastrada nesta marca.",
+        "NO_DURATIONS": "Nenhuma duração cadastrada nesta marca.",
+        "SAVE_SUCCESS": "Preço salvo!",
+        "SAVE_ERROR": "Erro ao salvar preço",
+        "CANCEL": "Cancelar",
+        "SAVE": "Salvar",
+        "SELECT_CATEGORY": "Selecione uma categoria",
+        "SELECT_DURATION": "Selecione uma duração",
+        "PRICE_PLACEHOLDER": "0,00",
+        "REMOVE_INBOX": "Remover",
+        "CLOSE": "×",
+        "FIELDS": {
+          "DAYS_WEEK": "Dias da Semana"
+        }
+      }
+    },
+    "SCENARIOS": {
+      "TITLE": "Cenários",
+      "DESCRIPTION": "Cenários ajudam o assistente a entender como lidar com situações específicas.",
+      "EMPTY_MESSAGE": "Nenhum cenário encontrado.",
+      "SEARCH_EMPTY_MESSAGE": "Nenhum cenário corresponde à sua busca.",
+      "BULK_ACTION": {
+        "SELECT_ALL": "Selecionar todos ({count})",
+        "UNSELECT_ALL": "Desmarcar todos ({count})",
+        "SELECTED": "{count} selecionado(s)",
+        "BULK_DELETE_BUTTON": "Excluir Selecionados"
+      },
+      "LIST": {
+        "SEARCH_PLACEHOLDER": "Buscar cenários..."
+      },
+      "ADD": {
+        "SUGGESTED": {
+          "TITLE": "Cenários Sugeridos",
+          "ADD_SINGLE": "Adicionar",
+          "TOOLS_USED": "Ferramentas usadas:"
+        }
+      },
+      "API": {
+        "ADD": {
+          "SUCCESS": "Cenário adicionado com sucesso",
+          "ERROR": "Erro ao adicionar cenário"
+        },
+        "UPDATE": {
+          "SUCCESS": "Cenário atualizado com sucesso",
+          "ERROR": "Erro ao atualizar cenário"
+        },
+        "DELETE": {
+          "SUCCESS": "Cenário excluído com sucesso",
+          "ERROR": "Erro ao excluir cenário"
+        }
+      },
+      "DUPLICATE": {
+        "TITLE": "Duplicar Cenário",
+        "DESCRIPTION": "Escolha para qual assistente você deseja copiar este cenário.",
+        "CONFIRM": "Duplicar",
+        "SELECT": "Selecionar Assistente",
+        "SCENARIO_LABEL": "Cenário:",
+        "TARGET_LABEL": "Assistente de Destino:",
+        "COPY_SUFFIX": " (Cópia)",
+        "SUCCESS": "Cenário duplicado com sucesso",
+        "ERROR": "Erro ao duplicar cenário",
+        "NO_TARGETS": "Não há outros assistentes disponíveis para duplicação."
+      },
+      "EXAMPLES": {
+        "PROSPECTIVE_BUYER": {
+          "TITLE": "Comprador em Potencial",
+          "DESCRIPTION": "Lidando com clientes interessados em adquirir uma licença.",
+          "INSTRUCTION": "Se alguém estiver interessado em comprar uma licença, pergunte o seguinte:\n\n1. Quantas licenças deseja comprar?\n2. Está migrando de outra plataforma?\n\nAssim que os detalhes forem coletados, siga estas etapas:\n1. Adicione uma nota privada com as informações coletadas usando [Adicionar Nota Privada](tool://add_private_note)\n2. Adicione a etiqueta \"vendas\" ao contato usando [Adicionar Etiqueta à Conversa](tool://add_label_to_conversation)\n3. Responda dizendo \"um de nós entrará em contato em breve\" e forneça um tempo estimado de resposta e [Transferir para Humano](tool://handoff)"
+        }
       }
     }
   }

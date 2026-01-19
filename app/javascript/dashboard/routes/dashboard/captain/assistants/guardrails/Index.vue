@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
@@ -48,23 +48,20 @@ const displayGuardrails = computed(() =>
   guardrailsContent.value.map((c, idx) => ({ id: idx, content: c }))
 );
 
-const guardrailsExample = [
+const guardrailsExample = computed(() => [
   {
     id: 1,
-    content:
-      'Block queries that share or request sensitive personal information (e.g. phone numbers, passwords).',
+    content: t('CAPTAIN.ASSISTANTS.GUARDRAILS.EXAMPLES.PERSONAL_INFO'),
   },
   {
     id: 2,
-    content:
-      'Reject queries that include offensive, discriminatory, or threatening language.',
+    content: t('CAPTAIN.ASSISTANTS.GUARDRAILS.EXAMPLES.OFFENSIVE_LANGUAGE'),
   },
   {
     id: 3,
-    content:
-      'Deflect when the assistant is asked for legal or medical diagnosis or treatment.',
+    content: t('CAPTAIN.ASSISTANTS.GUARDRAILS.EXAMPLES.LEGAL_MEDICAL'),
   },
-];
+]);
 
 const filteredGuardrails = computed(() => {
   const query = searchQuery.value.trim();
@@ -111,7 +108,7 @@ const selectedCountLabel = computed(() => {
 const saveGuardrails = async list => {
   await store.dispatch('captainAssistants/update', {
     id: assistantId.value,
-    assistant: { guardrails: list },
+    guardrails: list,
   });
 };
 
@@ -163,17 +160,22 @@ const bulkDeleteGuardrails = async () => {
 const addAllExample = () => {
   updateUISettings({ show_guardrails_suggestions: false });
   try {
-    const exampleContents = guardrailsExample.map(example => example.content);
+    const exampleContents = guardrailsExample.value.map(
+      example => example.content
+    );
     const newGuardrails = [...guardrailsContent.value, ...exampleContents];
     saveGuardrails(newGuardrails);
   } catch {
     useAlert(t('CAPTAIN.ASSISTANTS.GUARDRAILS.API.ADD.ERROR'));
   }
 };
+
+onMounted(() => {
+  store.dispatch('captainAssistants/show', assistantId.value);
+});
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.ASSISTANTS.GUARDRAILS.TITLE')"
     :is-fetching="isFetching"
@@ -224,42 +226,29 @@ const addAllExample = () => {
               $t('CAPTAIN.ASSISTANTS.GUARDRAILS.BULK_ACTION.BULK_DELETE_BUTTON')
             "
             @bulk-delete="bulkDeleteGuardrails"
-          >
-            <template #default-actions>
-              <AddNewRulesDialog
-                v-model="newDialogRule"
+          />
+
+          <div class="flex items-center gap-2 ml-auto">
+            <div
+              v-if="displayGuardrails.length && bulkSelectedIds.size === 0"
+              class="max-w-[22.5rem] w-full min-w-0"
+            >
+              <Input
+                v-model="searchQuery"
                 :placeholder="
-                  t('CAPTAIN.ASSISTANTS.GUARDRAILS.ADD.NEW.PLACEHOLDER')
+                  t('CAPTAIN.ASSISTANTS.GUARDRAILS.LIST.SEARCH_PLACEHOLDER')
                 "
-                :button-label="t('CAPTAIN.ASSISTANTS.GUARDRAILS.ADD.NEW.TITLE')"
-                :confirm-label="
-                  t('CAPTAIN.ASSISTANTS.GUARDRAILS.ADD.NEW.CREATE')
-                "
-                :cancel-label="
-                  t('CAPTAIN.ASSISTANTS.GUARDRAILS.ADD.NEW.CANCEL')
-                "
-                @add="addGuardrail"
               />
-              <!-- Will enable this feature in future -->
-              <!-- <div class="h-4 w-px bg-n-strong" />
-              <Button
-                :label="t('CAPTAIN.ASSISTANTS.GUARDRAILS.ADD.NEW.TEST_ALL')"
-                xs
-                ghost
-                slate
-                class="!text-sm"
-              /> -->
-            </template>
-          </BulkSelectBar>
-          <div
-            v-if="displayGuardrails.length && bulkSelectedIds.size === 0"
-            class="max-w-[22.5rem] w-full min-w-0"
-          >
-            <Input
-              v-model="searchQuery"
+            </div>
+            <AddNewRulesDialog
+              v-model="newDialogRule"
               :placeholder="
-                t('CAPTAIN.ASSISTANTS.GUARDRAILS.LIST.SEARCH_PLACEHOLDER')
+                t('CAPTAIN.ASSISTANTS.GUARDRAILS.ADD.NEW.PLACEHOLDER')
               "
+              :button-label="t('CAPTAIN.ASSISTANTS.GUARDRAILS.ADD.NEW.TITLE')"
+              :confirm-label="t('CAPTAIN.ASSISTANTS.GUARDRAILS.ADD.NEW.CREATE')"
+              :cancel-label="t('CAPTAIN.ASSISTANTS.GUARDRAILS.ADD.NEW.CANCEL')"
+              @add="addGuardrail"
             />
           </div>
         </div>

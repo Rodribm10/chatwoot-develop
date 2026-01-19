@@ -35,7 +35,17 @@ class Captain::Tools::HandoffTool < Captain::Tools::BasePublicTool
     )
 
     # Trigger the bot handoff (sets status to open + dispatches events)
-    conversation.bot_handoff!
+    # [FIX] Using 'pausar_ia' instead of 'desligar_ia' to avoid Automation Rule Loop.
+    conversation.open!
+    conversation.account.labels.find_or_create_by!(title: 'pausar_ia') do |label|
+      label.description = 'Pausa a IA e evita loops de regras externas'
+      label.color = '#f59e0b' # Orange
+      label.show_on_sidebar = true
+    end
+    conversation.add_labels(['pausar_ia'])
+
+    # Optional: Dispatch generic update event if needed, but avoiding BOT_HANDOFF to be safe.
+    conversation.save!
 
     # Send out of office message if applicable (since template messages were suppressed while Captain was handling)
     send_out_of_office_message_if_applicable(conversation)

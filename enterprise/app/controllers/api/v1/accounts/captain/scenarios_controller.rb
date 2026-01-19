@@ -5,7 +5,7 @@ class Api::V1::Accounts::Captain::ScenariosController < Api::V1::Accounts::BaseC
   before_action :set_scenario, only: [:show, :update, :destroy]
 
   def index
-    @scenarios = assistant_scenarios.enabled
+    @scenarios = assistant_scenarios.order(enabled: :desc, created_at: :desc)
   end
 
   def show; end
@@ -21,6 +21,51 @@ class Api::V1::Accounts::Captain::ScenariosController < Api::V1::Accounts::BaseC
   def destroy
     @scenario.destroy
     head :no_content
+  end
+
+  def suggest_triggers
+    title = params[:title]
+    instruction = params[:instruction]
+    description = params[:description]
+
+    if title.blank? && instruction.blank?
+      render json: { error: 'Please provide at least a title or instruction' }, status: :unprocessable_entity
+      return
+    end
+
+    prompt = <<~PROMPT
+      You are an AI Helper for configuring Chatbot Agents.
+      Your goal is to suggest a list of "Activation Keywords" (Triggers) for a specific Agent.
+
+      Agent Details:
+      Title: #{title}
+      Description: #{description}
+      Instructions: #{instruction&.first(1000)}
+
+      Task:
+      Generate a comma-separated list of 5 to 10 keywords or short phrases in Portuguese (Brasil) that a user might say to trigger this agent.
+      Focus on the INTENT of the user.
+      Examples:
+      - Financeiro: boleto, fatura, pagamento, segunda via, pix
+      - Reservas: reservar, vaga, quarto, pernoite, disponibilidade
+      - Suporte: wifi, internet, senha, nao funciona, quebrou
+
+      Output ONLY the comma-separated list. No explanations.
+    PROMPT
+
+    # Use configured model or fallback
+    model = ENV.fetch('CAPTAIN_LLM_MODEL', 'gpt-4o-mini')
+    Rails.logger.info "[ScenariosController] Suggesting triggers using model: #{model}"
+
+    response = RubyLLM.chat(model: model).ask(prompt)
+
+    # Clean up response (remove 'Keywords:', newlines, etc)
+    keywords = response.to_s.gsub(/^Keywords:\s*/i, '').strip
+
+    render json: { keywords: keywords }
+  rescue StandardError => e
+    Rails.logger.error "[ScenariosController] Failed to suggest triggers: #{e.message}"
+    render json: { error: e.message }, status: :internal_server_error
   end
 
   private
@@ -42,6 +87,6 @@ class Api::V1::Accounts::Captain::ScenariosController < Api::V1::Accounts::BaseC
   end
 
   def scenario_params
-    params.require(:scenario).permit(:title, :description, :instruction, :enabled, tools: [])
+    params.require(:scenario).permit(:title, :description, :instruction, :enabled, :trigger_keywords, tools: [])
   end
 end

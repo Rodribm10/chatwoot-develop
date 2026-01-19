@@ -51,6 +51,7 @@
           "LABEL": "Duração da inatividade",
           "HELP": "Período de tempo de inatividade após o qual a conversa é resolvida automaticamente",
           "PLACEHOLDER": "30",
+          "DESCRIPTION": "Defina em minutos. Deixe 0 ou vazio para usar a configuração da Conta.",
           "ERROR": "O tempo decorrido para resolução automática deve ser entre 10 minutos e 999 dias",
           "API": {
             "SUCCESS": "Configurações de resolução automática atualizadas com sucesso",

@@ -34,7 +34,7 @@ module Captain
           nome: reservation[:contact_name]
         },
         valor: {
-          original: format('%.2f', reservation[:total_amount].to_f)
+          original: format('%.2f', reservation[:total_amount].to_f / 2.0)
         },
         chave: @pix_key,
         solicitacaoPagador: "Reserva #{reservation[:id]}"

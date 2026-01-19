@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { useMapGetter, useStore } from 'dashboard/composables/store';
 import PageLayout from 'dashboard/components-next/captain/PageLayout.vue';
 import Input from 'dashboard/components-next/input/Input.vue';
+import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
 import WootSwitch from 'dashboard/components-next/switch/Switch.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import CustomToolsPageEmptyState from 'dashboard/components-next/captain/pageComponents/emptyStates/CustomToolsPageEmptyState.vue';
@@ -32,9 +33,12 @@ const nativeToolKeys = [
   'update_contact',
   'create_reservation_intent',
   'generate_pix',
+  'list_reservations',
   'status_suites',
   'suite_watchdog',
 ];
+const fallbackConfigExcludedToolKeys = ['react_to_message', 'faq_lookup'];
+const lockedToolKeys = ['faq_lookup'];
 
 const assistantId = computed(() => route.params.assistantId);
 
@@ -63,6 +67,7 @@ const handleUpdate = async tool => {
         webhook_url: tool.webhook_url,
         plug_play_id: tool.plug_play_id,
         plug_play_token: tool.plug_play_token,
+        fallback_message: tool.fallback_message,
       },
     });
   } catch (e) {
@@ -74,6 +79,9 @@ const handleUpdate = async tool => {
 
 const handleConfigUpdate = async tool => {
   if (!tool.enabled) return;
+  handleUpdate(tool);
+};
+const handleFallbackUpdate = async tool => {
   handleUpdate(tool);
 };
 const fetchCustomTools = (page = 1) => {
@@ -127,7 +135,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.ASSISTANTS.SKILLS.HEADER')"
     :header-description="$t('CAPTAIN.ASSISTANTS.SKILLS.DESCRIPTION')"
@@ -158,7 +165,17 @@ onMounted(() => {
               >
                 {{ $t('CAPTAIN.ASSISTANTS.SKILLS.SAVING') }}
               </span>
-              <WootSwitch v-model="tool.enabled" @change="handleUpdate(tool)" />
+              <span
+                v-if="lockedToolKeys.includes(tool.key)"
+                class="text-xs text-n-slate-11 font-medium"
+              >
+                {{ $t('CAPTAIN.ASSISTANTS.SKILLS.ALWAYS_ACTIVE') }}
+              </span>
+              <WootSwitch
+                v-else
+                v-model="tool.enabled"
+                @change="handleUpdate(tool)"
+              />
             </div>
           </div>
 
@@ -200,6 +217,39 @@ onMounted(() => {
                 @blur="handleConfigUpdate(tool)"
               />
             </div>
+          </div>
+
+          <div
+            v-if="
+              tool.enabled && !fallbackConfigExcludedToolKeys.includes(tool.key)
+            "
+            class="flex flex-col gap-4 pl-4 border-l-2 border-n-weak mt-6 pt-2 transition-all"
+          >
+            <h5
+              class="text-xs font-bold uppercase text-n-slate-10 tracking-wider"
+            >
+              {{ $t('CAPTAIN.ASSISTANTS.SKILLS.FALLBACK.TITLE') }}
+            </h5>
+            <TextArea
+              v-model="tool.fallback_message"
+              :label="$t('CAPTAIN.ASSISTANTS.SKILLS.FALLBACK.LABEL')"
+              :placeholder="
+                $t('CAPTAIN.ASSISTANTS.SKILLS.FALLBACK.PLACEHOLDER')
+              "
+              :max-length="400"
+              show-character-count
+              @blur="handleFallbackUpdate(tool)"
+            />
+            <div class="flex justify-end">
+              <Button
+                :label="$t('CAPTAIN.ASSISTANTS.SKILLS.FALLBACK.SAVE')"
+                size="sm"
+                @click="handleFallbackUpdate(tool)"
+              />
+            </div>
+            <p class="text-xs text-n-slate-11">
+              {{ $t('CAPTAIN.ASSISTANTS.SKILLS.FALLBACK.HELP_TEXT') }}
+            </p>
           </div>
         </div>
       </div>

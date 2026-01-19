@@ -11,6 +11,13 @@ class Captain::Tools::HttpTool < Agents::Tool
     @custom_tool.enabled?
   end
 
+  def execute(*args, **params)
+    tool_context, remaining_args = extract_tool_context(args)
+    actual_params = resolve_params(remaining_args, params)
+
+    perform(tool_context, **actual_params.symbolize_keys)
+  end
+
   def perform(tool_context, **params)
     url = @custom_tool.build_request_url(params)
     body = @custom_tool.build_request_body(params)
@@ -45,6 +52,25 @@ class Captain::Tools::HttpTool < Agents::Tool
   end
 
   private
+
+  def resolve_params(args, params)
+    if args.first.is_a?(Hash) && params.empty?
+      args.first
+    else
+      params
+    end.with_indifferent_access
+  end
+
+  def extract_tool_context(args)
+    return [nil, []] if args.empty?
+
+    first = args.first
+    if first.respond_to?(:state) || first.respond_to?(:context)
+      [first, args.drop(1)]
+    else
+      [nil, args]
+    end
+  end
 
   def mask_sensitive_headers(headers)
     sensitive_keys = %w[authorization plug-play-token plug-play-id x-api-key]

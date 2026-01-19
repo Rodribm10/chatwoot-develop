@@ -9,6 +9,7 @@ module Captain
     belongs_to :conversation, class_name: '::Conversation'
     belongs_to :brand, class_name: 'Captain::Brand', foreign_key: 'captain_brand_id', optional: true
     belongs_to :unit, class_name: 'Captain::Unit', foreign_key: 'captain_unit_id', optional: true
+    belongs_to :current_pix_charge, class_name: 'Captain::PixCharge', optional: true
 
     has_many :reminders, class_name: 'Captain::Reminder', as: :source, dependent: :destroy
 

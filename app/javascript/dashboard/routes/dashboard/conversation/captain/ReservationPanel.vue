@@ -88,6 +88,17 @@ const getTimingLabel = value =>
   timingOptions.find(option => option.value === value)?.label ||
   t('CAPTAIN.RESERVATIONS.AUTOMATIONS.FORM.TIMING');
 
+const formatDateTime = value => {
+  if (!value) return '--';
+  return new Date(value).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 const checkOutPreview = computed(() => {
   if (!reservationForm.check_in_at || !reservationForm.duration_hours)
     return '';
@@ -333,8 +344,11 @@ watch(
         :label="t('CAPTAIN.RESERVATIONS.FORM.TOTAL_AMOUNT_LABEL')"
       />
       <p v-if="checkOutPreview" class="text-xs text-n-slate-11">
-        {{ t('CAPTAIN.RESERVATIONS.FORM.CHECK_OUT_PREVIEW') }}:
-        {{ checkOutPreview }}
+        {{
+          t('CAPTAIN.RESERVATIONS.LIST.CHECK_OUT', {
+            time: formatDateTime(checkOutPreview),
+          })
+        }}
       </p>
       <Button
         size="sm"
@@ -465,10 +479,13 @@ watch(
             <div class="font-semibold">{{ automation.title }}</div>
             <div>{{ automation.message }}</div>
             <div class="uppercase">
-              {{ getTriggerLabel(automation.trigger_event) }} ·
-              {{ getTimingLabel(automation.timing) }} ·
-              <!-- eslint-disable-next-line vue/no-bare-strings-in-template -->
-              {{ automation.offset_minutes }}m
+              {{
+                t('CAPTAIN.RESERVATIONS.AUTOMATIONS.SUMMARY', {
+                  trigger: getTriggerLabel(automation.trigger_event),
+                  timing: getTimingLabel(automation.timing),
+                  minutes: automation.offset_minutes,
+                })
+              }}
             </div>
             <div class="flex items-center gap-2">
               <Button
@@ -503,14 +520,43 @@ watch(
         :key="reservation.id"
         class="rounded-md border border-n-weak p-2 text-xs text-n-slate-11"
       >
+        <div class="flex justify-between">
+          <span class="font-semibold text-n-slate-12">
+            {{ formatDateTime(reservation.created_at) }}
+          </span>
+          <span class="uppercase">{{ reservation.status }}</span>
+        </div>
+        <div>
+          {{
+            reservation.contact_name || t('CAPTAIN.RESERVATIONS.LIST.NO_NAME')
+          }}
+          <span v-if="reservation.contact_cpf">
+            {{
+              t('CAPTAIN.RESERVATIONS.LIST.CPF_FORMAT', {
+                cpf: reservation.contact_cpf,
+              })
+            }}
+          </span>
+        </div>
         <div>
           {{
             reservation.suite_identifier || t('CAPTAIN.RESERVATIONS.NO_SUITE')
           }}
         </div>
-        <div>{{ reservation.check_in_at }}</div>
-        <div>{{ reservation.check_out_at }}</div>
-        <div class="uppercase">{{ reservation.status }}</div>
+        <div>
+          {{
+            t('CAPTAIN.RESERVATIONS.LIST.CHECK_IN', {
+              time: formatDateTime(reservation.check_in_at),
+            })
+          }}
+        </div>
+        <div>
+          {{
+            t('CAPTAIN.RESERVATIONS.LIST.CHECK_OUT', {
+              time: formatDateTime(reservation.check_out_at),
+            })
+          }}
+        </div>
       </div>
     </div>
 

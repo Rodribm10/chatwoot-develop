@@ -57,9 +57,10 @@ const controlItems = computed(() => {
       routeName: 'captain_assistants_guidelines_index',
     },
     {
-      name: 'Assistant Skills',
-      description:
-        'Configure external tools and integrations available to this assistant.',
+      name: t('CAPTAIN.ASSISTANTS.SETTINGS.CONTROL_ITEMS.OPTIONS.TOOLS.TITLE'),
+      description: t(
+        'CAPTAIN.ASSISTANTS.SETTINGS.CONTROL_ITEMS.OPTIONS.TOOLS.DESCRIPTION'
+      ),
       routeName: 'captain_tools_index',
     },
   ];
@@ -110,7 +111,6 @@ const handleDeleteSuccess = () => {
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :is-fetching="isFetching"
     :show-pagination-footer="false"

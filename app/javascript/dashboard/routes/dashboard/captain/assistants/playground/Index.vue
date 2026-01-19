@@ -9,7 +9,6 @@ const assistantId = computed(() => Number(route.params.assistantId));
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     show-assistant-switcher
     :show-pagination-footer="false"

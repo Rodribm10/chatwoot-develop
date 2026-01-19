@@ -245,6 +245,7 @@ class Conversation < ApplicationRecord
     # rubocop:enable Rails/SkipsModelValidations
 
     CrmInsights::UpdateJob.perform_later(id, reason: 'resolved')
+    Conversations::AutoLabelJob.perform_later(id)
   end
 
   def ensure_snooze_until_reset

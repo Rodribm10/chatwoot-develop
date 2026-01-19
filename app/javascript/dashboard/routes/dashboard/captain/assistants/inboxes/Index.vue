@@ -59,7 +59,6 @@ onMounted(() =>
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.INBOXES.HEADER')"
     :button-label="$t('CAPTAIN.INBOXES.ADD_NEW')"

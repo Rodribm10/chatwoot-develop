@@ -24,33 +24,51 @@ module Captain
 
         raise "Pix Creation Failed: #{response.body}" unless response.success?
 
-        data = JSON.parse(response.body)
+        # Ensure safe encoding for logging
+        safe_body = response.body.to_s.force_encoding('UTF-8').encode('UTF-8', invalid: :replace, undef: :replace, replace: '?')
+
+        data = JSON.parse(safe_body)
+
+        # [CRITICAL DEBUG] Log the ENTIRE response to see why it's being cut
+        Rails.logger.info "[BANCO INTER] FULL RESPONSE: #{safe_body}"
+        File.open(Rails.root.join('log/tool_debug.log'), 'a') do |f|
+          f.puts "[#{Time.now}] BANCO INTER RAW BODY: #{safe_body}"
+        end
+
         persist_charge(data)
       end
 
       private
 
       def build_payload
+        amount = @reservation.total_amount.to_f.round(2)
+
         {
-          calendario: { expiracao: 3600 }, # 1 hour
+          calendario: { expiracao: Captain::PixCharge::EXPIRATION_SECONDS }, # 1 hour
           devedor: {
             cpf: @reservation.contact.custom_attributes['cpf'] || '00000000000', # Fallback for dev/testing
             nome: @reservation.contact.name || 'Cliente'
           },
-          valor: { original: format('%.2f', @reservation.total_amount) },
+          valor: { original: format('%.2f', amount) },
           chave: @unit.inter_pix_key,
           solicitacaoPagador: "Reserva #{@reservation.id}"
         }
       end
 
       def persist_charge(data)
+        # Try every possible field where Inter might hide the EMV code
+        pix_code = data['pixCopiaECola'] ||
+                   data.dig('pix', 'copiaECola') ||
+                   data['qrcode'] ||
+                   data['textoImagemQRcode']
+
         charge = @unit.pix_charges.create!(
           reservation: @reservation,
           txid: data['txid'],
-          pix_copia_e_cola: data['pixCopiaECola'],
+          pix_copia_e_cola: pix_code,
           status: 'active',
-          e2eid: nil, # Will be filled by webhook
-          raw_webhook_payload: nil
+          e2eid: nil,
+          raw_webhook_payload: data.to_json
         )
 
         @reservation.update!(current_pix_charge_id: charge.id)

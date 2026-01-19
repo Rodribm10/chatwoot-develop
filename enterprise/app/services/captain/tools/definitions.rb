@@ -35,6 +35,22 @@ module Captain
           type: :internal,
           name: 'Criar Intenção de Reserva',
           description: 'Salva rascunho da reserva com valor acordado'
+        },
+        'generate_pix' => {
+          type: :internal,
+          name: 'Gerar Pix (Finalizar)',
+          description: 'Gera Pix para a reserva em rascunho atual'
+        },
+        'list_reservations' => {
+          type: :internal,
+          name: 'Listar Reservas',
+          description: 'Lista as ultimas reservas do contato atual'
+        },
+        'faq_lookup' => {
+          type: :internal,
+          name: 'Pesquisar FAQ',
+          description: 'Busca respostas no FAQ por similaridade semantica',
+          always_on: true
         }
       }.freeze
     end

@@ -17,7 +17,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'save']);
-const { t } = useI18n(); // eslint-disable-line no-unused-vars
+const { t } = useI18n();
 
 const name = ref('');
 // suiteItems will hold objects: { name: 'Standard', image: 'url' }
@@ -104,13 +104,18 @@ const onSave = () => {
 };
 
 const headerTitle = computed(() =>
-  props.brand ? 'Editar Marca' : 'Nova Marca'
+  props.brand
+    ? t('CAPTAIN.BRANDS.BRAND_MODAL.TITLE_EDIT')
+    : t('CAPTAIN.BRANDS.BRAND_MODAL.TITLE_NEW')
 );
-const saveLabel = computed(() => (props.brand ? 'Atualizar' : 'Criar'));
+const saveLabel = computed(() =>
+  props.brand
+    ? t('CAPTAIN.BRANDS.BRAND_MODAL.UPDATE')
+    : t('CAPTAIN.BRANDS.BRAND_MODAL.CREATE')
+);
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Modal :show="show" :on-close="onClose">
     <div
       class="flex flex-col gap-4 p-6 w-[600px] bg-white dark:bg-slate-900 rounded-lg"
@@ -124,16 +129,19 @@ const saveLabel = computed(() => (props.brand ? 'Atualizar' : 'Criar'));
           <label
             class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
           >
-            Nome da Marca
+            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.NAME_LABEL') }}
           </label>
-          <Input v-model="name" placeholder="Ex: Hotel Prime" />
+          <Input
+            v-model="name"
+            :placeholder="t('CAPTAIN.BRANDS.BRAND_MODAL.NAME_PLACEHOLDER')"
+          />
         </div>
 
         <div>
           <label
             class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
           >
-            Categorias de Suíte e Fotos
+            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.SUITE_CATEGORIES_LABEL') }}
           </label>
 
           <div
@@ -147,18 +155,22 @@ const saveLabel = computed(() => (props.brand ? 'Atualizar' : 'Criar'));
               <div class="flex-1">
                 <Input
                   v-model="item.name"
-                  placeholder="Nome (Ex: Presidencial)"
+                  :placeholder="
+                    t('CAPTAIN.BRANDS.BRAND_MODAL.SUITE_NAME_PLACEHOLDER')
+                  "
                 />
               </div>
               <div class="flex-1">
                 <Input
                   v-model="item.image"
-                  placeholder="URL da Imagem (https://...)"
+                  :placeholder="
+                    t('CAPTAIN.BRANDS.BRAND_MODAL.SUITE_IMAGE_PLACEHOLDER')
+                  "
                 />
               </div>
               <button
                 class="mt-2 text-red-500 hover:text-red-700 p-1"
-                title="Remover"
+                :title="t('CAPTAIN.BRANDS.BRAND_MODAL.REMOVE_CATEGORY')"
                 @click="removeSuiteItem(index)"
               >
                 <i class="i-lucide-trash-2" />
@@ -170,11 +182,12 @@ const saveLabel = computed(() => (props.brand ? 'Atualizar' : 'Criar'));
             class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-transparent border-none p-0 cursor-pointer"
             @click="addSuiteItem"
           >
-            <i class="i-lucide-plus" /> Adicionar Categoria
+            <i class="i-lucide-plus" />
+            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.ADD_CATEGORY') }}
           </button>
 
           <p class="text-xs text-slate-500 mt-2 dark:text-slate-400">
-            Insira o nome da categoria e opcionalmente a URL da foto.
+            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.SUITE_CATEGORIES_HELP') }}
           </p>
         </div>
 
@@ -182,11 +195,11 @@ const saveLabel = computed(() => (props.brand ? 'Atualizar' : 'Criar'));
           <label
             class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
           >
-            Permanências (separadas por vírgula)
+            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.STAYS_LABEL') }}
           </label>
           <Input
             v-model="stayDurations"
-            placeholder="Ex: 2h, 4h, Pernoite, Diária"
+            :placeholder="t('CAPTAIN.BRANDS.BRAND_MODAL.STAYS_PLACEHOLDER')"
           />
         </div>
       </div>
@@ -194,7 +207,9 @@ const saveLabel = computed(() => (props.brand ? 'Atualizar' : 'Criar'));
       <div
         class="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800"
       >
-        <Button variant="ghost" @click="onClose"> Cancelar </Button>
+        <Button variant="ghost" @click="onClose">
+          {{ t('CAPTAIN.BRANDS.BRAND_MODAL.CANCEL') }}
+        </Button>
         <Button @click="onSave">
           {{ saveLabel }}
         </Button>

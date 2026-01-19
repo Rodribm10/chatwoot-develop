@@ -29,7 +29,17 @@ module Whatsapp
           jid = if from_me?
                   params.dig(:event, :Info, :Chat)
                 else
-                  params.dig(:event, :Info, :Sender)
+                  sender = params.dig(:event, :Info, :Sender)
+                  sender_alt = params.dig(:event, :Info, :SenderAlt)
+
+                  # Prefer @s.whatsapp.net over @lid
+                  if sender&.include?('@s.whatsapp.net')
+                    sender
+                  elsif sender_alt&.include?('@s.whatsapp.net')
+                    sender_alt
+                  else
+                    sender
+                  end
                 end
           # Format: 556182098580@s.whatsapp.net -> 556182098580
           jid&.split('@')&.first

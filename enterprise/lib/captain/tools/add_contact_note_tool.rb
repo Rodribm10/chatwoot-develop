@@ -2,7 +2,7 @@ class Captain::Tools::AddContactNoteTool < Captain::Tools::BasePublicTool
   description 'Add a note to a contact profile'
   param :note, type: 'string', desc: 'The note content to add to the contact'
 
-  def perform(tool_context, args = {})
+  def perform(tool_context, **args)
     note = args[:note] || args['note']
     contact = find_contact(resolve_context(tool_context))
     return 'Contact not found' unless contact

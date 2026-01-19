@@ -65,3 +65,10 @@ periodic_assignment_job:
   cron: '*/30 * * * *'
   class: 'AutoAssignment::PeriodicAssignmentJob'
   queue: scheduled_jobs
+
+# Cluster conversation questions for frequent questions report
+# Executed daily at 00:00 UTC
+frequent_questions_cluster_job:
+  cron: '0 0 * * *'
+  class: 'Conversations::ClusterJob'
+  queue: scheduled_jobs

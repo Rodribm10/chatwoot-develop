@@ -5,7 +5,9 @@ class Captain::Tools::Copilot::GetArticleService < Captain::Tools::BaseTool
   description 'Get details of an article including its content and metadata'
   param :article_id, type: :number, desc: 'The ID of the article to retrieve', required: true
 
-  def execute(article_id:)
+  def execute(*args, **params)
+    actual_params = resolve_params(args, params)
+    article_id = actual_params[:article_id]
     article = Article.find_by(id: article_id, account_id: @assistant.account_id)
     return 'Article not found' if article.nil?
 

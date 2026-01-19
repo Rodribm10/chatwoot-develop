@@ -568,6 +568,14 @@
       "VIEW_DETAILS": "Ver detalhes"
     }
   },
+
+  "FREQUENT_QUESTIONS": {
+    "HEADER": "Perguntas Frequentes",
+    "DESCRIPTION": "Principais motivos de contato clusterizados pela Inteligência Artificial.",
+    "QUESTION": "Pergunta Identificada",
+    "COUNT": "Ocorrências",
+    "DATE": "Data de Identificação"
+  },
   "SUMMARY_REPORTS": {
     "INBOX": "Caixa de Entrada",
     "AGENT": "Agente",

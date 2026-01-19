@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useToggle } from '@vueuse/core';
 import { useVuelidate } from '@vuelidate/core';
@@ -13,6 +13,10 @@ import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
 import Editor from 'dashboard/components-next/Editor/Editor.vue';
 import TagMultiSelectComboBox from 'dashboard/components-next/combobox/TagMultiSelectComboBox.vue';
 
+import ScenariosAPI from 'dashboard/api/captain/scenarios';
+import { useRoute } from 'vue-router';
+import { useAlert } from 'dashboard/composables';
+
 const emit = defineEmits(['add']);
 
 const { t } = useI18n();
@@ -24,10 +28,13 @@ const state = reactive({
   title: '',
   description: '',
   instruction: '',
+  trigger_keywords: '',
   tools: [],
 });
 
 const allTools = useMapGetter('captainTools/getRecords');
+const route = useRoute();
+const isSuggesting = ref(false);
 
 const toolOptions = computed(() => {
   return allTools.value.map(tool => ({
@@ -83,6 +90,42 @@ const onClickAdd = async () => {
 
 const onClickCancel = () => {
   togglePopover(false);
+};
+
+const onSuggestTriggers = async () => {
+  if (!state.instruction && !state.title) {
+    useAlert(
+      t(
+        'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.SUGGEST_ERROR'
+      )
+    );
+    return;
+  }
+
+  isSuggesting.value = true;
+  try {
+    const assistantId = route.params.assistantId;
+    const response = await ScenariosAPI.suggestTriggers({
+      assistantId,
+      title: state.title,
+      description: state.description,
+      instruction: state.instruction,
+    });
+
+    if (response.data.keywords) {
+      // Append if already exists, or replace? Replace feels safer for "suggestion"
+      state.trigger_keywords = response.data.keywords;
+      useAlert(
+        t(
+          'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.SUGGEST_SUCCESS'
+        )
+      );
+    }
+  } catch (error) {
+    useAlert(error?.response?.data?.error || 'Failed to suggest keywords');
+  } finally {
+    isSuggesting.value = false;
+  }
 };
 </script>
 
@@ -148,6 +191,41 @@ const onClickCancel = () => {
           :show-character-count="false"
           enable-captain-tools
         />
+
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-medium text-n-slate-11">
+              {{
+                t(
+                  'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.LABEL'
+                )
+              }}
+            </label>
+            <Button
+              :label="
+                t(
+                  'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.SUGGEST_BUTTON'
+                )
+              "
+              icon="i-lucide-sparkles"
+              xs
+              ghost
+              slate
+              :is-loading="isSuggesting"
+              @click="onSuggestTriggers"
+            />
+          </div>
+          <TextArea
+            v-model="state.trigger_keywords"
+            :placeholder="
+              t(
+                'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TRIGGER_KEYWORDS.PLACEHOLDER'
+              )
+            "
+            min-height="80px"
+          />
+        </div>
+
         <div class="flex flex-col gap-2">
           <label class="text-xs font-medium text-n-slate-11">
             {{ t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.FORM.TOOLS.LABEL') }}

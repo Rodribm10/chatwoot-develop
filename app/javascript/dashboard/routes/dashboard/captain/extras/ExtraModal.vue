@@ -1,15 +1,21 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { useRoute } from 'vue-router';
 import WootModal from 'dashboard/components/Modal.vue';
 
 const props = defineProps({
   show: Boolean,
-  extra: Object,
+  extra: {
+    type: Object,
+    default: null,
+  },
 });
 
 const emit = defineEmits(['close', 'save']);
+
+const { t } = useI18n();
 const route = useRoute();
 const accountId = route.params.accountId;
 
@@ -54,26 +60,29 @@ const saveExtra = async () => {
     }
     emit('save', response.data);
     emit('close');
-    useAlert('Extra salvo!');
+    useAlert(t('CAPTAIN.EXTRAS.SUCCESS.SAVED'));
   } catch (error) {
-    useAlert('Erro ao salvar extra');
+    useAlert(t('CAPTAIN.EXTRAS.ERRORS.SAVE_FAILED'));
   }
 };
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <WootModal :show="show" :on-close="() => $emit('close')">
     <div class="flex flex-col h-auto overflow-visible">
       <div class="flex items-center justify-between px-6 py-4 border-b">
         <h3 class="text-base font-medium text-slate-800 dark:text-slate-100">
-          {{ isEditing ? 'Editar Extra' : 'Novo Extra' }}
+          {{
+            isEditing
+              ? t('CAPTAIN.EXTRAS.MODAL.TITLE_EDIT')
+              : t('CAPTAIN.EXTRAS.MODAL.TITLE_NEW')
+          }}
         </h3>
         <button
           class="text-slate-500 hover:text-slate-800"
           @click="emit('close')"
         >
-          <span class="sr-only">Close</span>
+          <span class="sr-only">{{ t('CAPTAIN.EXTRAS.MODAL.CANCEL') }}</span>
           <svg
             class="w-6 h-6"
             fill="none"
@@ -93,38 +102,37 @@ const saveExtra = async () => {
       <div class="p-6 space-y-4">
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">
-            Título
+            {{ t('CAPTAIN.EXTRAS.MODAL.TITLE_LABEL') }}
           </label>
           <input
             v-model="formData.title"
             type="text"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-            placeholder="Ex: Decoração Romântica"
+            :placeholder="t('CAPTAIN.EXTRAS.MODAL.TITLE_PLACEHOLDER')"
           />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">
-            Descrição
+            {{ t('CAPTAIN.EXTRAS.MODAL.DESCRIPTION_LABEL') }}
           </label>
           <textarea
             v-model="formData.description"
             rows="3"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-            placeholder="Detalhes..."
+            :placeholder="t('CAPTAIN.EXTRAS.MODAL.DESCRIPTION_PLACEHOLDER')"
           />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">
-            Preço (R$)
+            {{ t('CAPTAIN.EXTRAS.MODAL.PRICE_LABEL') }}
           </label>
           <input
             v-model="formData.price"
             type="number"
             step="0.01"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-            placeholder="0.00"
           />
         </div>
       </div>
@@ -136,13 +144,13 @@ const saveExtra = async () => {
           class="text-slate-600 hover:text-slate-800 px-4 py-2"
           @click="emit('close')"
         >
-          Cancelar
+          {{ t('CAPTAIN.EXTRAS.MODAL.CANCEL') }}
         </button>
         <button
           class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
           @click="saveExtra"
         >
-          Salvar
+          {{ t('CAPTAIN.EXTRAS.MODAL.SUBMIT') }}
         </button>
       </div>
     </div>

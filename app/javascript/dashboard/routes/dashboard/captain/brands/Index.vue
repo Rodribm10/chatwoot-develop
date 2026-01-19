@@ -1,11 +1,14 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { useRoute } from 'vue-router';
 import BrandModal from './BrandModal.vue';
 import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 
+const { t } = useI18n();
 const route = useRoute();
 const accountId = route.params.accountId;
 
@@ -13,6 +16,8 @@ const brands = ref([]);
 const isLoading = ref(false);
 const showModal = ref(false);
 const selectedBrand = ref(null);
+const deleteDialogRef = ref(null);
+const brandToDelete = ref(null);
 
 const fetchBrands = async () => {
   isLoading.value = true;
@@ -22,7 +27,7 @@ const fetchBrands = async () => {
     );
     brands.value = response.data;
   } catch (error) {
-    useAlert('Erro ao buscar marcas');
+    useAlert(t('CAPTAIN.BRANDS.ERRORS.FETCH_FAILED'));
   } finally {
     isLoading.value = false;
   }
@@ -38,18 +43,24 @@ const openEditModal = brand => {
   showModal.value = true;
 };
 
-const deleteBrand = async brandId => {
-  // eslint-disable-next-line no-alert, no-restricted-globals
-  if (!confirm('Tem certeza que deseja excluir esta marca?')) return;
+const deleteBrand = brand => {
+  brandToDelete.value = brand;
+  deleteDialogRef.value.show();
+};
+
+const confirmDelete = async () => {
+  if (!brandToDelete.value) return;
 
   try {
     await window.axios.delete(
-      `/api/v1/accounts/${accountId}/captain/brands/${brandId}`
+      `/api/v1/accounts/${accountId}/captain/brands/${brandToDelete.value.id}`
     );
-    brands.value = brands.value.filter(b => b.id !== brandId);
-    useAlert('Marca excluída com sucesso');
+    brands.value = brands.value.filter(b => b.id !== brandToDelete.value.id);
+    useAlert(t('CAPTAIN.BRANDS.SUCCESS.DELETED'));
   } catch (error) {
-    useAlert('Erro ao excluir marca');
+    useAlert(t('CAPTAIN.BRANDS.ERRORS.DELETE_FAILED'));
+  } finally {
+    brandToDelete.value = null;
   }
 };
 
@@ -68,7 +79,7 @@ const handleSave = async brandData => {
       if (index !== -1) {
         brands.value[index] = response.data;
       }
-      useAlert('Marca atualizada com sucesso');
+      useAlert(t('CAPTAIN.BRANDS.SUCCESS.UPDATED'));
     } else {
       // Create new brand
       response = await window.axios.post(
@@ -76,11 +87,11 @@ const handleSave = async brandData => {
         { brand: brandData }
       );
       brands.value.push(response.data);
-      useAlert('Marca criada com sucesso');
+      useAlert(t('CAPTAIN.BRANDS.SUCCESS.CREATED'));
     }
     showModal.value = false;
   } catch (error) {
-    useAlert('Erro ao salvar marca');
+    useAlert(t('CAPTAIN.BRANDS.ERRORS.SAVE_FAILED'));
   }
 };
 
@@ -93,14 +104,13 @@ onMounted(fetchBrands);
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <div
     class="flex flex-col h-full w-full bg-slate-50 dark:bg-slate-900 px-8 py-8 overflow-y-auto"
   >
     <div class="flex-1 w-full">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-          Painel Administrativo
+          {{ t('CAPTAIN.BRANDS.ADMIN_PANEL') }}
         </h1>
       </div>
 
@@ -111,7 +121,7 @@ onMounted(fetchBrands);
           class="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 rounded-t-lg"
         >
           <h2 class="text-lg font-medium text-slate-800 dark:text-slate-100">
-            Gerenciar Marcas
+            {{ t('CAPTAIN.BRANDS.HEADER') }}
           </h2>
           <Button
             variant="smooth"
@@ -120,7 +130,7 @@ onMounted(fetchBrands);
             @click="openAddModal"
           >
             <i class="i-lucide-plus" />
-            Adicionar Nova Marca
+            {{ t('CAPTAIN.BRANDS.ADD_NEW') }}
           </Button>
         </div>
 
@@ -134,10 +144,18 @@ onMounted(fetchBrands);
               class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-300 uppercase font-medium"
             >
               <tr>
-                <th class="px-6 py-4 w-1/4">Nome</th>
-                <th class="px-6 py-4 w-1/3">Categorias</th>
-                <th class="px-6 py-4 w-1/4">Permanências</th>
-                <th class="px-6 py-4 text-right">Ações</th>
+                <th class="px-6 py-4 w-1/4">
+                  {{ t('CAPTAIN.BRANDS.TABLE.NAME') }}
+                </th>
+                <th class="px-6 py-4 w-1/3">
+                  {{ t('CAPTAIN.BRANDS.TABLE.CATEGORIES') }}
+                </th>
+                <th class="px-6 py-4 w-1/4">
+                  {{ t('CAPTAIN.BRANDS.TABLE.STAYS') }}
+                </th>
+                <th class="px-6 py-4 text-right">
+                  {{ t('CAPTAIN.BRANDS.TABLE.ACTIONS') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
@@ -178,7 +196,7 @@ onMounted(fetchBrands);
                           class="hover:underline flex items-center gap-1"
                         >
                           <i class="i-lucide-link size-3" />
-                          Ver Imagem
+                          {{ t('CAPTAIN.BRANDS.VIEW_IMAGE') }}
                         </a>
                       </div>
                     </div>
@@ -195,13 +213,13 @@ onMounted(fetchBrands);
                       class="text-blue-600 hover:text-blue-800 font-medium text-sm"
                       @click="openEditModal(brand)"
                     >
-                      Editar
+                      {{ t('CAPTAIN.BRANDS.EDIT') }}
                     </button>
                     <button
                       class="text-red-500 hover:text-red-700 font-medium text-sm"
-                      @click="deleteBrand(brand.id)"
+                      @click="deleteBrand(brand)"
                     >
-                      Excluir
+                      {{ t('CAPTAIN.BRANDS.DELETE') }}
                     </button>
                   </div>
                 </td>
@@ -218,10 +236,10 @@ onMounted(fetchBrands);
                     <p
                       class="text-base font-medium text-slate-900 dark:text-slate-100"
                     >
-                      Nenhuma marca cadastrada
+                      {{ t('CAPTAIN.BRANDS.EMPTY_STATE_TITLE') }}
                     </p>
                     <p class="text-sm">
-                      Clique no botão acima para adicionar a primeira marca.
+                      {{ t('CAPTAIN.BRANDS.EMPTY_STATE_DESC') }}
                     </p>
                   </div>
                 </td>
@@ -237,6 +255,15 @@ onMounted(fetchBrands);
       :brand="selectedBrand"
       @close="showModal = false"
       @save="handleSave"
+    />
+
+    <Dialog
+      ref="deleteDialogRef"
+      type="alert"
+      :title="t('CAPTAIN.BRANDS.DELETE')"
+      :description="t('CAPTAIN.BRANDS.DELETE_CONFIRMATION')"
+      :confirm-button-label="t('CAPTAIN.BRANDS.DELETE')"
+      @confirm="confirmDelete"
     />
   </div>
 </template>

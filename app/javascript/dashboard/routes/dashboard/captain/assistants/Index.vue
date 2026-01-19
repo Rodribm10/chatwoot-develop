@@ -46,7 +46,6 @@ const handleAfterCreate = newAssistant => {
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
   <PageLayout
     :header-title="$t('CAPTAIN.ASSISTANTS.HEADER')"
     :show-pagination-footer="false"

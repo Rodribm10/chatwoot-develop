@@ -1,4 +1,5 @@
 class Api::V1::Accounts::Captain::ReservationsController < Api::V1::Accounts::BaseController
+  RESULTS_PER_PAGE = 25
   before_action :fetch_reservation, only: [:show, :update, :destroy]
 
   def index
@@ -6,6 +7,12 @@ class Api::V1::Accounts::Captain::ReservationsController < Api::V1::Accounts::Ba
 
     # 1. Filter by Unit
     @reservations = @reservations.where(captain_unit_id: params[:unit_id]) if params[:unit_id].present?
+
+    # 1.1 Filter by Conversation
+    @reservations = @reservations.where(conversation_id: params[:conversation_id]) if params[:conversation_id].present?
+
+    # 1.2 Filter by Inbox
+    @reservations = @reservations.where(inbox_id: params[:inbox_id]) if params[:inbox_id].present?
 
     # 2. Filter by Date Range (Check-in)
     if params[:date_from].present? && params[:date_to].present?
@@ -23,6 +30,10 @@ class Api::V1::Accounts::Captain::ReservationsController < Api::V1::Accounts::Ba
 
     # 4. Filter by Contact (Existing)
     @reservations = @reservations.where(contact_id: params[:contact_id]) if params[:contact_id]
+
+    @current_page = (params[:page] || 1).to_i
+    @reservations_count = @reservations.count
+    @reservations = @reservations.page(@current_page).per(RESULTS_PER_PAGE)
   end
 
   def show; end

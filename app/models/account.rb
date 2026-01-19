@@ -79,6 +79,7 @@ class Account < ApplicationRecord
   has_many :custom_filters, dependent: :destroy_async
   has_many :dashboard_apps, dependent: :destroy_async
   has_many :data_imports, dependent: :destroy_async
+  has_many :frequent_questions, dependent: :destroy_async
   has_many :email_channels, dependent: :destroy_async, class_name: '::Channel::Email'
   has_many :facebook_pages, dependent: :destroy_async, class_name: '::Channel::FacebookPage'
   has_many :instagram_channels, dependent: :destroy_async, class_name: '::Channel::Instagram'
@@ -122,7 +123,9 @@ class Account < ApplicationRecord
   enum :locale, LANGUAGES_CONFIG.map { |key, val| [val[:iso_639_1_code], key] }.to_h, prefix: true
   enum :status, { active: 0, suspended: 1 }
 
-  scope :with_auto_resolve, -> { where("(settings ->> 'auto_resolve_after')::int IS NOT NULL") }
+  scope :with_auto_resolve, lambda {
+    left_joins(:inboxes).where("(accounts.settings ->> 'auto_resolve_after')::int IS NOT NULL OR inboxes.auto_resolve_duration IS NOT NULL").distinct
+  }
 
   before_validation :validate_limit_keys
   after_create_commit :notify_creation

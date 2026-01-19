@@ -65,7 +65,9 @@ Rails.application.routes.draw do
               end
               resources :inboxes, only: [:index, :create, :update, :destroy]
 
-              resources :scenarios
+              resources :scenarios do
+                post :suggest_triggers, on: :collection
+              end
               resources :tools, only: [:index, :update]
             end
             resources :assistant_responses
@@ -393,6 +395,7 @@ Rails.application.routes.draw do
             resource :configuration, only: [:show, :update]
           end
 
+          resources :frequent_questions, only: [:index]
           resources :upload, only: [:create]
         end
       end
@@ -570,6 +573,9 @@ Rails.application.routes.draw do
           resources :reservations, only: [:create] do
             get :status, on: :member
           end
+          # Public Payment Page Route (SGID)
+          get 'payments/:token', to: 'payments#show', as: :payment_link
+
           post 'webhooks/inter_pix', to: 'webhooks#inter_pix'
           resource :master_data, only: [:show], controller: 'master_data'
         end
@@ -605,6 +611,9 @@ Rails.application.routes.draw do
   post 'webhooks/sms/:phone_number', to: 'webhooks/sms#process_payload'
   get 'public/accounts/:account_id/reservas', to: 'public/api/v1/captain/booking_app#index', as: :public_account_reservations
   get 'public/accounts/:account_id/reservas/*path', to: 'public/api/v1/captain/booking_app#index'
+
+  # Short URL for Payments (User Friendly - SGID)
+  get '/r/:token', to: 'public/api/v1/captain/payments#show', as: :short_payment_link
 
   get 'webhooks/whatsapp/:phone_number', to: 'webhooks/whatsapp#verify'
   post 'webhooks/whatsapp/:phone_number', to: 'webhooks/whatsapp#process_payload'

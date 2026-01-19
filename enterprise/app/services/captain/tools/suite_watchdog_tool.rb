@@ -16,7 +16,11 @@ module Captain
         super(assistant, user: user)
       end
 
-      def execute(suite_identifier:, interval_minutes: 10, message: nil)
+      def execute(*args, **params)
+        actual_params = resolve_params(args, params)
+        suite_identifier = actual_params[:suite_identifier]
+        interval_minutes = actual_params[:interval_minutes] || 10
+        message = actual_params[:message]
         return error_response('Conversation not found') unless @conversation.present?
         return error_response('Suite identifier is required') if suite_identifier.blank?
 

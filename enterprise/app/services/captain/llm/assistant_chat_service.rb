@@ -47,15 +47,19 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
 
         inbox = @conversation.inbox
 
+        return handle_handoff_request_action if brain_decision.tool_key == 'escalar_humano'
+
         runner_result = Captain::Tools::ToolRunner.run(
           assistant: @assistant,
           tool_key: brain_decision.tool_key,
           inbox: inbox,
           conversation: @conversation,
-          additional_data: { message: additional_message }
+          additional_data: { message: additional_message, tool_input: brain_decision.tool_input }
         )
 
         File.open(Rails.root.join('log/brain_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RUNNER RESULT: #{runner_result.inspect}" }
+
+        return { 'response' => runner_result[:body][:message] } if runner_result[:fallback] && runner_result.dig(:body, :message).present?
 
         if runner_result[:success]
           # Handle side-effects (e.g., labels for escalate_human)
@@ -65,7 +69,10 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
           tool_output = runner_result[:body]
 
           # Stop if tool was just a fire-and-forget webhook that suggests stopping
-          return { 'response' => 'conversation_handoff' } if brain_decision.tool_key == 'escalar_humano'
+          return { 'response' => 'conversation_handoff', 'handoff_trigger' => 'user_request' } if brain_decision.tool_key == 'escalar_humano'
+        elsif runner_result[:success] == false
+          tool_failure = handle_tool_failure_action
+          return tool_failure if tool_failure.present?
         end
       end
 
@@ -96,6 +103,55 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
   end
 
   private
+
+  def handle_handoff_request_action
+    action = handoff_action('handoff_on_user_request_action', default: 'handoff')
+    message = handoff_message('handoff_on_user_request_message')
+
+    case action
+    when 'handoff'
+      return { 'response' => 'conversation_handoff', 'handoff_trigger' => 'user_request' }
+    when 'reply'
+      return { 'response' => message, 'handoff_trigger' => 'user_request' }
+    when 'ignore'
+      return { 'response' => fallback_handoff_message, 'handoff_trigger' => 'user_request' }
+    end
+
+    { 'response' => 'conversation_handoff', 'handoff_trigger' => 'user_request' }
+  end
+
+  def handle_tool_failure_action
+    action = handoff_action('handoff_on_tool_failure_action', default: 'ignore')
+    message = handoff_message('handoff_on_tool_failure_message')
+
+    case action
+    when 'handoff'
+      { 'response' => 'conversation_handoff', 'handoff_trigger' => 'tool_failure' }
+    when 'reply'
+      { 'response' => message, 'handoff_trigger' => 'tool_failure' }
+    when 'ignore'
+      nil
+    end
+  end
+
+  def handoff_action(key, default:)
+    value = @assistant.config[key].to_s
+    return value if %w[handoff reply ignore].include?(value)
+
+    default
+  end
+
+  def handoff_message(key)
+    message = @assistant.config[key].to_s.strip
+    return message if message.present?
+
+    fallback_handoff_message
+  end
+
+  def fallback_handoff_message
+    I18n.t('captain.handoff_default_message',
+           default: 'Desculpe, estou com dificuldades tecnicas no momento. Por favor, tente novamente em alguns instantes.')
+  end
 
   def handle_tool_side_effects(tool_key, conversation)
     return unless tool_key == 'escalar_humano'

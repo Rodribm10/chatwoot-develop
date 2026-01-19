@@ -110,9 +110,13 @@ class Api::V1::Accounts::Captain::AssistantsController < Api::V1::Accounts::Base
     permitted = assistant_payload.permit(:name, :description, :llm_provider, :llm_model, :api_key,
                                          config: [
                                            :product_name, :role_name, :feature_faq, :feature_memory, :feature_citation,
-                                           :welcome_message, :handoff_message, :resolution_message,
+                                           :welcome_message, :handoff_message, :handoff_instructions, :resolution_message,
                                            :instructions, :temperature, :playbook, :distance_threshold, :max_rag_results,
-                                           :system_prompt, :handoff_on_sentiment,
+                                           :system_prompt, :handoff_on_sentiment, :allow_handoff,
+                                           :handoff_on_tool_failure_action, :handoff_on_tool_failure_message,
+                                           :handoff_on_llm_error_action, :handoff_on_llm_error_message,
+                                           :handoff_on_user_request_action, :handoff_on_user_request_message,
+                                           :handoff_on_sentiment_action, :handoff_on_sentiment_message,
                                            { system_prompt_blocks: [:key, :title, :content, :order] }
                                          ],
                                          handoff_webhook_config: [:enabled, :url, :retry_attempts, :timeout_seconds, { headers: {} }])

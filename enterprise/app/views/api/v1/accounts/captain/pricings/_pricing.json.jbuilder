@@ -1,6 +1,10 @@
 json.id pricing.id
 json.brand_id pricing.captain_brand_id
 json.brand_name pricing.brand&.name
+json.inbox_id pricing.inbox_id
+json.inbox_name pricing.inbox&.name
+json.inbox_ids pricing.inboxes.map(&:id)
+json.inbox_names pricing.inboxes.map(&:name)
 json.day_range pricing.day_range
 json.suite_category pricing.suite_category
 json.duration pricing.duration

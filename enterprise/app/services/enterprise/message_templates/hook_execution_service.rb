@@ -30,14 +30,54 @@ module Enterprise::MessageTemplates::HookExecutionService
   private
 
   def schedule_captain_response
-    job_args = [conversation, conversation.inbox.captain_assistant]
+    # [FEATURE] Send 'composing' state immediately to indicate AI is processing
+    send_typing_indicator if inbox.channel_type == 'Channel::Whatsapp'
 
-    if message.attachments.blank?
-      Captain::Conversation::ResponseBuilderJob.perform_later(*job_args)
-    else
-      wait_time = calculate_attachment_wait_time
-      Captain::Conversation::ResponseBuilderJob.set(wait: wait_time).perform_later(*job_args)
+    debounce_delay = 15.seconds
+    timestamp = Time.current.to_f
+    Redis::Alfred.set(debounce_key, timestamp, ex: 1.hour)
+
+    Captain::Conversation::DebounceResponseJob.set(wait: debounce_delay).perform_later(
+      conversation.id,
+      conversation.inbox.captain_assistant.id,
+      timestamp
+    )
+  end
+
+  def send_typing_indicator
+    # Access phone number safely via contact association
+    phone = conversation.contact&.phone_number
+    return unless phone.present?
+
+    # Assuming Wuzapi is the provider for Channel::Whatsapp in this context
+    # We need to find the Wuzapi client instance or create one.
+    # Typically this is handled by the channel or provider service.
+
+    # Wrap everything in a rescue block to ensure we NEVER block the main flow
+    begin
+      channel = inbox.channel
+      # Safe navigation for provider_config
+      return unless channel&.provider_config&.dig('provider') == 'wuzapi'
+
+      token = channel.wuzapi_user_token
+      url = channel.provider_config['wuzapi_base_url']
+
+      return unless token.present? && url.present?
+
+      client = Wuzapi::Client.new(url)
+
+      # Wuzapi usually requires clean numbers; Channel::Whatsapp logic cleans it.
+      # Let's clean it here too to be safe, matching WuzapiService logic:
+      normalized_phone = phone.gsub(/[\+\s\-\(\)]/, '')
+
+      client.send_chat_presence(token, normalized_phone, 'composing')
+    rescue StandardError => e
+      Rails.logger.warn "[HookExecutionService] Failed to send typing indicator: #{e.message}"
     end
+  end
+
+  def debounce_key
+    "captain:debounce:conversation:#{conversation.id}"
   end
 
   def calculate_attachment_wait_time
@@ -50,21 +90,29 @@ module Enterprise::MessageTemplates::HookExecutionService
   end
 
   def should_process_captain_response?
-    # Regra do Usuário: "Não responder APENAS se estiver atribuído E tiver a etiqueta"
-    # Assim, se estiver apenas atribuído (sem etiqueta), ele ainda responde.
-    # Se tiver apenas a etiqueta (sem atribuição), ele ainda responde (a menos que a etiqueta signifique desligar total).
+    # Regra do Usuário: "Não responder APENAS se estiver atribuído E tiver a etiqueta na CONVERSA"
 
     is_assigned_to_human = conversation.assignee.present? && !conversation.assignee.is_a?(AgentBot)
-    has_disable_label = conversation.labels.pluck(:name).include?('desligar_ia') || conversation.contact.labels.pluck(:name).include?('desligar_ia')
 
-    # Para segurança, vamos manter que se tiver a etiqueta, o humano assume total controle.
-    # Mas seguindo a regra literal pedida:
-    return false if is_assigned_to_human || has_disable_label
+    # [FIX] Removido verificação de labels do contato. Agora olha apenas para a conversa.
+    # [FIX] Adicionado 'pausar_ia' como alternativa para evitar loop de automação externa.
+    has_disable_label = conversation.labels.pluck(:name).intersect?(%w[desligar_ia pausar_ia])
+
+    if is_assigned_to_human || has_disable_label
+      Rails.logger.info "[HookExecutionService] Skipping AI. Assigned: #{is_assigned_to_human}, Disabled Label: #{has_disable_label} (Label 'desligar_ia'/'pausar_ia' found)"
+      return false
+    end
 
     # Se estiver atribuído a um humano, geralmente não queremos que a IA interfira A MENOS que o usuário queira.
     # Como o usuário disse "responda igual no playground", vou permitir enquanto não houver o combo (Assigned + Label).
 
-    message.incoming? && inbox.captain_assistant.present?
+    should_process = message.incoming? && inbox.captain_assistant.present?
+
+    unless should_process
+      Rails.logger.info "[HookExecutionService] Skipping AI. Incoming: #{message.incoming?}, Assistant Present: #{inbox.captain_assistant.present?}"
+    end
+
+    should_process
   end
 
   def perform_handoff

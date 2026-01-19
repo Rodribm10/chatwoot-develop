@@ -8,7 +8,11 @@ class Captain::Tools::Copilot::SearchContactsService < Captain::Tools::BaseTool
   param :phone_number, type: :string, desc: 'Filter contacts by phone number'
   param :name, type: :string, desc: 'Filter contacts by name (partial match)'
 
-  def execute(email: nil, phone_number: nil, name: nil)
+  def execute(*args, **params)
+    actual_params = resolve_params(args, params)
+    email = actual_params[:email]
+    phone_number = actual_params[:phone_number]
+    name = actual_params[:name]
     contacts = Contact.where(account_id: @assistant.account_id)
     contacts = contacts.where(email: email) if email.present?
     contacts = contacts.where(phone_number: phone_number) if phone_number.present?
