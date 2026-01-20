@@ -1,5 +1,27 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: channel_whatsapp
+#
+#  id                             :bigint           not null, primary key
+#  message_templates              :jsonb
+#  message_templates_last_updated :datetime
+#  phone_number                   :string           not null
+#  provider                       :string           default("default")
+#  provider_config                :jsonb
+#  wuzapi_admin_token             :string
+#  wuzapi_admin_token_iv          :string
+#  wuzapi_user_token              :string
+#  wuzapi_user_token_iv           :string
+#  created_at                     :datetime         not null
+#  updated_at                     :datetime         not null
+#  account_id                     :integer          not null
+#
+# Indexes
+#
+#  index_channel_whatsapp_on_phone_number  (phone_number) UNIQUE
+#
 require 'rails_helper'
 require Rails.root.join 'spec/models/concerns/reauthorizable_shared.rb'
 

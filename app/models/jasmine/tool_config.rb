@@ -1,3 +1,33 @@
+# == Schema Information
+#
+# Table name: jasmine_tool_configs
+#
+#  id                    :bigint           not null, primary key
+#  is_enabled            :boolean          default(FALSE), not null
+#  last_test_duration_ms :integer
+#  last_test_error       :text
+#  last_test_status      :integer
+#  last_tested_at        :datetime
+#  plug_play_token       :text
+#  tool_key              :string           not null
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  account_id            :bigint           not null
+#  inbox_id              :bigint           not null
+#  plug_play_id          :string
+#
+# Indexes
+#
+#  index_jasmine_tool_configs_on_account_id  (account_id)
+#  index_jasmine_tool_configs_on_inbox_id    (inbox_id)
+#  index_jasmine_tool_configs_on_tool_key    (tool_key)
+#  index_jasmine_tools_on_account_inbox_key  (account_id,inbox_id,tool_key) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (account_id => accounts.id)
+#  fk_rails_...  (inbox_id => inboxes.id)
+#
 module Jasmine
   class ToolConfig < ApplicationRecord
     self.table_name = 'jasmine_tool_configs'

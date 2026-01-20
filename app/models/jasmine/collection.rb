@@ -1,3 +1,29 @@
+# == Schema Information
+#
+# Table name: jasmine_collections
+#
+#  id             :bigint           not null, primary key
+#  description    :text
+#  is_active      :boolean          default(TRUE)
+#  name           :string           not null
+#  visibility     :integer          default("private")
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  account_id     :bigint           not null
+#  owner_inbox_id :bigint
+#
+# Indexes
+#
+#  index_jasmine_collections_on_account_id                     (account_id)
+#  index_jasmine_collections_on_account_id_and_owner_inbox_id  (account_id,owner_inbox_id)
+#  index_jasmine_collections_on_account_id_and_visibility      (account_id,visibility)
+#  index_jasmine_collections_on_owner_inbox_id                 (owner_inbox_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (account_id => accounts.id)
+#  fk_rails_...  (owner_inbox_id => inboxes.id)
+#
 module Jasmine
   class Collection < ApplicationRecord
     self.table_name = 'jasmine_collections'

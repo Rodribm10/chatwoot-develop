@@ -1,3 +1,31 @@
+# == Schema Information
+#
+# Table name: jasmine_document_chunks
+#
+#  id            :bigint           not null, primary key
+#  content       :text
+#  embedding     :vector(1536)
+#  metadata      :jsonb
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  account_id    :bigint           not null
+#  collection_id :bigint           not null
+#  document_id   :bigint           not null
+#
+# Indexes
+#
+#  index_jasmine_chunks_on_acc_coll_doc            (account_id,collection_id,document_id)
+#  index_jasmine_document_chunks_on_account_id     (account_id)
+#  index_jasmine_document_chunks_on_collection_id  (collection_id)
+#  index_jasmine_document_chunks_on_document_id    (document_id)
+#  index_jasmine_document_chunks_on_embedding      (embedding) USING hnsw
+#
+# Foreign Keys
+#
+#  fk_rails_...  (account_id => accounts.id)
+#  fk_rails_...  (collection_id => jasmine_collections.id)
+#  fk_rails_...  (document_id => jasmine_documents.id)
+#
 module Jasmine
   require 'neighbor'
   class DocumentChunk < ApplicationRecord

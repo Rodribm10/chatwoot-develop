@@ -8,6 +8,10 @@
 #  phone_number                   :string           not null
 #  provider                       :string           default("default")
 #  provider_config                :jsonb
+#  wuzapi_admin_token             :string
+#  wuzapi_admin_token_iv          :string
+#  wuzapi_user_token              :string
+#  wuzapi_user_token_iv           :string
 #  created_at                     :datetime         not null
 #  updated_at                     :datetime         not null
 #  account_id                     :integer          not null

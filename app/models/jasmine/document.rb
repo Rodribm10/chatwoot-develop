@@ -1,3 +1,30 @@
+# == Schema Information
+#
+# Table name: jasmine_documents
+#
+#  id            :bigint           not null, primary key
+#  content       :text
+#  error_message :text
+#  metadata      :jsonb
+#  source_type   :integer          default("manual")
+#  status        :integer          default("pending")
+#  title         :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  account_id    :bigint           not null
+#  collection_id :bigint           not null
+#
+# Indexes
+#
+#  index_jasmine_docs_on_acc_coll_status     (account_id,collection_id,status)
+#  index_jasmine_documents_on_account_id     (account_id)
+#  index_jasmine_documents_on_collection_id  (collection_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (account_id => accounts.id)
+#  fk_rails_...  (collection_id => jasmine_collections.id)
+#
 module Jasmine
   class Document < ApplicationRecord
     self.table_name = 'jasmine_documents'
