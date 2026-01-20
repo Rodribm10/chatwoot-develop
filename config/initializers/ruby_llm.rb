@@ -5,11 +5,14 @@ Rails.application.config.after_initialize do
   api_key = ENV.fetch('OPENAI_API_KEY', nil)
 
   if api_key.present?
-    RubyLLM.configure do |config|
-      config.openai_api_key = api_key
-      config.openai_organization_id = ENV['OPENAI_ORGANIZATION_ID'] if ENV['OPENAI_ORGANIZATION_ID'].present?
-      config.gemini_api_key = ENV['GEMINI_API_KEY'] if ENV['GEMINI_API_KEY'].present?
-      config.google_api_key = ENV['GEMINI_API_KEY'] if ENV['GEMINI_API_KEY'].present?
+    begin
+      RubyLLM.configure do |config|
+        config.openai_api_key = api_key
+        config.openai_organization_id = ENV['OPENAI_ORGANIZATION_ID'] if ENV['OPENAI_ORGANIZATION_ID'].present?
+        config.gemini_api_key = ENV['GEMINI_API_KEY'] if ENV['GEMINI_API_KEY'].present?
+      end
+    rescue StandardError => e
+      Rails.logger.error "[RubyLLM] Init failed: #{e.class} #{e.message}"
     end
     Rails.logger.info "[RubyLLM] Configured with OPENAI_API_KEY: #{api_key[0..10]}..."
     puts "[RubyLLM] Configured with OPENAI_API_KEY: #{api_key[0..10]}..." # Log to stdout for rails runner visibility

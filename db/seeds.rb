@@ -3,8 +3,9 @@ GlobalConfig.clear_cache
 ConfigLoader.new.process
 
 ## Seeds productions
-if Rails.env.production?
+if Rails.env.production? && User.count.zero?
   # Setup Onboarding flow
+  # Only enable onboarding if no users exist to prevent loop on updates
   Redis::Alfred.set(Redis::Alfred::CHATWOOT_INSTALLATION_ONBOARDING, true)
 end
 

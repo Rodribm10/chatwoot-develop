@@ -86,7 +86,9 @@ RUN SECRET_KEY_BASE=precompile_placeholder RAILS_LOG_TO_STDOUT=enabled bundle ex
   && rm -rf spec node_modules tmp/cache
 
 # Generate .git_sha file with current commit hash
-RUN echo "wuzapi-v1" > /app/.git_sha
+ARG BUILD_SHA=dev
+ENV BUILD_SHA=${BUILD_SHA}
+RUN echo "${BUILD_SHA}" > /app/BUILD_SHA
 
 # Remove unnecessary files
 RUN rm -rf /gems/ruby/3.4.0/cache/*.gem \
@@ -145,7 +147,7 @@ COPY --from=pre-builder /gems/ /gems/
 COPY --from=pre-builder /app /app
 
 # Copy .git_sha file from pre-builder stage
-COPY --from=pre-builder /app/.git_sha /app/.git_sha
+COPY --from=pre-builder /app/BUILD_SHA /app/BUILD_SHA
 
 WORKDIR /app
 
