@@ -87,7 +87,6 @@ export default {
     const {
       uiSettings,
       isEditorHotKeyEnabled,
-      fetchSignatureFlagFromUISettings,
       setQuotedReplyFlagForInbox,
       fetchQuotedReplyFlagFromUISettings,
     } = useUISettings();
@@ -97,7 +96,6 @@ export default {
     return {
       uiSettings,
       isEditorHotKeyEnabled,
-      fetchSignatureFlagFromUISettings,
       setQuotedReplyFlagForInbox,
       fetchQuotedReplyFlagFromUISettings,
       replyEditor,
@@ -331,7 +329,8 @@ export default {
       return !!this.messageSignature;
     },
     sendWithSignature() {
-      return this.fetchSignatureFlagFromUISettings(this.channelType);
+      // Signature is enabled for this inbox in configuration
+      return this.inbox.message_signature_enabled;
     },
     conversationId() {
       return this.currentChat.id;
@@ -611,29 +610,9 @@ export default {
       }
     },
     toggleSignatureForDraft(message) {
-      if (this.isPrivate) {
-        return message;
-      }
-      if (this.showRichContentEditor) {
-        const effectiveChannelType = getEffectiveChannelType(
-          this.channelType,
-          this.inbox?.medium || ''
-        );
-        return this.sendWithSignature
-          ? appendSignature(
-              message,
-              this.messageSignature,
-              effectiveChannelType
-            )
-          : removeSignature(
-              message,
-              this.messageSignature,
-              effectiveChannelType
-            );
-      }
-      return this.sendWithSignature
-        ? appendSignature(message, this.signatureToApply)
-        : removeSignature(message, this.signatureToApply);
+      // We don't want to modify the editor content anymore as per new requirements.
+      // Signature is applied only on send.
+      return message;
     },
     removeFromDraft() {
       if (this.conversationIdByRoute) {
@@ -733,6 +712,13 @@ export default {
         return;
       }
       if (!this.showMentions) {
+        let messageToSend = this.message;
+        if (this.sendWithSignature && !this.isPrivate) {
+          const senderName =
+            this.currentUser.display_name || this.currentUser.name;
+          messageToSend = `*${senderName}:*\n${messageToSend}`;
+        }
+
         const isOnWhatsApp =
           this.isATwilioWhatsAppChannel ||
           this.isAWhatsAppCloudChannel ||
@@ -742,9 +728,9 @@ export default {
         // This can create duplicate messages in Chatwoot. To prevent this issue, we'll handle text and attachments as separate messages.
         const isOnInstagram = this.isAnInstagramChannel;
         if ((isOnWhatsApp || isOnInstagram) && !this.isPrivate) {
-          this.sendMessageAsMultipleMessages(this.message);
+          this.sendMessageAsMultipleMessages(messageToSend);
         } else {
-          const messagePayload = this.getMessagePayload(this.message);
+          const messagePayload = this.getMessagePayload(messageToSend);
           this.sendMessage(messagePayload);
         }
 
@@ -899,22 +885,7 @@ export default {
     },
     clearMessage() {
       this.message = '';
-      if (this.sendWithSignature && !this.isPrivate) {
-        // if signature is enabled, append it to the message
-        if (this.showRichContentEditor) {
-          const effectiveChannelType = getEffectiveChannelType(
-            this.channelType,
-            this.inbox?.medium || ''
-          );
-          this.message = appendSignature(
-            this.message,
-            this.messageSignature,
-            effectiveChannelType
-          );
-        } else {
-          this.message = appendSignature(this.message, this.signatureToApply);
-        }
-      }
+      // Cleaned up legacy signature logic to prevent editor clutter
       this.attachedFiles = [];
       this.isRecordingAudio = false;
       this.resetReplyToMessage();
@@ -1312,6 +1283,7 @@ export default {
       :toggle-audio-recorder="toggleAudioRecorder"
       :toggle-emoji-picker="toggleEmojiPicker"
       :message="message"
+      :signature-enabled="sendWithSignature"
       :portal-slug="connectedPortalSlug"
       :new-conversation-modal-active="newConversationModalActive"
       @select-whatsapp-template="openWhatsappTemplateModal"
@@ -1319,6 +1291,7 @@ export default {
       @replace-text="replaceText"
       @toggle-insert-article="toggleInsertArticle"
       @toggle-quoted-reply="toggleQuotedReply"
+      @toggle-signature="toggleSignature"
     />
     <WhatsappTemplates
       :inbox-id="inbox.id"
@@ -1346,11 +1319,12 @@ export default {
 
 <style lang="scss" scoped>
 .send-button {
-  @apply mb-0;
+  margin-bottom: 0px;
 }
 
 .attachment-preview-box {
-  @apply bg-transparent py-0 px-4;
+  background-color: transparent;
+  padding: 0 1rem;
 }
 
 .reply-box {
@@ -1364,7 +1338,7 @@ export default {
 }
 
 .send-button {
-  @apply mb-0;
+  margin-bottom: 0px;
 }
 
 .reply-box__top {

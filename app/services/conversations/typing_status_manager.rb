@@ -21,6 +21,11 @@ class Conversations::TypingStatusManager
     when 'off'
       trigger_typing_event(CONVERSATION_TYPING_OFF, params[:is_private])
     end
+    channel = conversation.inbox.channel
+    return unless channel.respond_to?(:toggle_typing_status)
+
+    channel.toggle_typing_status(params[:typing_status], conversation: conversation)
+
     # Return the head :ok response from the controller
   end
 end

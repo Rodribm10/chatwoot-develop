@@ -3,7 +3,7 @@ module Whatsapp::Providers
     attr_reader :whatsapp_channel
 
     def initialize(whatsapp_channel:)
-      @whatsapp_channel = whatsapp_channel
+      super(whatsapp_channel: whatsapp_channel)
       @base_url = whatsapp_channel.provider_config['wuzapi_base_url']
     end
 
@@ -55,6 +55,10 @@ module Whatsapp::Providers
       if use_me_prefix
         normalized_phone = "me:#{normalized_phone}" unless normalized_phone.start_with?('me:')
         message_id = "me:#{message_id}" if message_id.present? && !message_id.start_with?('me:')
+      else
+        # Enforce JID format for customer numbers
+        clean_number = normalized_phone.split('@').first
+        normalized_phone = "#{clean_number}@s.whatsapp.net"
       end
 
       Rails.logger.info "[WuzapiService] Attempting reaction: phone=#{normalized_phone}, msg_id=#{message_id}, emoji=#{reaction_emoji}"
@@ -95,6 +99,33 @@ module Whatsapp::Providers
         true
       rescue Wuzapi::Client::Error
         false
+      end
+    end
+
+    def toggle_typing_status(typing_status, recipient_id: nil, **_kwargs)
+      # typing_status: 'typing_on', 'typing_off'
+      # Wuzapi expects: 'composing', 'paused'
+
+      state = %w[typing_on on].include?(typing_status) ? 'composing' : 'paused'
+      user_token = whatsapp_channel.wuzapi_user_token
+      phone_number = recipient_id || whatsapp_channel.phone_number
+
+      # Clean phone number (digits only)
+      normalized_phone = phone_number.to_s.gsub(/[\+\s\-\(\)]/, '')
+
+      # Enforce JID format: 5561...@s.whatsapp.net
+      # Strip any existing suffix (like @lid or even @s.whatsapp.net to be safe) and append standard one.
+      clean_number = normalized_phone.split('@').first
+      jid = "#{clean_number}@s.whatsapp.net"
+
+      Rails.logger.info "[WuzapiService] toggle_typing_status: Sending presence to #{jid} (raw: #{normalized_phone}), state: #{state}, token_present: #{user_token.present?}"
+
+      begin
+        # Use JID in the 'Phone' field as confirmed by manual tests (Test C)
+        response = client.send_chat_presence(user_token, jid, state)
+        Rails.logger.info "[WuzapiService] toggle_typing_status response: #{response}"
+      rescue StandardError => e
+        Rails.logger.warn "Wuzapi: Failed to send typing status: #{e.message}"
       end
     end
 

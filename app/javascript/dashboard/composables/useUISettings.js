@@ -76,16 +76,15 @@ const toggleSidebarUIState = (key, uiSettings, updateUISettings) => {
 };
 
 /**
- * Sets the signature flag for a specific channel type in the inbox settings.
- * @param {string} channelType - The type of the channel.
+ * Sets the signature flag for a specific inbox in the settings.
+ * @param {number|string} inboxId - The ID of the inbox.
  * @param {boolean} value - The value to set for the signature enabled flag.
  * @param {Function} updateUISettings - Function to update UI settings.
  */
-const setSignatureFlagForInbox = (channelType, value, updateUISettings) => {
-  if (!channelType) return;
+const setSignatureFlagForInbox = (inboxId, value, updateUISettings) => {
+  if (!inboxId) return;
 
-  const slugifiedChannel = slugifyChannel(channelType);
-  updateUISettings({ [`${slugifiedChannel}_signature_enabled`]: value });
+  updateUISettings({ [`inbox_${inboxId}_signature_enabled`]: value });
 };
 
 const setQuotedReplyFlagForInbox = (channelType, value, updateUISettings) => {
@@ -96,16 +95,15 @@ const setQuotedReplyFlagForInbox = (channelType, value, updateUISettings) => {
 };
 
 /**
- * Fetches the signature flag for a specific channel type from UI settings.
- * @param {string} channelType - The type of the channel.
+ * Fetches the signature flag for a specific inbox from UI settings.
+ * @param {number|string} inboxId - The ID of the inbox.
  * @param {Object} uiSettings - Reactive UI settings object.
  * @returns {boolean} The value of the signature enabled flag.
  */
-const fetchSignatureFlagFromUISettings = (channelType, uiSettings) => {
-  if (!channelType) return false;
+const fetchSignatureFlagFromUISettings = (inboxId, uiSettings) => {
+  if (!inboxId) return false;
 
-  const slugifiedChannel = slugifyChannel(channelType);
-  return uiSettings.value[`${slugifiedChannel}_signature_enabled`];
+  return uiSettings.value[`inbox_${inboxId}_signature_enabled`];
 };
 
 const fetchQuotedReplyFlagFromUISettings = (channelType, uiSettings) => {

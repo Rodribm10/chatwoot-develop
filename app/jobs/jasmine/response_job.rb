@@ -1,7 +1,7 @@
 module Jasmine
   class ResponseJob < ApplicationJob
     queue_as :default
-    
+
     retry_on StandardError, wait: :polynomially_longer, attempts: 2
 
     def perform(message_id)
@@ -13,20 +13,34 @@ module Jasmine
       config = inbox.jasmine_inbox_config
 
       # Double-check conditions (in case they changed since job was enqueued)
+      Rails.logger.info "[Jasmine::ResponseJob] Started for Message #{message_id}, Channel Class: #{inbox.channel.class.name}"
       return unless config&.is_enabled?
       return if conversation.assignee.present?
 
-      # Get response from BrainService
-      response_text = BrainService.new(
-        inbox: inbox,
-        conversation: conversation,
-        message: message
-      ).respond
+      # Send typing indicator
+      inbox.channel.toggle_typing_status('typing_on', conversation: conversation)
 
-      return if response_text.blank?
+      begin
+        # Sleep for verification (optimized to 1.5s per recommendation)
+        sleep 1.5
 
-      # Send response as outgoing message
-      send_response(conversation, response_text)
+        # Get response from BrainService
+        response_text = BrainService.new(
+          inbox: inbox,
+          conversation: conversation,
+          message: message
+        ).respond
+
+        return if response_text.blank?
+
+        # Send response as outgoing message
+        send_response(conversation, response_text)
+      ensure
+        # Ensure typing is turned off even if errors occur or no response
+        # Wait a bit to ensure the message "send" signal propagates before sending "paused"
+        sleep 0.5
+        inbox.channel.toggle_typing_status('typing_off', conversation: conversation)
+      end
     end
 
     private

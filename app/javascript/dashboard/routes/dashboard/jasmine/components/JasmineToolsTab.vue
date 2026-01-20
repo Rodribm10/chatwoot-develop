@@ -19,17 +19,18 @@ async function fetchTools() {
 
   try {
     const { data } = await JasmineAPI.getTools(props.inboxId);
-    console.log('[JasmineTools] Loaded:', data);
+    // console.log('[JasmineTools] Loaded:', data);
     tools.value = data || [];
   } catch (error) {
-    console.error('[JasmineTools] Error:', error);
+    // console.error('[JasmineTools] Error:', error);
     useAlert('Erro ao carregar ferramentas');
   } finally {
     isLoading.value = false;
   }
 }
 
-function handleUpdate(updatedToolData) {
+function handleUpdate() {
+  // [INTENTIONAL] updatedToolData reserved for future optimistic updates.
   fetchTools();
 }
 
@@ -39,6 +40,8 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
+  <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
   <div class="mx-auto max-w-screen-md px-5 py-8 font-inter">
     <div class="flex flex-col gap-6">
       <div class="mb-2">

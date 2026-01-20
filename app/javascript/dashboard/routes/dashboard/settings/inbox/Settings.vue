@@ -88,9 +88,9 @@ export default {
       selectedTabIndex: 0,
       selectedPortalSlug: '',
       showBusinessNameInput: false,
-      healthData: null,
       isLoadingHealth: false,
       healthError: null,
+      messageSignatureEnabled: false,
     };
   },
   computed: {
@@ -431,6 +431,7 @@ export default {
         this.selectedPortalSlug = this.inbox.help_center
           ? this.inbox.help_center.slug
           : '';
+        this.messageSignatureEnabled = this.inbox.message_signature_enabled;
 
         // Set initial tab after inbox data is loaded
         this.setTabFromRouteParam();
@@ -453,6 +454,7 @@ export default {
           lock_to_single_conversation: this.locktoSingleConversation,
           sender_name_type: this.senderNameType,
           business_name: this.businessName || null,
+          message_signature_enabled: this.messageSignatureEnabled,
           channel: {
             widget_color: this.inbox.widget_color,
             website_url: this.channelWebsiteUrl,
@@ -598,6 +600,17 @@ export default {
             @blur="v$.selectedInboxName.$touch"
           />
           <InboxAutoResolve :inbox="inbox" class="mb-4" />
+          <div class="flex flex-row items-center gap-2 mb-4">
+            <input
+              id="messageSignatureEnabled"
+              v-model="messageSignatureEnabled"
+              type="checkbox"
+              @change="updateInbox"
+            />
+            <label for="messageSignatureEnabled">
+              {{ $t('INBOX_MGMT.ADD.MESSAGE_SIGNATURE.LABEL') }}
+            </label>
+          </div>
           <woot-input
             v-if="isAPIInbox"
             v-model="webhookUrl"

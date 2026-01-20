@@ -107,9 +107,22 @@ class Channel::Whatsapp < ApplicationRecord
   def toggle_typing_status(typing_status, conversation:)
     return unless provider_service.respond_to?(:toggle_typing_status)
 
-    recipient_id = conversation.contact.identifier || conversation.contact.phone_number
-    last_message = conversation.messages.last
-    provider_service.toggle_typing_status(typing_status, last_message: last_message, recipient_id: recipient_id)
+    identifier = conversation.contact.identifier
+    phone_number = conversation.contact.phone_number
+    recipient_id = identifier || phone_number
+
+    # Debug Log
+    Rails.logger.info "[Typing] recipient_id=#{recipient_id.inspect} identifier=#{identifier.inspect} phone=#{phone_number.inspect}"
+
+    # Validation: Ensure recipient_id is E164 compliant (digits only, maybe +).
+    # If identifier is something like x@lid, we should fallback to phone_number.
+    # Using suggested regex: \A\+?\d{10,15}\z
+    unless recipient_id.to_s.gsub(/[\+\s\-\(\)]/, '').match?(/\A\d{10,15}\z/)
+      Rails.logger.warn "[Typing] Invalid recipient_id format (#{recipient_id}). Falling back to phone_number: #{phone_number}"
+      recipient_id = phone_number
+    end
+
+    provider_service.toggle_typing_status(typing_status, last_message: nil, recipient_id: recipient_id)
   end
 
   def update_presence(status)

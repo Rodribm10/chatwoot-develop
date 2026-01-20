@@ -1,6 +1,5 @@
 <script>
 import { ref } from 'vue';
-import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
 import FileUpload from 'vue-upload-component';
 import * as ActiveStorage from 'activestorage';
@@ -118,6 +117,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    signatureEnabled: {
+      type: Boolean,
+      default: false,
+    },
     quotedReplyEnabled: {
       type: Boolean,
       default: false,
@@ -129,11 +132,9 @@ export default {
     'selectWhatsappTemplate',
     'selectContentTemplate',
     'toggleQuotedReply',
+    'toggleSignature',
   ],
   setup() {
-    const { setSignatureFlagForInbox, fetchSignatureFlagFromUISettings } =
-      useUISettings();
-
     const uploadRef = ref(false);
 
     const keyboardEvents = {
@@ -155,8 +156,6 @@ export default {
     useKeyboardEvents(keyboardEvents);
 
     return {
-      setSignatureFlagForInbox,
-      fetchSignatureFlagFromUISettings,
       uploadRef,
     };
   },
@@ -239,8 +238,7 @@ export default {
       return !this.isOnPrivateNote;
     },
     sendWithSignature() {
-      // channelType is sourced from inboxMixin
-      return this.fetchSignatureFlagFromUISettings(this.channelType);
+      return this.signatureEnabled;
     },
     signatureToggleTooltip() {
       return this.sendWithSignature
@@ -264,7 +262,7 @@ export default {
   },
   methods: {
     toggleMessageSignature() {
-      this.setSignatureFlagForInbox(this.channelType, !this.sendWithSignature);
+      this.$emit('toggleSignature');
     },
     replaceText(text) {
       this.$emit('replaceText', text);
@@ -333,8 +331,8 @@ export default {
         v-if="showMessageSignatureButton"
         v-tooltip.top-end="signatureToggleTooltip"
         icon="i-ph-signature"
-        slate
-        faded
+        :variant="signatureEnabled ? 'solid' : 'faded'"
+        color="slate"
         sm
         @click="toggleMessageSignature"
       />
@@ -414,20 +412,22 @@ export default {
 
 <style lang="scss" scoped>
 .left-wrap {
-  @apply items-center flex gap-2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .right-wrap {
-  @apply flex;
+  display: flex;
 }
 
 ::v-deep .file-uploads {
   label {
-    @apply cursor-pointer;
+    cursor: pointer;
   }
 
   &:hover button {
-    @apply enabled:bg-n-slate-9/20;
+    background-color: var(--n-slate-9/20);
   }
 }
 </style>

@@ -1,0 +1,16 @@
+- [x] **Phase 1: Input Analysis**
+  - [x] Read `audit_report.md` (if available - not found).
+  - [x] Identify areas marked as "CAUTION" or "KEEP".
+- [x] **Phase 2: Check Idempotency (Content-Based)**
+  - [x] Verify if files already meet the organization standards.
+  - [x] Skip files that already have sorted imports or standard headers.
+  - [x] **Rule**: Logic must be deterministic based on FILE CONTENT, ignoring git history.
+- [ ] **Phase 3: Safe Cleanup (Non-Destructive)**
+  - [ ] Remove unused _local_ variables (verified SAFE).
+  - [ ] Organize imports (sort, group, remove dups - **strict side-effect check**).
+  - [x] Standardize comments.
+- [x] **Phase 4: Clarification & Documentation**
+  - [x] Add standard tags (`[INTENTIONAL]`, `[LEGACY]`).
+  - [x] Document implicit dependencies (Gemfile or docs).
+- [x] **Phase 5: Reporting**
+  - [x] Generate `organization_report.md`.

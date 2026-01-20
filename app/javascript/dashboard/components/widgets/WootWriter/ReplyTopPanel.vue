@@ -91,12 +91,13 @@ export default {
 
 <template>
   <div class="flex justify-between h-[3.25rem] gap-2 ltr:pl-3 rtl:pr-3">
-    <EditorModeToggle
-      :mode="mode"
-      :disabled="isReplyRestricted"
-      class="mt-3"
-      @toggle-mode="handleModeToggle"
-    />
+    <div class="flex items-center gap-2 mt-3">
+      <EditorModeToggle
+        :mode="mode"
+        :disabled="isReplyRestricted"
+        @toggle-mode="handleModeToggle"
+      />
+    </div>
     <div class="flex items-center mx-4 my-0">
       <div v-if="isMessageLengthReachingThreshold" class="text-xs">
         <span :class="charLengthClass">

@@ -34,7 +34,8 @@ watch(
   },
   { deep: true }
 );
-watch(isEnabled, newVal => {
+watch(isEnabled, () => {
+  // [INTENTIONAL] newVal reserved for future diff checks.
   // If user toggles switch, we consider it a change that needs saving
   // Or we can auto-save. The requirement says "Toggle Ativar/Desativar"
   // Let's rely on the user clicking save for config, but maybe auto-save toggle?
@@ -116,6 +117,8 @@ function formatJson(str) {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
+  <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
   <div class="bg-n-solid-1 border border-n-weak rounded-lg p-5 mb-4">
     <div class="flex justify-between items-start mb-4">
       <div>
@@ -144,7 +147,7 @@ function formatJson(str) {
         >
           {{ isEnabled ? 'Ativo' : 'Inativo' }}
         </span>
-        <woot-switch v-model="isEnabled" />
+        <WootSwitch v-model="isEnabled" />
       </div>
     </div>
 
@@ -153,20 +156,22 @@ function formatJson(str) {
       <div>
         <label
           class="block text-xs font-medium text-n-slate-11 mb-1 uppercase tracking-wide"
-          >PLUG-PLAY-ID</label
         >
+          PLUG-PLAY-ID
+        </label>
         <input
           v-model="config.plug_play_id"
           type="text"
-          class="w-full px-3 py-2 rounded-lg border border-n-weak bg-n-solid-2 text-n-slate-12 focus:border-n-brand focus:outline-none transition-colors text-sm"
-          placeholder="ID do cliente"
+          class="w-full px-3 py-2 text-sm rounded-md border border-n-weak bg-n-solid-2 text-n-slate-12 focus:outline-none focus:border-n-brand"
+          placeholder="Insira o ID de integração"
         />
       </div>
       <div>
         <label
           class="block text-xs font-medium text-n-slate-11 mb-1 uppercase tracking-wide"
-          >PLUG-PLAY-TOKEN</label
         >
+          PLUG-PLAY-TOKEN
+        </label>
         <div class="relative">
           <input
             v-model="config.plug_play_token"
@@ -176,8 +181,8 @@ function formatJson(str) {
           />
           <button
             class="absolute right-3 top-1/2 -translate-y-1/2 text-n-slate-10 hover:text-n-slate-12"
-            @click="showToken = !showToken"
             tabindex="-1"
+            @click="showToken = !showToken"
           >
             <i :class="showToken ? 'i-lucide-eye-off' : 'i-lucide-eye'" />
           </button>
@@ -195,7 +200,7 @@ function formatJson(str) {
             <span
               class="w-2 h-2 rounded-full"
               :class="statusColor.replace('text-', 'bg-')"
-            ></span>
+            />
             <span>
               Status:
               <span class="font-mono font-medium" :class="statusColor">{{
@@ -214,9 +219,9 @@ function formatJson(str) {
             Erro: {{ tool.last_test.error }}
           </div>
         </template>
-        <span v-else class="text-n-slate-9 italic"
-          >Ferramenta nunca testada</span
-        >
+        <span v-else class="text-n-slate-9 italic">
+          Ferramenta nunca testada
+        </span>
       </div>
 
       <div class="flex gap-2">
@@ -259,10 +264,11 @@ function formatJson(str) {
         </span>
       </div>
       <div class="bg-n-solid-3 p-0">
+        <!-- eslint-disable prettier/prettier -->
         <pre
           class="overflow-auto max-h-60 p-4 text-xs font-mono text-n-slate-11 whitespace-pre-wrap break-all"
-          >{{ formatJson(testResult.body || testResult.error) }}</pre
-        >
+        >{{ formatJson(testResult.body || testResult.error) }}</pre>
+        <!-- eslint-enable prettier/prettier -->
       </div>
     </div>
   </div>

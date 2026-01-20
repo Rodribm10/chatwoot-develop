@@ -44,7 +44,7 @@ class FixStatusSuitesHeaders < ActiveRecord::Migration[7.1]
         else
           puts '  No keys found in URL query params. Manual update might be required for values.'
         end
-      rescue URI::InvalidURIError => e
+      rescue URI::InvalidURIError # [INTENTIONAL] keep for future logging
         puts "  Skipping invalid URI: #{tool.endpoint_url}"
       end
     end

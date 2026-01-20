@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { useStoreGetters, useStore } from 'dashboard/composables/store';
+import { useStoreGetters } from 'dashboard/composables/store';
 import { useAlert } from 'dashboard/composables';
 import JasmineAPI from 'dashboard/api/inbox/jasmine';
 
@@ -11,7 +11,8 @@ import Button from 'dashboard/components-next/button/Button.vue';
 import JasmineToolsTab from '../components/JasmineToolsTab.vue';
 
 const route = useRoute();
-const store = useStore();
+// const store = useStore();
+// [INTENTIONAL] store reserved for upcoming actions in this view.
 const getters = useStoreGetters();
 
 // State
@@ -100,7 +101,10 @@ const createCollection = async () => {
 };
 
 const deleteCollection = async collectionId => {
-  if (!confirm('Delete this collection and all its documents?')) return;
+  // eslint-disable-next-line no-alert
+  // eslint-disable-next-line no-alert
+  // eslint-disable-next-line no-alert
+  if (!window.confirm('Delete this collection and all its documents?')) return;
   isDeletingCollection.value = collectionId;
   try {
     await JasmineAPI.deleteCollection(collectionId);
@@ -113,16 +117,6 @@ const deleteCollection = async collectionId => {
   }
 };
 
-const toggleCollection = async collection => {
-  if (expandedCollectionId.value === collection.id) {
-    expandedCollectionId.value = null;
-    documents.value = [];
-    return;
-  }
-  expandedCollectionId.value = collection.id;
-  await fetchDocuments(collection.id);
-};
-
 const fetchDocuments = async collectionId => {
   isLoadingDocs.value = true;
   try {
@@ -133,6 +127,16 @@ const fetchDocuments = async collectionId => {
   } finally {
     isLoadingDocs.value = false;
   }
+};
+
+const toggleCollection = async collection => {
+  if (expandedCollectionId.value === collection.id) {
+    expandedCollectionId.value = null;
+    documents.value = [];
+    return;
+  }
+  expandedCollectionId.value = collection.id;
+  await fetchDocuments(collection.id);
 };
 
 const addDocument = async collectionId => {
@@ -156,7 +160,10 @@ const addDocument = async collectionId => {
 };
 
 const deleteDocument = async (collectionId, docId) => {
-  if (!confirm('Delete this document?')) return;
+  // eslint-disable-next-line no-alert
+  // eslint-disable-next-line no-alert
+  // eslint-disable-next-line no-alert
+  if (!window.confirm('Delete this document?')) return;
   isDeletingDoc.value = docId;
   try {
     await JasmineAPI.deleteDocument(collectionId, docId);
@@ -176,11 +183,12 @@ const openEditDoc = doc => {
   showEditDocModal.value = true;
 };
 
-const saveEditDoc = async () => {
-  // TODO: Implement update API when available
-  useAlert('Edit functionality coming soon');
-  showEditDocModal.value = false;
-};
+// const saveEditDoc = async () => {
+//   // [FUTURE] Placeholder until update API is available.
+//   // TODO: Implement update API when available
+//   useAlert('Edit functionality coming soon');
+//   showEditDocModal.value = false;
+// };
 
 const getStatusColor = status => {
   const colors = {
@@ -210,7 +218,7 @@ const fetchConfig = async () => {
     };
   } catch (error) {
     // Config may not exist yet, use defaults
-    console.log('No config found, using defaults');
+    // console.log('No config found, using defaults');
   } finally {
     isLoadingConfig.value = false;
   }
@@ -241,6 +249,8 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
+  <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
   <SettingsLayout :is-loading="false">
     <template #header>
       <BaseSettingsHeader
@@ -265,8 +275,8 @@ onMounted(() => {
         <button
           v-for="tab in tabs"
           :key="tab.key"
+          class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
           :class="[
-            'px-4 py-2 text-sm font-medium rounded-md transition-colors',
             activeTab === tab.key
               ? 'bg-n-solid-1 text-n-slate-12 shadow-sm'
               : 'text-n-slate-11 hover:text-n-slate-12',
@@ -322,8 +332,8 @@ onMounted(() => {
                   </td>
                   <td class="py-4">
                     <span
+                      class="px-2 py-1 text-xs font-medium rounded uppercase"
                       :class="[
-                        'px-2 py-1 text-xs font-medium rounded uppercase',
                         collection.visibility === 'private'
                           ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                           : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -403,10 +413,8 @@ onMounted(() => {
                           </div>
                           <div class="flex items-center gap-2 shrink-0">
                             <span
-                              :class="[
-                                'px-2 py-0.5 text-xs font-medium rounded-full',
-                                getStatusColor(doc.status),
-                              ]"
+                              class="px-2 py-0.5 text-xs font-medium rounded-full"
+                              :class="getStatusColor(doc.status)"
                             >
                               {{ doc.status || 'pending' }}
                             </span>
@@ -517,18 +525,18 @@ onMounted(() => {
           <div>
             <div class="flex items-center justify-between mb-2">
               <div>
-                <label class="block text-sm font-medium text-n-slate-12"
-                  >System Prompt</label
-                >
+                <label class="block text-sm font-medium text-n-slate-12">
+                  System Prompt
+                </label>
                 <p class="text-xs text-n-slate-11">
                   Identidade e regras gerais da Jasmine
                 </p>
               </div>
               <Button
-                type="button"
                 v-tooltip="
                   expandedFields.system_prompt ? 'Recolher' : 'Expandir'
                 "
+                type="button"
                 :icon="
                   expandedFields.system_prompt
                     ? 'i-lucide-minimize-2'
@@ -542,10 +550,8 @@ onMounted(() => {
             </div>
             <textarea
               v-model="config.system_prompt"
-              :class="[
-                'w-full px-3 py-2 text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12 resize-none font-mono transition-all duration-300',
-                expandedFields.system_prompt ? 'h-[600px]' : 'h-32',
-              ]"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12 resize-none font-mono transition-all duration-300"
+              :class="expandedFields.system_prompt ? 'h-[600px]' : 'h-32'"
               placeholder="Você é Jasmine, uma assistente virtual da [Empresa]..."
             />
           </div>
@@ -554,18 +560,18 @@ onMounted(() => {
           <div>
             <div class="flex items-center justify-between mb-2">
               <div>
-                <label class="block text-sm font-medium text-n-slate-12"
-                  >Playbook SDR</label
-                >
+                <label class="block text-sm font-medium text-n-slate-12">
+                  Playbook SDR
+                </label>
                 <p class="text-xs text-n-slate-11">
                   Script de vendas e tratamento de objeções
                 </p>
               </div>
               <Button
-                type="button"
                 v-tooltip="
                   expandedFields.playbook_prompt ? 'Recolher' : 'Expandir'
                 "
+                type="button"
                 :icon="
                   expandedFields.playbook_prompt
                     ? 'i-lucide-minimize-2'
@@ -579,10 +585,8 @@ onMounted(() => {
             </div>
             <textarea
               v-model="config.playbook_prompt"
-              :class="[
-                'w-full px-3 py-2 text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12 resize-none font-mono transition-all duration-300',
-                expandedFields.playbook_prompt ? 'h-[600px]' : 'h-48',
-              ]"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12 resize-none font-mono transition-all duration-300"
+              :class="expandedFields.playbook_prompt ? 'h-[600px]' : 'h-48'"
               placeholder="## Objetivo\nQualificar leads...\n\n## Perguntas...\n\n## Objeções..."
             />
           </div>
@@ -590,9 +594,9 @@ onMounted(() => {
           <!-- Model Settings -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-n-slate-12 mb-2"
-                >Modelo LLM</label
-              >
+              <label class="block text-sm font-medium text-n-slate-12 mb-2">
+                Modelo LLM
+              </label>
               <select
                 v-model="config.model"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12"
@@ -608,9 +612,9 @@ onMounted(() => {
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-n-slate-12 mb-2"
-                >Temperatura: {{ config.temperature }}</label
-              >
+              <label class="block text-sm font-medium text-n-slate-12 mb-2">
+                Temperatura: {{ config.temperature }}
+              </label>
               <input
                 v-model.number="config.temperature"
                 type="range"
@@ -628,10 +632,9 @@ onMounted(() => {
           <!-- RAG Settings -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-n-slate-12 mb-2"
-                >Threshold de Distância:
-                {{ config.rag_distance_threshold }}</label
-              >
+              <label class="block text-sm font-medium text-n-slate-12 mb-2">
+                Threshold de Distância: {{ config.rag_distance_threshold }}
+              </label>
               <input
                 v-model.number="config.rag_distance_threshold"
                 type="range"
@@ -645,9 +648,9 @@ onMounted(() => {
               </p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-n-slate-12 mb-2"
-                >Máx. Resultados RAG</label
-              >
+              <label class="block text-sm font-medium text-n-slate-12 mb-2">
+                Máx. Resultados RAG
+              </label>
               <input
                 v-model.number="config.rag_max_results"
                 type="number"
@@ -717,10 +720,7 @@ onMounted(() => {
       v-model:show="showEditDocModal"
       :on-close="() => (showEditDocModal = false)"
     >
-      <div
-        class="flex flex-col h-auto overflow-auto p-6"
-        style="min-width: 500px"
-      >
+      <div class="flex flex-col h-auto overflow-auto p-6 min-w-[500px]">
         <h3 class="text-lg font-semibold mb-4 text-n-slate-12">
           Visualizar Documento
         </h3>

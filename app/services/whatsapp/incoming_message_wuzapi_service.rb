@@ -3,29 +3,42 @@ module Whatsapp
     def perform
       parser = Whatsapp::Providers::Wuzapi::PayloadParser.new(params)
 
-      # 1. V1 Scope: Ignore Groups
+      # 1. Message Type Check (V1: Text + Presence)
+      # Fail fast for unsupported types (like ReadReceipts)
+      return unless [:text, :chat_presence].include?(parser.message_type)
+
+      # 2. V1 Scope: Ignore Groups
       if parser.group_message?
         Rails.logger.info "WuzAPI: Ignoring group message (ID: #{parser.external_id})"
         return
       end
 
-      # 2. Strong Dedupe (Critical for Sync)
-      if Message.exists?(source_id: parser.external_id, inbox_id: inbox.id)
+      # 3. Strong Dedupe (Critical for Sync)
+      # Skip dedupe for ChatPresence as it doesn't have a unique ID
+      if parser.message_type != :chat_presence && parser.external_id.present? && Message.exists?(source_id: parser.external_id, inbox_id: inbox.id)
         Rails.logger.info "WuzAPI: Ignoring duplicate message (ID: #{parser.external_id})"
         return
       end
 
-      # 3. Message Type Check (V1: Text Only)
-      return unless parser.message_type == :text
+      if parser.sender_phone_number.blank?
+        Rails.logger.warn "WuzAPI: Skipping processing for event with no valid phone (Type: #{parser.message_type})"
+        return
+      end
 
       # 4. Process
-      Rails.logger.info "WuzAPI: Processing message from #{parser.sender_phone_number}"
+      Rails.logger.info "WuzAPI: Processing message from #{parser.sender_phone_number} (Type: #{parser.message_type})"
       ActiveRecord::Base.transaction do
         @contact = find_or_create_contact(parser)
         Rails.logger.info "WuzAPI: Contact found/created: #{@contact.id}"
 
         @conversation = find_or_create_conversation(@contact)
         Rails.logger.info "WuzAPI: Conversation found/created: #{@conversation.id}"
+
+        if parser.message_type == :chat_presence
+          status = parser.presence_state == 'composing' ? 'on' : 'off'
+          @conversation.toggle_typing_status(status)
+          return
+        end
 
         message = create_message(parser, @conversation)
         Rails.logger.info "WuzAPI: Message created: #{message.id}"

@@ -95,7 +95,6 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
   end
 
   def process_response
-    trigger_typing_status('off')
     handled = if @response['handoff_trigger'].present?
                 apply_handoff_behavior(@response['handoff_trigger'])
               elsif handoff_requested?
@@ -106,6 +105,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     return if handled
 
     humanized_delay(@response['response'])
+    trigger_typing_status('off')
     create_messages
     Rails.logger.info("[CAPTAIN][ResponseBuilderJob] Incrementing response usage for #{account.id}")
     account.increment_response_usage

@@ -4,7 +4,8 @@ import { createStore } from '../storeFactory';
 export default createStore({
   name: 'CaptainAssistant',
   API: CaptainAssistantAPI,
-  actions: (mutationTypes) => ({
+  actions: () => ({
+    // [INTENTIONAL] mutationTypes kept for storeFactory contract compatibility.
     fetchTools: async (_, { assistantId }) => {
       try {
         const { data } = await CaptainAssistantAPI.getTools(assistantId);

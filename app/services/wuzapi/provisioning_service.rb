@@ -21,7 +21,7 @@ module Wuzapi
       }
     end
 
-    def setup_webhook(user_token, inbox_id, webhook_secret)
+    def setup_webhook(user_token, inbox_id, _webhook_secret) # [INTENTIONAL] reserved for signed webhooks
       # Host logic needs to come from GlobalConfig or Rails.application.routes
       # Ideally passed in or resolved.
       base_host = ENV.fetch('FRONTEND_URL', 'http://localhost:3000')

@@ -23,8 +23,7 @@ module Captain
       end
 
       def initialize(assistant, user: nil, conversation: nil)
-        @conversation = conversation
-        super(assistant, user: user)
+        super(assistant, user: user, conversation: conversation)
       end
 
       def execute(*args, **params)
@@ -35,11 +34,17 @@ module Captain
 
         # Get the last incoming message from the customer
         last_customer_message = @conversation.messages.incoming.last
-        return error_response('No customer message to react to') unless last_customer_message.present?
+        if last_customer_message.blank?
+          Rails.logger.warn "[ReactToMessageTool] Failure: No incoming message found for conversation #{@conversation.id}"
+          return error_response('No customer message to react to')
+        end
 
         # Get the external message ID (source_id) - required for WhatsApp reactions
         message_external_id = last_customer_message.source_id
-        return error_response('Message has no external ID for reaction') if message_external_id.blank?
+        if message_external_id.blank?
+          Rails.logger.warn "[ReactToMessageTool] Failure: Message #{last_customer_message.id} has no source_id"
+          return error_response('Message has no external ID for reaction')
+        end
 
         Rails.logger.info "[ReactToMessageTool] Reacting to message #{last_customer_message.id} (source: #{message_external_id}) with #{emoji}"
 

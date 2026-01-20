@@ -69,40 +69,54 @@ class Captain::Assistant::AgentRunnerService
     text = message.to_s.strip.downcase
     return nil if text.blank?
 
+    # [FUTURE] Placeholder for a lightweight thank-you detector.
     # Simple substrings for thank you messages
     # Using simple include? is more robust for "obrigado ...." cases where regex might fail on boundaries
-    thank_you_keywords = [
-      'obrigad', # catches obrigado, obrigada, obrigados
-      'valeu',
-      'agradeço',
-      'agradecid',
-      'muito obrigad',
-      'brigadao',
-      'brigadão',
-      'brigadinha',
-      'gratidao',
-      'gratidão',
-      'thanks'
-    ]
 
     # Check if message is ONLY emoji(s) (simple heuristic)
     only_emoji = text.gsub(/[\s\p{Emoji}]/u, '').empty? && text.match?(/\p{Emoji}/u)
 
-    match_found = thank_you_keywords.any? { |kw| text.include?(kw) } || only_emoji
+    # Categories for context-aware reaction
+    keywords = {
+      thanks: %w[obrigad valeu agradeço grato thanks brigadao brigadão gratidao gratidão],
+      greeting: %w[oi olá ola bom dia boa tarde boa noite e ai eaí],
+      attention: %w[reserva pesquisar pesquisa busca buscar verificar checar olhada olho disponibilidade]
+    }
 
-    Rails.logger.info "[Captain V2] Reaction Pre-Check: Text='#{text}' Match=#{match_found}"
-    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] AgentRunnerService: Text='#{text}' Match=#{match_found}" }
+    # Check for direct matches
+    matched_category = nil
 
-    if match_found
-      Rails.logger.info '[Captain V2] Detected thank you/emoji. Executing ReactToMessageTool directly.'
+    keywords.each do |category, words|
+      if words.any? { |w| text.include?(w) }
+        matched_category = category
+        break
+      end
+    end
+
+    # Fallback to thanks if only emoji (assuming positive sentiment)
+    matched_category = :thanks if matched_category.nil? && only_emoji
+
+    Rails.logger.info "[Captain V2] Reaction Pre-Check: Text='#{text}' Category=#{matched_category}"
+    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] AgentRunnerService: Text='#{text}' Category=#{matched_category}" }
+
+    if matched_category
+      Rails.logger.info "[Captain V2] Detected #{matched_category}. Executing ReactToMessageTool directly."
+
+      emoji_map = {
+        thanks: ['❤️', '🙏', '🥰', '😍', '🤜🤛'],
+        greeting: ['😀', '👋', '🙂', '🤠', '🙋‍♂️', '🙋‍♀️'],
+        attention: ['👀', '🧐', '🕵️', '📝', '🔎']
+      }
+
+      selected_emoji = emoji_map[matched_category].sample || '❤️'
 
       begin
         tool = Captain::Tools::ReactToMessageTool.new(
-          assistant: @assistant,
+          @assistant,
           user: @conversation.contact,
           conversation: @conversation
         )
-        tool.execute(emoji: '❤️')
+        tool.execute(emoji: selected_emoji)
       rescue StandardError => e
         Rails.logger.error "[Captain V2] Failed to execute ReactToMessageTool: #{e.message}"
         # Fallback to normal flow if tool fails
@@ -110,7 +124,7 @@ class Captain::Assistant::AgentRunnerService
       end
 
       return {
-        'response' => 'De nada! ❤️',
+        'response' => "De nada! #{selected_emoji}",
         'reasoning' => 'Auto-reaction triggered by thank you/emoji detection',
         'agent_name' => @assistant.name
       }

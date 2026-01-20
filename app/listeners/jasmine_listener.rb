@@ -17,22 +17,38 @@ class JasmineListener < BaseListener
 
   def should_respond?(message)
     # Only respond to incoming messages from customers
-    return false unless message.incoming?
-    return false if message.private?
-    
+    unless message.incoming?
+      Rails.logger.info "[JasmineListener] Skipping: Message #{message.id} is not incoming"
+      return false
+    end
+    if message.private?
+      Rails.logger.info "[JasmineListener] Skipping: Message #{message.id} is private"
+      return false
+    end
+
     inbox = message.inbox
     config = inbox.jasmine_inbox_config
-    
+
     # Check if Jasmine is enabled for this inbox
-    return false unless config&.is_enabled?
-    
+    unless config&.is_enabled?
+      Rails.logger.info "[JasmineListener] Skipping: Jasmine disabled for inbox #{inbox.id}"
+      return false
+    end
+
     # Don't respond if conversation has a human agent assigned
     conversation = message.conversation
-    return false if conversation.assignee.present?
-    
+    if conversation.assignee.present?
+      Rails.logger.info "[JasmineListener] Skipping: Conversation #{conversation.id} has assignee #{conversation.assignee.id}"
+      return false
+    end
+
     # Don't respond if there's an active agent bot (avoid conflicts)
-    return false if inbox.active_bot?
-    
+    if inbox.active_bot?
+      Rails.logger.info "[JasmineListener] Skipping: Inbox #{inbox.id} has active_bot"
+      return false
+    end
+
+    Rails.logger.info "[JasmineListener] Validation Passed: Enqueueing ResponseJob for #{message.id}"
     true
   end
 
