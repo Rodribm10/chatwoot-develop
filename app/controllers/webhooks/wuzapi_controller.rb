@@ -4,20 +4,15 @@ class Webhooks::WuzapiController < ActionController::Base
   before_action :verify_secret
 
   def process_payload
-    # Normalize payload keys if necessary based on Wuzapi behavior
-    # Assuming Wuzapi sends standard WA format or we adapt it here
-    # For now, just logging to verify reception
     Rails.logger.info "Wuzapi Webhook Received for Inbox #{@inbox.id}: #{params.inspect}"
 
-    # TODO: Implement actual message processing logic:
-    # 1. Parse payload to extract Phone, Body, Type (Text/Image)
-    # 2. Find or create Contact
-    # 3. Create Message in Conversation
-    
-    # Example adapter call (to be implemented):
-    # Whatsapp::Providers::WuzapiAdapter.new(@inbox).process(params)
+    Whatsapp::IncomingMessageWuzapiService.new(inbox: @inbox, params: params.to_unsafe_hash).perform
 
     head :ok
+  rescue StandardError => e
+    Rails.logger.error "Error processing Wuzapi webhook: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    head :internal_server_error
   end
 
   private
@@ -32,9 +27,9 @@ class Webhooks::WuzapiController < ActionController::Base
     secret = params[:secret]
     stored_secret = @inbox.channel.provider_config['webhook_secret']
 
-    if secret.blank? || secret != stored_secret
-      Rails.logger.warn "Wuzapi Webhook: Invalid secret for Inbox #{@inbox.id}. Received: #{secret}"
-      head :unauthorized
-    end
+    return unless secret.blank? || secret != stored_secret
+
+    Rails.logger.warn "Wuzapi Webhook: Invalid secret for Inbox #{@inbox.id}. Received: #{secret}"
+    head :unauthorized
   end
 end
