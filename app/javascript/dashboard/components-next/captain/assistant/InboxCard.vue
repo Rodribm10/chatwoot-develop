@@ -69,6 +69,12 @@ const inboxName = computed(() => {
 
 const menuItems = computed(() => [
   {
+    label: t('CAPTAIN.INBOXES.OPTIONS.EDIT'),
+    value: 'edit',
+    action: 'edit',
+    icon: 'i-lucide-pencil-line',
+  },
+  {
     label: t('CAPTAIN.INBOXES.OPTIONS.DISCONNECT'),
     value: 'delete',
     action: 'delete',
@@ -85,6 +91,33 @@ const handleAction = ({ action, value }) => {
   toggleDropdown(false);
   emit('action', { action, value, id: props.id });
 };
+
+const unitName = ref('');
+
+const fetchUnit = async () => {
+  const unitId = props.inbox?.captain_inbox?.captain_unit_id;
+  if (!unitId) return;
+
+  try {
+    const accountId = window.chatwootConfig?.account_id;
+    if (!accountId) return;
+
+    const { data } = await window.axios.get(
+      `/api/v1/accounts/${accountId}/captain/units/${unitId}`
+    );
+    unitName.value = data.name;
+  } catch (error) {
+    // Ignore error
+  }
+};
+
+watch(
+  () => props.inbox?.captain_inbox?.captain_unit_id,
+  () => {
+    fetchUnit();
+  },
+  { immediate: true }
+);
 
 const toggleReminderTool = async value => {
   if (isUpdating.value) return;
@@ -146,6 +179,14 @@ const toggleReminderTool = async value => {
         :disabled="isUpdating"
         @update:model-value="toggleReminderTool"
       />
+    </div>
+    <div v-if="unitName" class="mt-2">
+      <span
+        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-100"
+      >
+        <i class="i-lucide-building-2 mr-1 text-xs" />
+        {{ unitName }}
+      </span>
     </div>
     <p class="mt-1 text-xs text-n-slate-10">
       {{ t('CAPTAIN.INBOXES.REMINDER_TOOL.HELP') }}

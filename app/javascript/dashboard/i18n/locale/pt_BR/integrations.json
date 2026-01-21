@@ -390,6 +390,10 @@
         "NAME_LABEL": "Nome da Unidade",
         "NAME_PLACEHOLDER": "Ex: Unidade Centro",
         "NAME_ERROR": "O nome é obrigatório",
+        "LEADER_WHATSAPP_LABEL": "WhatsApp do Responsável",
+        "LEADER_WHATSAPP_PLACEHOLDER": "Ex: 5561999999999",
+        "RESERVATION_SOURCE_TAG_LABEL": "Etiqueta da Reserva (sincronizadas)",
+        "RESERVATION_SOURCE_TAG_PLACEHOLDER": "Ex: PlugPlay",
         "BRAND_LABEL": "Marca",
         "BRAND_PLACEHOLDER": "Selecione uma marca",
         "FORM_DESCRIPTION": "Preencha os dados da unidade e as credenciais do Pix (Banco Inter).",
@@ -399,7 +403,9 @@
         "CLIENT_SECRET": "Client Secret",
         "CERT_PATH": "Caminho do Certificado (.pem)",
         "KEY_PATH": "Caminho da Chave (.pem)",
-        "ACCOUNT_NUMBER": "Conta Corrente"
+        "ACCOUNT_NUMBER": "Conta Corrente",
+        "WEBHOOK_TITLE": "Webhook de Integração",
+        "WEBHOOK_URL": "URL do Webhook"
       }
     },
     "HEADER_KNOW_MORE": "Know more",
@@ -1457,7 +1463,12 @@
         "ERROR": "Nao foi possivel atualizar a preferencia"
       },
       "OPTIONS": {
-        "DISCONNECT": "Desconectar"
+        "DISCONNECT": "Desconectar",
+        "EDIT": "Editar"
+      },
+      "EDIT": {
+        "TITLE": "Editar caixa de entrada",
+        "SAVE": "Atualizar"
       },
       "DELETE": {
         "TITLE": "Tem certeza que deseja desconectar a caixa de entrada?",

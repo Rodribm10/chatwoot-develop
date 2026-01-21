@@ -253,8 +253,8 @@ const handleSubmit = async () => {
           v-for="(header, index) in customHeaders"
           :key="index"
           ref="headersRef"
-          v-model:key="header.key"
-          v-model:value="header.value"
+          v-model:header-key="header.key"
+          v-model:header-value="header.value"
           @remove="removeHeader(index)"
         />
       </ul>

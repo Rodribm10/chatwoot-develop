@@ -123,7 +123,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     case action
     when 'handoff'
       if handoff_allowed?
-        process_action('handoff')
+        process_action('handoff', trigger_key: trigger_key)
         return true
       else
         @response['response'] = fallback_handoff_blocked_message
@@ -320,7 +320,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
            default: 'Desculpe, estou com dificuldades técnicas no momento. Por favor, tente novamente em alguns instantes.')
   end
 
-  def process_action(action)
+  def process_action(action, trigger_key: nil)
     case action
     when 'handoff'
       I18n.with_locale(@assistant.account.locale) do
@@ -336,6 +336,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
         @conversation.add_labels(['pausar_ia'])
         @conversation.save!
         apply_handoff_side_effects
+        handle_sentiment_handoff_alerts if trigger_key.to_s == 'sentiment'
         deliver_handoff_webhook
         log_handoff_event
         send_out_of_office_message_if_applicable
@@ -345,6 +346,107 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
   def send_out_of_office_message_if_applicable
     ::MessageTemplates::Template::OutOfOffice.perform_if_applicable(@conversation)
+  end
+
+  def handle_sentiment_handoff_alerts
+    trigger_excerpt = last_incoming_message_excerpt
+    summary = build_handoff_summary
+
+    create_private_note_for_handoff(trigger_excerpt, summary)
+    send_leader_whatsapp_alert(trigger_excerpt, summary)
+  end
+
+  def last_incoming_message_excerpt
+    message = @conversation.messages.where(message_type: :incoming, private: false).order(created_at: :desc).first
+    message&.content.to_s.strip[0, 400]
+  end
+
+  def build_handoff_summary
+    summary = @conversation.latest_crm_insight&.summary_text.to_s.strip
+    summary = build_conversation_summary if summary.blank?
+    summary.to_s.strip[0, 400]
+  end
+
+  def create_private_note_for_handoff(trigger_excerpt, summary)
+    return if trigger_excerpt.blank? && summary.blank?
+
+    note_parts = []
+    note_parts << 'Handoff automatico por sentimento negativo.'
+    note_parts << "Resumo: #{summary}" if summary.present?
+    note_parts << "Trecho: \"#{trigger_excerpt}\"" if trigger_excerpt.present?
+    content = note_parts.join("\n")
+
+    @conversation.messages.create!(
+      message_type: :outgoing,
+      account_id: account.id,
+      inbox_id: inbox.id,
+      sender: @assistant,
+      content: content,
+      private: true
+    )
+  end
+
+  def send_leader_whatsapp_alert(trigger_excerpt, summary)
+    unit = resolve_unit_for_conversation
+    return if unit.blank?
+
+    leader_phone = unit.leader_whatsapp.to_s.gsub(/[^\d]/, '')
+    return if leader_phone.blank?
+    return if unit.inbox.blank?
+
+    contact_inbox = ContactInboxWithContactBuilder.new(
+      inbox: unit.inbox,
+      contact_attributes: {
+        name: "Lider #{unit.name}",
+        phone_number: leader_phone
+      },
+      source_id: leader_phone
+    ).perform
+
+    leader_conversation = contact_inbox.conversations.order(created_at: :desc).first
+    leader_conversation ||= Conversation.create!(
+      account_id: unit.inbox.account_id,
+      inbox_id: unit.inbox.id,
+      contact_id: contact_inbox.contact_id,
+      contact_inbox_id: contact_inbox.id,
+      status: :open
+    )
+
+    message_text = build_leader_alert_message(unit.name, summary, trigger_excerpt)
+    leader_conversation.messages.create!(
+      message_type: :outgoing,
+      account_id: unit.inbox.account_id,
+      inbox_id: unit.inbox.id,
+      sender: @assistant,
+      content: message_text
+    )
+  rescue StandardError => e
+    Rails.logger.warn "[CAPTAIN][handoff] Failed to alert leader: #{e.message}"
+  end
+
+  def resolve_unit_for_conversation
+    CaptainInbox.find_by(inbox_id: inbox.id, captain_assistant_id: @assistant.id)&.unit ||
+      Captain::Unit.find_by(inbox_id: inbox.id)
+  end
+
+  def build_leader_alert_message(unit_name, summary, trigger_excerpt)
+    link = conversation_link
+    parts = []
+    parts << "ALERTA: cliente irritado - Unidade #{unit_name}"
+    parts << 'O cliente precisa ser atendido para nao termos maiores problemas.'
+    parts << 'Valor: obsessao pelo cliente.'
+    parts << "Resumo: #{summary}" if summary.present?
+    parts << "Trecho: \"#{trigger_excerpt}\"" if trigger_excerpt.present?
+    parts << "Link da conversa: #{link}" if link.present?
+    parts.join("\n")
+  end
+
+  def conversation_link
+    base_url = ENV.fetch('FRONTEND_URL', '').to_s
+    base_url = base_url.gsub('0.0.0.0', '127.0.0.1')
+    return '' if base_url.blank?
+
+    "#{base_url}/app/accounts/#{account.id}/conversations/#{@conversation.id}"
   end
 
   def create_handoff_message

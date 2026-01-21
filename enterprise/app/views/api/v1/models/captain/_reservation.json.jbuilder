@@ -11,6 +11,7 @@ json.check_out_at reservation.check_out_at&.iso8601
 json.status reservation.status
 json.payment_status reservation.payment_status
 json.total_amount reservation.total_amount
+json.source_tag reservation.metadata&.fetch('source_tag', nil)
 json.unit do
   json.partial! 'api/v1/models/captain/unit', unit: reservation.unit if reservation.unit
 end

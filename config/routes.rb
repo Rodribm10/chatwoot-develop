@@ -84,7 +84,9 @@ Rails.application.routes.draw do
             resources :reminders, only: [:index, :show, :create, :destroy]
             resources :inbox_automations, only: [:index, :create, :update, :destroy]
             resources :payment_callbacks, only: [:update]
-            resources :units, only: [:index, :show, :create, :update, :destroy], param: :id
+            resources :units, only: [:index, :show, :create, :update, :destroy], param: :id do
+              post 'reservations/sync', to: 'units/reservations_sync#create'
+            end
             resources :brands
             resources :pricings
             resources :extras

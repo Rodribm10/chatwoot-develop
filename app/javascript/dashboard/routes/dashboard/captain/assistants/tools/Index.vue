@@ -236,7 +236,7 @@ onMounted(() => {
               :placeholder="
                 $t('CAPTAIN.ASSISTANTS.SKILLS.FALLBACK.PLACEHOLDER')
               "
-              :max-length="400"
+              :max-length="800"
               show-character-count
               @blur="handleFallbackUpdate(tool)"
             />

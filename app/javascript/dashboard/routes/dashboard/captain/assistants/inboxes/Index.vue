@@ -35,6 +35,17 @@ const handleCreate = () => {
   dialogType.value = 'create';
   nextTick(() => connectInboxDialog.value.dialogRef.open());
 };
+const handleCreateClose = () => {
+  dialogType.value = '';
+  selectedInbox.value = null;
+};
+
+// Handle edit action
+const handleUpdate = () => {
+  dialogType.value = 'edit';
+  nextTick(() => connectInboxDialog.value.dialogRef.open());
+};
+
 const handleAction = ({ action, id }) => {
   selectedInbox.value = captainInboxes.value.find(
     inbox => id === inbox.captain_inbox.id
@@ -42,13 +53,10 @@ const handleAction = ({ action, id }) => {
   nextTick(() => {
     if (action === 'delete') {
       handleDelete();
+    } else if (action === 'edit') {
+      handleUpdate();
     }
   });
-};
-
-const handleCreateClose = () => {
-  dialogType.value = '';
-  selectedInbox.value = null;
 };
 
 onMounted(() =>
@@ -103,6 +111,7 @@ onMounted(() =>
       ref="connectInboxDialog"
       :assistant-id="assistantId"
       :type="dialogType"
+      :inbox="selectedInbox"
       @close="handleCreateClose"
     />
   </PageLayout>

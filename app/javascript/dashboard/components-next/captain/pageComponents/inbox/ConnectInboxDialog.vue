@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useStore } from 'dashboard/composables/store';
 import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
@@ -7,10 +7,18 @@ import { useI18n } from 'vue-i18n';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import ConnectInboxForm from './ConnectInboxForm.vue';
 
-defineProps({
+const props = defineProps({
   assistantId: {
     type: Number,
     required: true,
+  },
+  type: {
+    type: String,
+    default: 'create',
+  },
+  inbox: {
+    type: Object,
+    default: null,
   },
 });
 const emit = defineEmits(['close']);
@@ -20,15 +28,19 @@ const store = useStore();
 const dialogRef = ref(null);
 const connectForm = ref(null);
 
-const i18nKey = 'CAPTAIN.INBOXES.CREATE';
+const i18nKey = computed(() =>
+  props.type === 'edit' ? 'CAPTAIN.INBOXES.EDIT' : 'CAPTAIN.INBOXES.CREATE'
+);
 
 const handleSubmit = async payload => {
   try {
-    await store.dispatch('captainInboxes/create', payload);
-    useAlert(t(`${i18nKey}.SUCCESS_MESSAGE`));
+    const action =
+      props.type === 'edit' ? 'captainInboxes/update' : 'captainInboxes/create';
+    await store.dispatch(action, payload);
+    useAlert(t(`${i18nKey.value}.SUCCESS_MESSAGE`));
     dialogRef.value.close();
   } catch (error) {
-    const errorMessage = error?.message || t(`${i18nKey}.ERROR_MESSAGE`);
+    const errorMessage = error?.message || t(`${i18nKey.value}.ERROR_MESSAGE`);
     useAlert(errorMessage);
   }
 };
@@ -48,7 +60,7 @@ defineExpose({ dialogRef });
   <!-- eslint-disable vue/no-bare-strings-in-template -->
   <Dialog
     ref="dialogRef"
-    type="create"
+    :type="type"
     :title="$t(`${i18nKey}.TITLE`)"
     :description="$t('CAPTAIN.INBOXES.FORM_DESCRIPTION')"
     :show-cancel-button="false"
@@ -58,6 +70,7 @@ defineExpose({ dialogRef });
     <ConnectInboxForm
       ref="connectForm"
       :assistant-id="assistantId"
+      :inbox="inbox"
       @submit="handleSubmit"
       @cancel="handleCancel"
     />

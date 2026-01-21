@@ -39,10 +39,12 @@ module Api
           def unit_params
             params.require(:unit).permit(
               :name, :status, :captain_brand_id,
+              :reservations_sync_enabled,
+              :plug_play_id, :plug_play_token,
               :inter_client_id, :inter_client_secret,
               :inter_pix_key, :inter_cert_path,
               :inter_key_path, :inter_account_number,
-              :webhook_url, :inbox_id
+              :webhook_url, :inbox_id, :leader_whatsapp, :reservation_source_tag
             )
           end
         end

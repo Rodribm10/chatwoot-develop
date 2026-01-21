@@ -14,6 +14,10 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  inbox: {
+    type: Object,
+    default: null,
+  },
 });
 
 const emit = defineEmits(['submit', 'cancel']);
@@ -28,8 +32,8 @@ const formState = {
 };
 
 const initialState = {
-  inboxId: null,
-  captainUnitId: null,
+  inboxId: props.inbox?.captain_inbox?.inbox_id || null,
+  captainUnitId: props.inbox?.captain_inbox?.captain_unit_id || null,
 };
 
 const state = reactive({ ...initialState });
@@ -46,20 +50,64 @@ const accountId = computed(() => {
 const inboxList = computed(() => {
   const captainInboxIds = formState.captainInboxes.value.map(inbox => inbox.id);
 
-  return formState.inboxes.value
+  // Filter available inboxes from the store
+  const availableInboxes = formState.inboxes.value
     .filter(inbox => !captainInboxIds.includes(inbox.id))
     .map(inbox => ({
       value: inbox.id,
       label: inbox.name,
     }));
+
+  // If we are editing, we MUST ensure the current inbox is in the list
+  if (props.inbox) {
+    const currentInboxId = props.inbox.id;
+
+    // Check if it's already in the list (it shouldn't be if it's in captainInboxes)
+    const alreadyInList = availableInboxes.find(
+      i => i.value === currentInboxId
+    );
+
+    if (!alreadyInList) {
+      // We use the name directly from props.inbox to avoid store lookup issues
+      const label =
+        props.inbox.name || props.inbox.phone_number || 'Caixa de Entrada';
+
+      // Add to the beginning of the list
+      availableInboxes.unshift({
+        value: currentInboxId,
+        label: label,
+      });
+    }
+  }
+
+  return availableInboxes;
 });
 
 const unitList = computed(() => {
-  return units.map(unit => ({
-    value: unit.id,
-    label: unit.name,
-  }));
+  return [
+    { value: null, label: 'Sem Unidade' },
+    ...units.map(unit => ({
+      value: unit.id,
+      label: unit.name,
+    })),
+  ];
 });
+
+watch(
+  () => props.inbox,
+  newInbox => {
+    if (newInbox) {
+      // Use inbox.id directly for the inboxId
+      state.inboxId = newInbox.id;
+
+      // Use captain_inbox data for other fields if available
+      if (newInbox.captain_inbox) {
+        state.captainUnitId = newInbox.captain_inbox.captain_unit_id;
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 const v$ = useVuelidate(validationRules, state);
 
@@ -82,6 +130,7 @@ const prepareInboxPayload = () => ({
   inboxId: state.inboxId,
   captain_unit_id: state.captainUnitId,
   assistantId: props.assistantId,
+  ...(props.inbox ? { id: props.inbox.captain_inbox.id } : {}),
 });
 
 const handleSubmit = async () => {
@@ -136,6 +185,7 @@ watch(accountId, () => {
         :placeholder="t('CAPTAIN.INBOXES.FORM.INBOX.PLACEHOLDER')"
         class="[&>div>button]:bg-n-alpha-black2 [&>div>button:not(.focused)]:dark:outline-n-weak [&>div>button:not(.focused)]:hover:!outline-n-slate-6"
         :message="formErrors.inboxId"
+        :disabled="!!inbox"
       />
     </div>
 
@@ -169,7 +219,11 @@ watch(accountId, () => {
       />
       <Button
         type="submit"
-        :label="t('CAPTAIN.FORM.CREATE')"
+        :label="
+          props.inbox
+            ? t('CAPTAIN.INBOXES.EDIT.SAVE')
+            : t('CAPTAIN.FORM.CREATE')
+        "
         class="w-full"
         :is-loading="isLoading"
         :disabled="isLoading"

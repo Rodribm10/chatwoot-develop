@@ -27,6 +27,7 @@ const isLoading = ref(false);
 const isFetchingUnits = ref(false);
 const isUpdating = ref(false);
 const isCreating = ref(false);
+const isSyncing = ref(false);
 
 const reservations = ref([]);
 const units = ref([]);
@@ -223,6 +224,20 @@ const fetchReservations = async () => {
     alert(t('CAPTAIN.RESERVATIONS.ERRORS.LOAD_FAILED'));
   } finally {
     isLoading.value = false;
+  }
+};
+
+const handleSync = async () => {
+  if (!filters.unit_id) return;
+  isSyncing.value = true;
+  try {
+    await CaptainUnitsAPI.syncReservations(filters.unit_id);
+    alert('Sincronização iniciada com sucesso!');
+    fetchReservations();
+  } catch (error) {
+    alert('Erro ao sincronizar reservas.');
+  } finally {
+    isSyncing.value = false;
   }
 };
 
@@ -594,6 +609,18 @@ watch(
               title="Atualizar"
               @click="fetchReservations"
             />
+
+            <Button
+              v-if="filters.unit_id"
+              :is-loading="isSyncing"
+              icon="i-lucide-cloud-download"
+              size="sm"
+              variant="outline"
+              color="slate"
+              @click="handleSync"
+            >
+              Sincronizar
+            </Button>
           </div>
         </div>
 

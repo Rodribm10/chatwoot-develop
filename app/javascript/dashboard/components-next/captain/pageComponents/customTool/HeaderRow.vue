@@ -8,27 +8,27 @@ const emit = defineEmits(['remove']);
 const { t } = useI18n();
 const showErrors = ref(false);
 
-const key = defineModel('key', {
+const headerKey = defineModel('headerKey', {
   type: String,
   required: true,
 });
 
-const value = defineModel('value', {
+const headerValue = defineModel('headerValue', {
   type: String,
   required: true,
 });
 
 const validationError = computed(() => {
-  if (!key.value || key.value.trim() === '') {
+  if (!headerKey.value || headerKey.value.trim() === '') {
     return 'HEADER_KEY_REQUIRED';
   }
-  if (!value.value || value.value.trim() === '') {
+  if (!headerValue.value || headerValue.value.trim() === '') {
     return 'HEADER_VALUE_REQUIRED';
   }
   return null;
 });
 
-watch([key, value], () => {
+watch([headerKey, headerValue], () => {
   showErrors.value = false;
 });
 
@@ -52,11 +52,11 @@ defineExpose({ validate });
       <div class="flex flex-col flex-1 gap-3">
         <div class="grid grid-cols-2 gap-2">
           <Input
-            v-model="key"
+            v-model="headerKey"
             :placeholder="t('CAPTAIN.CUSTOM_TOOLS.FORM.HEADER_KEY.PLACEHOLDER')"
           />
           <Input
-            v-model="value"
+            v-model="headerValue"
             :placeholder="
               t('CAPTAIN.CUSTOM_TOOLS.FORM.HEADER_VALUE.PLACEHOLDER')
             "

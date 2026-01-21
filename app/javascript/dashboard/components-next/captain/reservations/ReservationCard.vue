@@ -37,6 +37,7 @@ const isPartial = computed(
   () => props.reservation.payment_status === 'partial'
 );
 const isPending = computed(() => !isPaid.value && !isPartial.value);
+const sourceTag = computed(() => props.reservation.source_tag || '');
 
 // Relative Time Logic
 const timeDisplay = computed(() => {
@@ -190,13 +191,19 @@ const showMenu = ref(false);
     </div>
 
     <!-- Row 2: Guest Name -->
-    <div class="mb-2">
+    <div class="mb-2 flex items-center gap-2 flex-wrap">
       <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
       <span
         class="font-bold text-slate-900 dark:text-slate-100 text-base leading-tight line-clamp-2"
         :title="guestName"
       >
         {{ guestName }}
+      </span>
+      <span
+        v-if="sourceTag"
+        class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md inline-flex items-center border border-emerald-600 bg-emerald-400 text-slate-900"
+      >
+        {{ sourceTag }}
       </span>
     </div>
 
@@ -206,6 +213,7 @@ const showMenu = ref(false);
         <span class="text-sm font-bold text-slate-900 dark:text-slate-100">
           {{ formatCurrency(reservation.total_amount) }}
         </span>
+
         <div
           class="flex items-center gap-1 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-sm w-fit"
           :class="{

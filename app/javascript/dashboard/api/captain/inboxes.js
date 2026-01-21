@@ -11,9 +11,9 @@ class CaptainInboxes extends ApiClient {
   }
 
   create(params = {}) {
-    const { assistantId, inboxId } = params;
+    const { assistantId, inboxId, captain_unit_id } = params;
     return axios.post(`${this.url}/${assistantId}/inboxes`, {
-      inbox: { inbox_id: inboxId },
+      inbox: { inbox_id: inboxId, captain_unit_id },
     });
   }
 
@@ -23,9 +23,9 @@ class CaptainInboxes extends ApiClient {
   }
 
   update(inboxId, params = {}) {
-    const { assistantId, always_use_reminder_tool } = params;
+    const { assistantId, captain_unit_id, always_use_reminder_tool } = params;
     return axios.patch(`${this.url}/${assistantId}/inboxes/${inboxId}`, {
-      inbox: { always_use_reminder_tool },
+      inbox: { captain_unit_id, always_use_reminder_tool },
     });
   }
 }

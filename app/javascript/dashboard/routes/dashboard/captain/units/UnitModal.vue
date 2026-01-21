@@ -41,10 +41,15 @@ export default {
       inter_key_path: '',
       inter_account_number: '',
       webhook_url: '',
+      leader_whatsapp: '',
+      reservation_source_tag: '',
       inbox_id: '',
       brands: [],
       inboxes: [],
       isLoadingBrands: false,
+      plug_play_id: '',
+      plug_play_token: '',
+      reservations_sync_enabled: false,
     };
   },
   validations() {
@@ -68,7 +73,13 @@ export default {
           this.inter_key_path = this.unit.inter_key_path;
           this.inter_account_number = this.unit.inter_account_number;
           this.webhook_url = this.unit.webhook_url;
+          this.leader_whatsapp = this.unit.leader_whatsapp || '';
+          this.reservation_source_tag = this.unit.reservation_source_tag || '';
           this.inbox_id = this.unit.inbox_id;
+          this.plug_play_id = this.unit.plug_play_id || '';
+          this.plug_play_token = this.unit.plug_play_token || '';
+          this.reservations_sync_enabled =
+            this.unit.reservations_sync_enabled || false;
         } else {
           this.resetForm();
         }
@@ -86,7 +97,12 @@ export default {
       this.inter_key_path = '';
       this.inter_account_number = '';
       this.webhook_url = '';
+      this.leader_whatsapp = '';
+      this.reservation_source_tag = '';
       this.inbox_id = '';
+      this.plug_play_id = '';
+      this.plug_play_token = '';
+      this.reservations_sync_enabled = false;
       this.v$.$reset();
     },
     async fetchInboxes() {
@@ -126,7 +142,12 @@ export default {
         inter_key_path: this.inter_key_path,
         inter_account_number: this.inter_account_number,
         webhook_url: this.webhook_url,
+        leader_whatsapp: this.leader_whatsapp,
+        reservation_source_tag: this.reservation_source_tag,
         inbox_id: this.inbox_id,
+        plug_play_id: this.plug_play_id,
+        plug_play_token: this.plug_play_token,
+        reservations_sync_enabled: this.reservations_sync_enabled,
       };
 
       try {
@@ -179,6 +200,12 @@ export default {
           :label="$t('CAPTAIN.UNITS.FORM.NAME_LABEL')"
           :placeholder="$t('CAPTAIN.UNITS.FORM.NAME_PLACEHOLDER')"
           :error="v$.name.$error ? $t('CAPTAIN.UNITS.FORM.NAME_ERROR') : ''"
+        />
+
+        <WootInput
+          v-model="leader_whatsapp"
+          :label="$t('CAPTAIN.UNITS.FORM.LEADER_WHATSAPP_LABEL')"
+          :placeholder="$t('CAPTAIN.UNITS.FORM.LEADER_WHATSAPP_PLACEHOLDER')"
         />
 
         <div>
@@ -298,6 +325,48 @@ export default {
           :label="$t('CAPTAIN.UNITS.FORM.WEBHOOK_URL')"
           placeholder="https://webhook.n8n.cloud/webhook/..."
         />
+
+        <div class="my-1 h-px bg-slate-100 dark:bg-slate-800" />
+        <h4
+          class="text-sm font-semibold text-slate-800 dark:text-slate-100 uppercase tracking-wide"
+        >
+          {{ 'Integração Config' }}
+        </h4>
+
+        <div class="grid grid-cols-1 gap-4">
+          <WootInput
+            v-model="plug_play_id"
+            label="PlugPlay ID"
+            placeholder="ID da Unidade na PlugPlay"
+          />
+          <WootInput
+            v-model="plug_play_token"
+            label="PlugPlay Token"
+            placeholder="Token de Acesso"
+            type="password"
+          />
+          <WootInput
+            v-model="reservation_source_tag"
+            :label="$t('CAPTAIN.UNITS.FORM.RESERVATION_SOURCE_TAG_LABEL')"
+            :placeholder="
+              $t('CAPTAIN.UNITS.FORM.RESERVATION_SOURCE_TAG_PLACEHOLDER')
+            "
+          />
+          <div class="flex items-center gap-2">
+            <input
+              id="sync_enabled"
+              v-model="reservations_sync_enabled"
+              type="checkbox"
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            />
+            <label
+              for="sync_enabled"
+              class="text-sm font-medium text-slate-700 dark:text-slate-200"
+            >
+              Ativar Sincronização de Reservas
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- Footer -->

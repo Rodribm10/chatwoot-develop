@@ -363,6 +363,16 @@
   },
   "CAPTAIN": {
     "NAME": "Captain",
+    "UNITS": {
+      "FORM": {
+        "LEADER_WHATSAPP_LABEL": "Leader WhatsApp",
+        "LEADER_WHATSAPP_PLACEHOLDER": "e.g. 5561999999999",
+        "RESERVATION_SOURCE_TAG_LABEL": "Reservation tag (synced)",
+        "RESERVATION_SOURCE_TAG_PLACEHOLDER": "e.g. PlugPlay",
+        "WEBHOOK_TITLE": "Integration Webhook",
+        "WEBHOOK_URL": "Webhook URL"
+      }
+    },
     "HEADER_KNOW_MORE": "Know more",
     "ASSISTANT_SWITCHER": {
       "ASSISTANTS": "Assistants",
@@ -1282,7 +1292,8 @@
         "ERROR": "Could not update reminder tool preference"
       },
       "OPTIONS": {
-        "DISCONNECT": "Disconnect"
+        "DISCONNECT": "Disconnect",
+        "EDIT": "Edit"
       },
       "DELETE": {
         "TITLE": "Are you sure to disconnect the inbox?",

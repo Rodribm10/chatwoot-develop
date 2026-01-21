@@ -43,6 +43,21 @@
         "STAYS_LABEL": "Accepted Stay Durations",
         "STAYS_PLACEHOLDER": "Ex: 2h, 4h, Overnight, Daily (separated by comma)"
       }
+    },
+    "CUSTOM_TOOLS": {
+      "OPTIONS": {
+        "TEST_TOOL": "Test Tool",
+        "EDIT_TOOL": "Edit Tool",
+        "DELETE_TOOL": "Delete Tool"
+      },
+      "FORM": {
+        "AUTH_TYPES": {
+          "NONE": "None",
+          "BEARER": "Bearer Token",
+          "BASIC": "Basic Auth",
+          "API_KEY": "API Key"
+        }
+      }
     }
   }
 }

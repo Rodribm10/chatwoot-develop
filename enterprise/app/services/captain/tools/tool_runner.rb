@@ -283,14 +283,25 @@ module Captain
       end
 
       def apply_fallback(result)
-        return result if result[:success]
+        failed = !result[:success]
+        # Treat generate_pix business failures as fallback-worthy.
+        if !failed && @tool_key == 'generate_pix'
+          body = result[:body]
+          body_success =
+            if body.is_a?(Hash)
+              body[:success].nil? ? body['success'] : body[:success]
+            end
+          failed = body_success == false
+        end
+
+        return result unless failed
         return result unless fallback_configured?
 
         {
           success: true,
           body: { message: @config.fallback_message.to_s },
           fallback: true,
-          error: result[:error]
+          error: result[:error] || result.dig(:body, :error)
         }
       end
 

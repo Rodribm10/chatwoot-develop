@@ -12,6 +12,10 @@ class UnitsAPI extends ApiClient {
   update(id, data) {
     return window.axios.patch(`${this.url}/${id}`, data);
   }
+
+  syncReservations(id) {
+    return window.axios.post(`${this.url}/${id}/reservations/sync`);
+  }
 }
 
 export default new UnitsAPI();

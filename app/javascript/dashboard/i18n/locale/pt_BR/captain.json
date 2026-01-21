@@ -43,6 +43,21 @@
         "STAYS_LABEL": "Durações Aceitas",
         "STAYS_PLACEHOLDER": "Ex: 2h, 4h, Pernoite, Diária (separados por vírgula)"
       }
+    },
+    "CUSTOM_TOOLS": {
+      "OPTIONS": {
+        "TEST_TOOL": "Testar Ferramenta",
+        "EDIT_TOOL": "Editar Ferramenta",
+        "DELETE_TOOL": "Excluir Ferramenta"
+      },
+      "FORM": {
+        "AUTH_TYPES": {
+          "NONE": "Nenhuma",
+          "BEARER": "Bearer Token",
+          "BASIC": "Basic Auth",
+          "API_KEY": "API Key"
+        }
+      }
     }
   }
 }

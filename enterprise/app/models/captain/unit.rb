@@ -5,6 +5,7 @@ class Captain::Unit < ApplicationRecord
   belongs_to :brand, class_name: 'Captain::Brand', foreign_key: 'captain_brand_id'
   belongs_to :inbox, optional: true
   has_many :reservations, class_name: 'Captain::Reservation', foreign_key: 'captain_unit_id'
+  has_many :captain_reservations, class_name: 'Captain::Reservation', foreign_key: 'captain_unit_id'
   has_many :pix_charges, class_name: 'Captain::PixCharge'
   has_many :captain_inboxes, class_name: 'CaptainInbox', foreign_key: 'captain_unit_id'
 

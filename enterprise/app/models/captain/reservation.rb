@@ -6,7 +6,7 @@ module Captain
     belongs_to :inbox
     belongs_to :contact
     belongs_to :contact_inbox
-    belongs_to :conversation, class_name: '::Conversation'
+    belongs_to :conversation, class_name: '::Conversation', optional: true
     belongs_to :brand, class_name: 'Captain::Brand', foreign_key: 'captain_brand_id', optional: true
     belongs_to :unit, class_name: 'Captain::Unit', foreign_key: 'captain_unit_id', optional: true
     belongs_to :current_pix_charge, class_name: 'Captain::PixCharge', optional: true

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_20_141736) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_10_123000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -559,6 +559,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_20_141736) do
     t.index ["contact_inbox_id"], name: "index_captain_reservations_on_contact_inbox_id"
     t.index ["conversation_id"], name: "index_captain_reservations_on_conversation_id"
     t.index ["inbox_id"], name: "index_captain_reservations_on_inbox_id"
+    t.index ["integracao_id", "captain_unit_id"], name: "index_captain_reservations_on_integracao_id_and_unit_id", unique: true
     t.index ["integracao_id"], name: "index_captain_reservations_on_integracao_id"
   end
 
@@ -627,6 +628,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_20_141736) do
     t.string "inter_account_number"
     t.string "webhook_url"
     t.bigint "inbox_id"
+    t.string "plug_play_id"
+    t.string "plug_play_token"
+    t.boolean "reservations_sync_enabled"
+    t.datetime "last_synced_at"
+    t.string "leader_whatsapp"
+    t.string "reservation_source_tag"
     t.index ["account_id"], name: "index_captain_units_on_account_id"
     t.index ["captain_brand_id"], name: "index_captain_units_on_captain_brand_id"
     t.index ["inbox_id"], name: "index_captain_units_on_inbox_id"
