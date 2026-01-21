@@ -1,0 +1,48 @@
+{
+  "CAPTAIN": {
+    "BRANDS": {
+      "ADMIN_PANEL": "Painel Admin de Marcas",
+      "HEADER": "Gerenciamento de Marcas",
+      "ADD_NEW": "Adicionar Nova Marca",
+      "TABLE": {
+        "NAME": "Nome da Marca",
+        "CATEGORIES": "Categorias de Suíte",
+        "STAYS": "Durações de Estadia",
+        "ACTIONS": "Ações"
+      },
+      "VIEW_IMAGE": "Ver Imagem",
+      "EDIT": "Editar",
+      "DELETE": "Excluir",
+      "EMPTY_STATE_TITLE": "Nenhuma marca encontrada",
+      "EMPTY_STATE_DESC": "Adicione sua primeira marca para começar a configurar preços e quartos.",
+      "DELETE_CONFIRMATION": "Tem certeza que deseja excluir esta marca? Essa ação não pode ser desfeita.",
+      "SUCCESS": {
+        "CREATED": "Marca criada com sucesso!",
+        "UPDATED": "Marca atualizada com sucesso!",
+        "DELETED": "Marca excluída com sucesso!"
+      },
+      "ERRORS": {
+        "FETCH_FAILED": "Falha ao buscar marcas",
+        "SAVE_FAILED": "Falha ao salvar marca",
+        "DELETE_FAILED": "Falha ao excluir marca"
+      },
+      "BRAND_MODAL": {
+        "TITLE_NEW": "Nova Marca",
+        "TITLE_EDIT": "Editar Marca",
+        "CREATE": "Criar Marca",
+        "UPDATE": "Atualizar Marca",
+        "CANCEL": "Cancelar",
+        "NAME_LABEL": "Nome da Marca",
+        "NAME_PLACEHOLDER": "Ex: Hotel 1001 Noites",
+        "SUITE_CATEGORIES_LABEL": "Categorias de Suíte",
+        "SUITE_NAME_PLACEHOLDER": "Nome (Ex: Standard)",
+        "SUITE_IMAGE_PLACEHOLDER": "URL da Imagem",
+        "REMOVE_CATEGORY": "Remover categoria",
+        "ADD_CATEGORY": "Adicionar Categoria",
+        "SUITE_CATEGORIES_HELP": "Adicione as categorias de quartos disponíveis para esta marca.",
+        "STAYS_LABEL": "Durações Aceitas",
+        "STAYS_PLACEHOLDER": "Ex: 2h, 4h, Pernoite, Diária (separados por vírgula)"
+      }
+    }
+  }
+}

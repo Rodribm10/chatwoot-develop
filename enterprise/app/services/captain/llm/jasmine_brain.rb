@@ -189,7 +189,10 @@ module Captain
           - direct: For general conversation, doubts unrelated to specific tools, or if unsure.
 
           IMPORTANT:
-          - If the user says "Oi", "Ola", "Tudo bem?", "Bom dia" -> Use "direct".
+          - If the user greets (oi/ola/bom dia/boa tarde/boa noite) and no other request exists, ALWAYS use "execute_tool" with tool_key "react_to_message" and tool_input {"emoji": "😀"}.
+          - If the user asks to keep an eye on something (acompanhar, ficar de olho, monitorar), ALWAYS use "execute_tool" with tool_key "react_to_message" and tool_input {"emoji": "👀"}.
+          - If the user asks about reservations or availability (reserva, reservar, disponibilidade), ALWAYS use "execute_tool" with tool_key "react_to_message" and tool_input {"emoji": "👀"} as a soft acknowledgement.
+          - If the user asks about research/search (pesquisa, pesquisar, buscar, procura), ALWAYS use "execute_tool" with tool_key "react_to_message" and tool_input {"emoji": "👀"} as a soft acknowledgement.
           - If the user sends a THANK YOU message ("obrigado", "obrigada", "valeu", "agradeço", "muito obrigado", "agradecido") -> ALWAYS use "execute_tool" with tool_key "react_to_message" and tool_input {"emoji": "❤️"}.
           - If the user sends ONLY an emoji (🙏, 👍, ❤️, etc) -> ALWAYS use "execute_tool" with tool_key "react_to_message" and tool_input {"emoji": "❤️"}.
           - If the user wants to check availability or make a reservation but did NOT mention a specific suite name (Stilo, Alexa, Hidro, Master), you MUST use "direct" strategy and ask: "Qual suíte você prefere?" or "Para qual suíte?". Do NOT guess the suite.

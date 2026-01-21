@@ -344,6 +344,13 @@ onMounted(() => {
                 "
               />
             </div>
+            <AddNewScenariosDialog
+              trigger-label="CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.LOAD_TEMPLATE"
+              trigger-icon="i-lucide-layout-template"
+              start-with-templates
+              trigger-faded
+              @add="addScenario"
+            />
             <AddNewScenariosDialog @add="addScenario" />
           </div>
         </div>

@@ -1,4 +1,5 @@
 <script setup>
+/* eslint-disable @intlify/vue-i18n/no-raw-text, vue/no-bare-strings-in-template */
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
@@ -12,9 +13,13 @@ import wootConstants from 'dashboard/constants/globals';
 import { conversationListPageURL } from 'dashboard/helper/URLHelper';
 import { snoozedReopenTime } from 'dashboard/helper/snoozeHelpers';
 import { useInbox } from 'dashboard/composables/useInbox';
+import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
 import Button from 'dashboard/components-next/button/Button.vue';
 import { useUISettings } from 'dashboard/composables/useUISettings';
+import CreateReservationModal from 'dashboard/components-next/captain/reservations/CreateReservationModal.vue';
+import CaptainUnitsAPI from 'dashboard/api/captain/units';
+import CaptainReservationsAPI from 'dashboard/api/captain/reservations';
 
 const props = defineProps({
   chat: {
@@ -29,11 +34,17 @@ const props = defineProps({
 
 const { t } = useI18n();
 const store = useStore();
+const alert = useAlert();
 const route = useRoute();
 const { uiSettings, updateUISettings } = useUISettings();
 const conversationHeader = ref(null);
 const { width } = useElementSize(conversationHeader);
 const { isAWebWidgetInbox } = useInbox();
+
+const showCreateModal = ref(false);
+const units = ref([]);
+const isFetchingUnits = ref(false);
+const isCreating = ref(false);
 
 const currentChat = computed(() => store.getters.getSelectedChat);
 const accountId = computed(() => store.getters.getCurrentAccountId);
@@ -103,9 +114,44 @@ const toggleCrmInsights = () => {
     is_copilot_panel_open: false,
   });
 };
+
+const openPaymentModal = async () => {
+  isFetchingUnits.value = true;
+  try {
+    const response = await CaptainUnitsAPI.get();
+    units.value = response.data;
+    showCreateModal.value = true;
+  } catch (error) {
+    // console.error(error);
+  } finally {
+    isFetchingUnits.value = false;
+  }
+};
+
+const handleCreateReservation = async formData => {
+  isCreating.value = true;
+  try {
+    // Ensure contact info is forced from current chat if missing (safety net)
+    const payload = { ...formData };
+    if (!payload.contact_name) payload.contact_name = currentContact.value.name;
+    // Add custom attribute or tag to link to conversation if needed?
+    // For now, just creating the reservation is enough.
+
+    await CaptainReservationsAPI.create({ reservation: payload });
+    alert(t('CAPTAIN.RESERVATIONS.LIST.CREATE_SUCCESS') || 'Reserva criada!');
+    showCreateModal.value = false;
+  } catch (error) {
+    alert(
+      t('CAPTAIN.RESERVATIONS.LIST.CREATE_ERROR') || 'Erro ao criar reserva.'
+    );
+  } finally {
+    isCreating.value = false;
+  }
+};
 </script>
 
 <template>
+  <!-- eslint-disable @intlify/vue-i18n/no-raw-text, vue/no-bare-strings-in-template -->
   <div
     ref="conversationHeader"
     class="flex flex-col gap-3 items-center justify-between flex-1 w-full min-w-0 xl:flex-row px-3 py-2 border-b bg-n-background border-n-weak h-24 xl:h-12"
@@ -173,7 +219,34 @@ const toggleCrmInsights = () => {
         }"
         @click="toggleCrmInsights"
       />
+      <Button
+        v-if="!isAWebWidgetInbox"
+        v-tooltip.top="'Enviar para Pagamentos'"
+        icon="i-lucide-banknote"
+        size="sm"
+        variant="outline"
+        color="slate"
+        :is-loading="isFetchingUnits"
+        class="hidden md:flex"
+        @click="openPaymentModal"
+      >
+        <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+        <span class="hidden lg:inline">Pagamento</span>
+      </Button>
       <MoreActions :conversation-id="currentChat.id" />
     </div>
   </div>
+
+  <CreateReservationModal
+    v-if="showCreateModal"
+    :units="units"
+    mode="pre_booking"
+    :initial-contact="{
+      name: currentContact.name,
+      phone_number: currentContact.phone_number,
+      id: currentContact.id,
+    }"
+    @close="showCreateModal = false"
+    @confirm="handleCreateReservation"
+  />
 </template>

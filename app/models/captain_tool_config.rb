@@ -30,7 +30,8 @@
 #
 class CaptainToolConfig < ApplicationRecord
   belongs_to :account
-  belongs_to :inbox
+  belongs_to :inbox, optional: true
+  belongs_to :captain_assistant, optional: true
 
   validates :tool_key, presence: true
   validates :tool_key, uniqueness: { scope: [:account_id, :inbox_id] }

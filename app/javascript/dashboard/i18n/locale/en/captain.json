@@ -1,0 +1,48 @@
+{
+  "CAPTAIN": {
+    "BRANDS": {
+      "ADMIN_PANEL": "Brands Admin Panel",
+      "HEADER": "Brands Management",
+      "ADD_NEW": "Add New Brand",
+      "TABLE": {
+        "NAME": "Brand Name",
+        "CATEGORIES": "Suite Categories",
+        "STAYS": "Stay Durations",
+        "ACTIONS": "Actions"
+      },
+      "VIEW_IMAGE": "View Image",
+      "EDIT": "Edit",
+      "DELETE": "Delete",
+      "EMPTY_STATE_TITLE": "No brands found",
+      "EMPTY_STATE_DESC": "Add your first brand to start configuring prices and rooms.",
+      "DELETE_CONFIRMATION": "Are you sure you want to delete this brand? This action cannot be undone.",
+      "SUCCESS": {
+        "CREATED": "Brand created successfully!",
+        "UPDATED": "Brand updated successfully!",
+        "DELETED": "Brand deleted successfully!"
+      },
+      "ERRORS": {
+        "FETCH_FAILED": "Failed to fetch brands",
+        "SAVE_FAILED": "Failed to save brand",
+        "DELETE_FAILED": "Failed to delete brand"
+      },
+      "BRAND_MODAL": {
+        "TITLE_NEW": "New Brand",
+        "TITLE_EDIT": "Edit Brand",
+        "CREATE": "Create Brand",
+        "UPDATE": "Update Brand",
+        "CANCEL": "Cancel",
+        "NAME_LABEL": "Brand Name",
+        "NAME_PLACEHOLDER": "Ex: Grand Hotel",
+        "SUITE_CATEGORIES_LABEL": "Suite Categories",
+        "SUITE_NAME_PLACEHOLDER": "Name (Ex: Standard)",
+        "SUITE_IMAGE_PLACEHOLDER": "Image URL",
+        "REMOVE_CATEGORY": "Remove category",
+        "ADD_CATEGORY": "Add Category",
+        "SUITE_CATEGORIES_HELP": "Add available room categories for this brand.",
+        "STAYS_LABEL": "Accepted Stay Durations",
+        "STAYS_PLACEHOLDER": "Ex: 2h, 4h, Overnight, Daily (separated by comma)"
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 <script setup>
+/* eslint-disable @intlify/vue-i18n/no-raw-text, vue/no-bare-strings-in-template */
 import { computed, ref, onMounted, nextTick, watch } from 'vue';
 import {
   appendSignature,
@@ -37,7 +38,7 @@ const emit = defineEmits(['update:modelValue']);
 const textareaRef = ref(null);
 const isFocused = ref(false);
 
-const characterCount = computed(() => props.modelValue.length);
+const characterCount = computed(() => (props.modelValue || '').length);
 const cleanedSignature = computed(() =>
   extractTextFromMarkdown(props.signature)
 );
@@ -189,6 +190,7 @@ onMounted(() => {
         class="flex items-center justify-end h-4 mt-1 bottom-3 ltr:right-3 rtl:left-3"
       >
         <span class="text-xs tabular-nums text-n-slate-10">
+          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
           {{ characterCount }} / {{ maxLength }}
         </span>
       </div>

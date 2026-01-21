@@ -1,4 +1,5 @@
 <script setup>
+/* eslint-disable @intlify/vue-i18n/no-raw-text, vue/no-bare-strings-in-template, no-alert */
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStoreGetters } from 'dashboard/composables/store';
@@ -9,6 +10,7 @@ import SettingsLayout from 'dashboard/routes/dashboard/settings/SettingsLayout.v
 import BaseSettingsHeader from 'dashboard/routes/dashboard/settings/components/BaseSettingsHeader.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import JasmineToolsTab from '../components/JasmineToolsTab.vue';
+import { JASMINE_TEMPLATES } from '../data/templates';
 
 const route = useRoute();
 // const store = useStore();
@@ -57,6 +59,8 @@ const expandedFields = reactive({
   playbook_prompt: false,
 });
 
+const showTemplateModal = ref(false);
+
 // Computed
 const inboxId = computed(() => Number(route.params.inboxId));
 const inbox = computed(() => getters['inboxes/getInbox'].value(inboxId.value));
@@ -101,8 +105,6 @@ const createCollection = async () => {
 };
 
 const deleteCollection = async collectionId => {
-  // eslint-disable-next-line no-alert
-  // eslint-disable-next-line no-alert
   // eslint-disable-next-line no-alert
   if (!window.confirm('Delete this collection and all its documents?')) return;
   isDeletingCollection.value = collectionId;
@@ -160,8 +162,6 @@ const addDocument = async collectionId => {
 };
 
 const deleteDocument = async (collectionId, docId) => {
-  // eslint-disable-next-line no-alert
-  // eslint-disable-next-line no-alert
   // eslint-disable-next-line no-alert
   if (!window.confirm('Delete this document?')) return;
   isDeletingDoc.value = docId;
@@ -231,6 +231,19 @@ const saveConfig = async () => {
     useAlert('Configuração salva com sucesso!');
   } catch (error) {
     isSavingConfig.value = false;
+  }
+};
+
+const applyTemplate = template => {
+  if (
+    // eslint-disable-next-line no-alert
+    window.confirm(
+      'Isso substituirá suas configurações atuais. Deseja continuar?'
+    )
+  ) {
+    config.value = { ...config.value, ...template.config };
+    showTemplateModal.value = false;
+    useAlert('Template aplicado! Lembre-se de salvar.');
   }
 };
 
@@ -521,6 +534,17 @@ onMounted(() => {
             </label>
           </div>
 
+          <!-- Template Button -->
+          <div class="flex justify-end">
+            <Button
+              label="Carregar Template"
+              icon="i-lucide-layout-template"
+              slate
+              faded
+              @click="showTemplateModal = true"
+            />
+          </div>
+
           <!-- System Prompt -->
           <div>
             <div class="flex items-center justify-between mb-2">
@@ -743,6 +767,55 @@ onMounted(() => {
             faded
             label="Fechar"
             @click="showEditDocModal = false"
+          />
+        </div>
+      </div>
+    </woot-modal>
+
+    <!-- Templates Modal -->
+    <woot-modal
+      v-model:show="showTemplateModal"
+      :on-close="() => (showTemplateModal = false)"
+    >
+      <div class="flex flex-col h-auto overflow-auto p-6 min-w-[500px]">
+        <h3 class="text-lg font-semibold mb-2 text-n-slate-12">
+          Carregar Template
+        </h3>
+        <p class="text-sm text-n-slate-11 mb-6">
+          Escolha um template para preencher automaticamente as configurações.
+          <br />
+          <span class="text-n-ruby-9">
+            Atenção: Isso substituirá suas configurações atuais.
+          </span>
+        </p>
+
+        <div class="space-y-3">
+          <div
+            v-for="template in JASMINE_TEMPLATES"
+            :key="template.id"
+            class="flex flex-col p-4 rounded-lg border border-n-weak bg-n-solid-1 hover:border-n-blue-7 cursor-pointer transition-colors"
+            @click="applyTemplate(template)"
+          >
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-medium text-n-slate-12">
+                {{ template.name }}
+              </span>
+              <span class="text-xs text-n-slate-10">
+                {{ template.config.model }}
+              </span>
+            </div>
+            <p class="text-sm text-n-slate-11">
+              {{ template.description }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-6">
+          <Button
+            slate
+            faded
+            label="Cancelar"
+            @click="showTemplateModal = false"
           />
         </div>
       </div>

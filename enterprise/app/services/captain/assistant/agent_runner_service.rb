@@ -73,14 +73,9 @@ class Captain::Assistant::AgentRunnerService
     # Simple substrings for thank you messages
     # Using simple include? is more robust for "obrigado ...." cases where regex might fail on boundaries
 
-    # Check if message is ONLY emoji(s) (simple heuristic)
-    only_emoji = text.gsub(/[\s\p{Emoji}]/u, '').empty? && text.match?(/\p{Emoji}/u)
-
-    # Categories for context-aware reaction
+    # Deterministic reaction only for thanks.
     keywords = {
-      thanks: %w[obrigad valeu agradeço grato thanks brigadao brigadão gratidao gratidão],
-      greeting: %w[oi olá ola bom dia boa tarde boa noite e ai eaí],
-      attention: %w[reserva pesquisar pesquisa busca buscar verificar checar olhada olho disponibilidade]
+      thanks: %w[obrigad valeu agradeço grato thanks brigadao brigadão gratidao gratidão]
     }
 
     # Check for direct matches
@@ -92,9 +87,6 @@ class Captain::Assistant::AgentRunnerService
         break
       end
     end
-
-    # Fallback to thanks if only emoji (assuming positive sentiment)
-    matched_category = :thanks if matched_category.nil? && only_emoji
 
     Rails.logger.info "[Captain V2] Reaction Pre-Check: Text='#{text}' Category=#{matched_category}"
     File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] AgentRunnerService: Text='#{text}' Category=#{matched_category}" }
@@ -123,8 +115,19 @@ class Captain::Assistant::AgentRunnerService
         return nil
       end
 
+      response_text =
+        if text.include?('muito obrigado') || text.include?('muito obrigada')
+          'Disponha!'
+        elsif text.include?('valeu')
+          'Imagina!'
+        elsif text.include?('obrigad')
+          'Por nada!'
+        else
+          'De nada!'
+        end
+
       return {
-        'response' => "De nada! #{selected_emoji}",
+        'response' => response_text,
         'reasoning' => 'Auto-reaction triggered by thank you/emoji detection',
         'agent_name' => @assistant.name
       }

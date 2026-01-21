@@ -95,74 +95,61 @@ const handleSave = async brandData => {
   }
 };
 
-const joinList = list => {
-  if (!list) return '';
-  return list.join(', ');
-};
-
-onMounted(fetchBrands);
+onMounted(() => {
+  fetchBrands();
+});
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template, @intlify/vue-i18n/no-raw-text -->
   <div
     class="flex flex-col h-full w-full bg-slate-50 dark:bg-slate-900 px-8 py-8 overflow-y-auto"
   >
-    <div class="flex-1 w-full">
+    <div class="flex-1 w-full max-w-7xl mx-auto">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-          {{ t('CAPTAIN.BRANDS.ADMIN_PANEL') }}
-        </h1>
+        <div>
+          <h1 class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
+            Painel Admin de Marcas
+          </h1>
+          <p class="text-slate-500 dark:text-slate-400 mt-1">
+            Gerenciamento de Marcas
+          </p>
+        </div>
+        <Button
+          variant="solid"
+          size="sm"
+          class="flex items-center gap-2 shadow-sm"
+          @click="openAddModal"
+        >
+          <i class="i-lucide-plus" />
+          Adicionar Nova Marca
+        </Button>
       </div>
 
       <div
-        class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 w-full"
+        class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 w-full overflow-hidden"
       >
-        <div
-          class="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 rounded-t-lg"
-        >
-          <h2 class="text-lg font-medium text-slate-800 dark:text-slate-100">
-            {{ t('CAPTAIN.BRANDS.HEADER') }}
-          </h2>
-          <Button
-            variant="smooth"
-            size="sm"
-            class="flex items-center gap-2"
-            @click="openAddModal"
-          >
-            <i class="i-lucide-plus" />
-            {{ t('CAPTAIN.BRANDS.ADD_NEW') }}
-          </Button>
-        </div>
-
-        <div v-if="isLoading" class="p-8 flex justify-center">
+        <div v-if="isLoading" class="p-12 flex justify-center">
           <Spinner />
         </div>
 
         <div v-else class="overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead
-              class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-300 uppercase font-medium"
+              class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-300 uppercase font-medium border-b border-slate-200 dark:border-slate-700"
             >
               <tr>
-                <th class="px-6 py-4 w-1/4">
-                  {{ t('CAPTAIN.BRANDS.TABLE.NAME') }}
-                </th>
-                <th class="px-6 py-4 w-1/3">
-                  {{ t('CAPTAIN.BRANDS.TABLE.CATEGORIES') }}
-                </th>
-                <th class="px-6 py-4 w-1/4">
-                  {{ t('CAPTAIN.BRANDS.TABLE.STAYS') }}
-                </th>
-                <th class="px-6 py-4 text-right">
-                  {{ t('CAPTAIN.BRANDS.TABLE.ACTIONS') }}
-                </th>
+                <th class="px-6 py-4 w-1/4">Nome da Marca</th>
+                <th class="px-6 py-4 w-1/3">Categorias de Suíte</th>
+                <th class="px-6 py-4 w-1/4">Durações de Estadia</th>
+                <th class="px-6 py-4 text-right">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
               <tr
                 v-for="brand in brands"
                 :key="brand.id"
-                class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+                class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group"
               >
                 <td
                   class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100 align-top"
@@ -178,69 +165,92 @@ onMounted(fetchBrands);
                       brand.suite_categories ||
                       []"
                       :key="idx"
-                      class="break-words border-b border-slate-100 dark:border-slate-700/50 last:border-0 pb-1 last:pb-0"
+                      class="flex items-start gap-2 group/cat"
                     >
-                      <span class="font-medium">{{ cat }}</span>
-                      <div
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                      >
+                        {{ cat }}
+                      </span>
+                      <a
                         v-if="
                           (brand.suiteImages || brand.suite_images) &&
                           (brand.suiteImages || brand.suite_images)[cat]
                         "
-                        class="text-xs text-blue-500 mt-0.5 truncate max-w-[300px]"
-                        :title="(brand.suiteImages || brand.suite_images)[cat]"
+                        :href="(brand.suiteImages || brand.suite_images)[cat]"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-blue-500 hover:text-blue-700 transition-colors opacity-0 group-hover/cat:opacity-100"
+                        :title="t('CAPTAIN.BRANDS.VIEW_IMAGE')"
                       >
-                        <a
-                          :href="(brand.suiteImages || brand.suite_images)[cat]"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="hover:underline flex items-center gap-1"
-                        >
-                          <i class="i-lucide-link size-3" />
-                          {{ t('CAPTAIN.BRANDS.VIEW_IMAGE') }}
-                        </a>
-                      </div>
+                        <i class="i-lucide-image size-3.5" />
+                      </a>
                     </div>
                   </div>
                 </td>
                 <td
                   class="px-6 py-4 text-slate-600 dark:text-slate-300 align-top"
                 >
-                  {{ joinList(brand.stayDurations || brand.stay_durations) }}
+                  <div class="flex flex-wrap gap-1.5">
+                    <span
+                      v-for="(stay, sIdx) in brand.stayDurations ||
+                      brand.stay_durations ||
+                      []"
+                      :key="sIdx"
+                      class="inline-flex text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600"
+                    >
+                      {{ stay }}
+                    </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 text-right align-top">
-                  <div class="flex justify-end gap-3">
+                  <div class="flex justify-end gap-2">
                     <button
-                      class="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                      class="text-blue-600 hover:text-blue-800 font-medium transition-colors"
                       @click="openEditModal(brand)"
                     >
-                      {{ t('CAPTAIN.BRANDS.EDIT') }}
+                      Editar
                     </button>
                     <button
-                      class="text-red-500 hover:text-red-700 font-medium text-sm"
+                      class="text-red-500 hover:text-red-700 font-medium transition-colors"
                       @click="deleteBrand(brand)"
                     >
-                      {{ t('CAPTAIN.BRANDS.DELETE') }}
+                      Excluir
                     </button>
                   </div>
                 </td>
               </tr>
               <tr v-if="brands.length === 0">
-                <td
-                  colspan="4"
-                  class="px-6 py-12 text-center text-slate-500 border-t border-slate-200 dark:border-slate-700"
-                >
-                  <div class="flex flex-col items-center gap-2">
-                    <i
-                      class="i-lucide-building-2 text-4xl text-slate-300 mb-2"
-                    />
-                    <p
-                      class="text-base font-medium text-slate-900 dark:text-slate-100"
+                <td colspan="4" class="px-6 py-24 text-center text-slate-500">
+                  <div
+                    class="flex flex-col items-center justify-center gap-3 animate-fade-in"
+                  >
+                    <div
+                      class="p-4 bg-slate-100 dark:bg-slate-700/50 rounded-full mb-2"
                     >
-                      {{ t('CAPTAIN.BRANDS.EMPTY_STATE_TITLE') }}
+                      <i
+                        class="i-lucide-hotel text-3xl text-slate-400 dark:text-slate-500"
+                      />
+                    </div>
+                    <h3
+                      class="text-lg font-semibold text-slate-800 dark:text-slate-100"
+                    >
+                      Nenhuma marca encontrada
+                    </h3>
+                    <p
+                      class="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto"
+                    >
+                      Adicione sua primeira marca para começar a configurar
+                      preços e quartos.
                     </p>
-                    <p class="text-sm">
-                      {{ t('CAPTAIN.BRANDS.EMPTY_STATE_DESC') }}
-                    </p>
+                    <Button
+                      variant="solid"
+                      size="sm"
+                      class="mt-4"
+                      @click="openAddModal"
+                    >
+                      Adicionar Nova Marca
+                    </Button>
                   </div>
                 </td>
               </tr>
@@ -260,9 +270,9 @@ onMounted(fetchBrands);
     <Dialog
       ref="deleteDialogRef"
       type="alert"
-      :title="t('CAPTAIN.BRANDS.DELETE')"
-      :description="t('CAPTAIN.BRANDS.DELETE_CONFIRMATION')"
-      :confirm-button-label="t('CAPTAIN.BRANDS.DELETE')"
+      title="Excluir Marca"
+      description="Tem certeza que deseja excluir esta marca? Essa ação não pode ser desfeita."
+      confirm-button-label="Excluir"
       @confirm="confirmDelete"
     />
   </div>

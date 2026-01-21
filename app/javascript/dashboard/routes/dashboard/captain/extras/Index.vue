@@ -76,13 +76,14 @@ onMounted(fetchExtras);
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template, @intlify/vue-i18n/no-raw-text -->
   <div
     class="flex flex-col h-full w-full bg-slate-50 dark:bg-slate-900 px-8 py-8 overflow-y-auto"
   >
     <div class="flex-1 w-full">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-          {{ t('CAPTAIN.BRANDS.ADMIN_PANEL') }}
+          Painel Admin de Extras
         </h1>
       </div>
 
@@ -94,10 +95,10 @@ onMounted(fetchExtras);
         >
           <div class="flex flex-col">
             <h2 class="text-lg font-medium text-slate-800 dark:text-slate-100">
-              {{ t('CAPTAIN.EXTRAS.TITLE') }}
+              Extras
             </h2>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {{ t('CAPTAIN.EXTRAS.EMPTY_STATE_DESC') }}
+              Gerenciamento de Itens Extras
             </p>
           </div>
           <Button
@@ -107,7 +108,7 @@ onMounted(fetchExtras);
             @click="openAddModal"
           >
             <i class="i-lucide-plus" />
-            {{ t('CAPTAIN.EXTRAS.ADD_NEW') }}
+            Adicionar Novo Extra
           </Button>
         </div>
 
@@ -121,14 +122,10 @@ onMounted(fetchExtras);
               class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-300 uppercase font-medium"
             >
               <tr>
-                <th class="px-6 py-4">{{ t('CAPTAIN.EXTRAS.TABLE.TITLE') }}</th>
-                <th class="px-6 py-4">
-                  {{ t('CAPTAIN.BRAND_MODAL.DESCRIPTION_LABEL') }}
-                </th>
-                <th class="px-6 py-4">{{ t('CAPTAIN.EXTRAS.TABLE.PRICE') }}</th>
-                <th class="px-6 py-4 text-right">
-                  {{ t('CAPTAIN.EXTRAS.TABLE.ACTIONS') }}
-                </th>
+                <th class="px-6 py-4">Nome</th>
+                <th class="px-6 py-4">Descrição</th>
+                <th class="px-6 py-4">Preço</th>
+                <th class="px-6 py-4 text-right">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
@@ -146,7 +143,7 @@ onMounted(fetchExtras);
                   {{ extra.description }}
                 </td>
                 <td class="px-6 py-4 font-medium text-green-600">
-                  {{ t('CAPTAIN.EXTRAS.MODAL.PRICE_PREFIX') }}
+                  R$
                   {{ Number(extra.price).toFixed(2) }}
                 </td>
                 <td class="px-6 py-4 text-right flex justify-end gap-2">
@@ -154,19 +151,19 @@ onMounted(fetchExtras);
                     class="text-blue-600 hover:text-blue-800 font-medium"
                     @click="openEditModal(extra)"
                   >
-                    {{ t('CAPTAIN.EXTRAS.EDIT') }}
+                    Editar
                   </button>
                   <button
                     class="text-red-600 hover:text-red-800 font-medium transition-colors"
                     @click="confirmDelete(extra)"
                   >
-                    {{ t('CAPTAIN.EXTRAS.DELETE') }}
+                    Excluir
                   </button>
                 </td>
               </tr>
               <tr v-if="extras.length === 0">
                 <td colspan="4" class="px-6 py-8 text-center text-slate-500">
-                  {{ t('CAPTAIN.EXTRAS.EMPTY_STATE_TITLE') }}
+                  Nenhum item extra encontrado
                 </td>
               </tr>
             </tbody>
@@ -184,10 +181,10 @@ onMounted(fetchExtras);
 
     <Dialog
       :show="showDeleteConfirmation"
-      :title="t('CAPTAIN.EXTRAS.DELETE')"
-      :message="t('CAPTAIN.EXTRAS.DELETE_CONFIRMATION')"
-      :confirm-text="t('CAPTAIN.EXTRAS.DELETE')"
-      :cancel-text="t('CAPTAIN.BRAND_MODAL.CANCEL')"
+      title="Excluir Extra"
+      message="Tem certeza que deseja excluir este item extra?"
+      confirm-text="Excluir"
+      cancel-text="Cancelar"
       variant="danger"
       @close="showDeleteConfirmation = false"
       @confirm="deleteExtra"

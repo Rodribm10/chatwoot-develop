@@ -1,12 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { useRoute } from 'vue-router';
 import SettingsLayout from '../../settings/SettingsLayout.vue';
 import BaseSettingsHeader from '../../settings/components/BaseSettingsHeader.vue';
 
-const { t } = useI18n();
 const isLoading = ref(false);
 const isSaving = ref(false);
 const route = useRoute();
@@ -45,9 +43,9 @@ const saveConfig = async () => {
       `/api/v1/accounts/${accountId}/captain/configuration`,
       { configuration: formData.value }
     );
-    useAlert(t('CAPTAIN.CONFIGURATIONS.SUCCESS'));
+    useAlert('Configuracoes salvas com sucesso.');
   } catch (error) {
-    useAlert(t('CAPTAIN.CONFIGURATIONS.ERROR'));
+    useAlert('Nao foi possivel salvar as configuracoes.');
   } finally {
     isSaving.value = false;
   }
@@ -58,9 +56,10 @@ onMounted(fetchConfig);
 
 <template>
   <SettingsLayout>
+    <!-- eslint-disable vue/no-bare-strings-in-template, @intlify/vue-i18n/no-raw-text -->
     <BaseSettingsHeader
-      :title="t('CAPTAIN.CONFIGURATIONS.TITLE')"
-      :description="t('CAPTAIN.CONFIGURATIONS.DESCRIPTION')"
+      title="Configuracoes do Captain"
+      description="Defina os textos e cores exibidos no Captain."
     />
 
     <div class="flex flex-col gap-4 p-8 max-w-2xl">
@@ -76,15 +75,13 @@ onMounted(fetchConfig);
           <label
             class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
           >
-            {{ t('CAPTAIN.CONFIGURATIONS.FORM.PAGE_TITLE_LABEL') }}
+            Titulo da pagina
           </label>
           <input
             v-model="formData.title"
             type="text"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-            :placeholder="
-              t('CAPTAIN.CONFIGURATIONS.FORM.PAGE_TITLE_PLACEHOLDER')
-            "
+            placeholder="Ex: Atendimento Captain"
           />
         </div>
 
@@ -92,13 +89,13 @@ onMounted(fetchConfig);
           <label
             class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
           >
-            {{ t('CAPTAIN.CONFIGURATIONS.FORM.SUBTITLE_LABEL') }}
+            Subtitulo
           </label>
           <input
             v-model="formData.subtitle"
             type="text"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-            :placeholder="t('CAPTAIN.CONFIGURATIONS.FORM.SUBTITLE_PLACEHOLDER')"
+            placeholder="Ex: Como podemos ajudar?"
           />
         </div>
 
@@ -106,13 +103,13 @@ onMounted(fetchConfig);
           <label
             class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
           >
-            {{ t('CAPTAIN.CONFIGURATIONS.FORM.PHONE_LABEL') }}
+            Telefone
           </label>
           <input
             v-model="formData.phone_number"
             type="text"
             class="w-full px-3 py-2 border rounded-md dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-            :placeholder="t('CAPTAIN.CONFIGURATIONS.FORM.PHONE_PLACEHOLDER')"
+            placeholder="Ex: +55 (11) 99999-0000"
           />
         </div>
 
@@ -120,7 +117,7 @@ onMounted(fetchConfig);
           <label
             class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
           >
-            {{ t('CAPTAIN.CONFIGURATIONS.FORM.PRIMARY_COLOR_LABEL') }}
+            Cor primaria
           </label>
           <div class="flex gap-2 items-center">
             <input
@@ -138,7 +135,7 @@ onMounted(fetchConfig);
 
         <div class="pt-4 border-t dark:border-slate-800">
           <woot-button :is-loading="isSaving" @click="saveConfig">
-            {{ t('CAPTAIN.CONFIGURATIONS.FORM.SUBMIT') }}
+            Salvar configuracoes
           </woot-button>
         </div>
       </div>

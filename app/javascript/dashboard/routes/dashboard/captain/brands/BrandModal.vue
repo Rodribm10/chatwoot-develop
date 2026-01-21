@@ -1,219 +1,244 @@
-<script setup>
-import { ref, computed, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import Modal from 'dashboard/components/Modal.vue';
-import Input from 'dashboard/components-next/input/Input.vue';
-import Button from 'dashboard/components-next/button/Button.vue';
+<script>
+import { useVuelidate } from '@vuelidate/core';
+import { required } from '@vuelidate/validators';
+import { useAlert } from 'dashboard/composables';
+import WootModal from 'dashboard/components/Modal.vue';
+import WootInput from 'dashboard/components-next/input/Input.vue';
+import WootButton from 'dashboard/components-next/button/Button.vue';
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false,
+export default {
+  components: {
+    WootModal,
+    WootInput,
+    WootButton,
   },
-  brand: {
-    type: Object,
-    default: null,
+  props: {
+    show: {
+      type: Boolean,
+      default: false,
+    },
+    brand: {
+      type: Object,
+      default: null,
+    },
   },
-});
+  emits: ['close', 'save'],
+  setup() {
+    return {
+      v$: useVuelidate(),
+      alert: useAlert(),
+    };
+  },
+  data() {
+    return {
+      name: '',
+      suiteCategories: [],
+      stayDurations: '',
+      // Temporary state for new category input
+      newCategoryName: '',
+      newCategoryImage: '',
+    };
+  },
+  validations() {
+    return {
+      name: { required },
+    };
+  },
+  computed: {
+    headerTitle() {
+      return this.brand ? 'Editar Marca' : 'Nova Marca';
+    },
+    saveLabel() {
+      return this.brand ? 'Atualizar Marca' : 'Criar Marca';
+    },
+  },
+  watch: {
+    show(val) {
+      if (val) {
+        if (this.brand) {
+          this.name = this.brand.name;
+          this.stayDurations = (
+            this.brand.stayDurations ||
+            this.brand.stay_durations ||
+            []
+          ).join(', ');
 
-const emit = defineEmits(['close', 'save']);
-const { t } = useI18n();
+          const categories =
+            this.brand.suiteCategories || this.brand.suite_categories || [];
+          const images =
+            this.brand.suiteImages || this.brand.suite_images || {};
 
-const name = ref('');
-// suiteItems will hold objects: { name: 'Standard', image: 'url' }
-const suiteItems = ref([]);
-const stayDurations = ref('');
-
-const resetForm = () => {
-  name.value = '';
-  suiteItems.value = [{ name: '', image: '' }];
-  stayDurations.value = '';
-};
-
-watch(
-  () => props.brand,
-  newBrand => {
-    if (newBrand) {
-      name.value = newBrand.name;
-      // Parse suite categories and images (handle both snake_case and camelCase)
-      const categories =
-        newBrand.suite_categories || newBrand.suiteCategories || [];
-      const images = newBrand.suite_images || newBrand.suiteImages || {};
-
-      if (Array.isArray(categories) && categories.length > 0) {
-        suiteItems.value = categories.map(cat => ({
-          name: cat,
-          image: images[cat] || '',
-        }));
-      } else if (typeof categories === 'string') {
-        // Handle legacy string format if exists
-        suiteItems.value = categories
-          .split(',')
-          .map(s => ({ name: s.trim(), image: '' }));
-      } else {
-        suiteItems.value = [{ name: '', image: '' }];
+          this.suiteCategories = categories.map(cat => ({
+            name: cat,
+            image: images[cat] || '',
+          }));
+        } else {
+          this.resetForm();
+        }
       }
-
-      const durations = newBrand.stay_durations || newBrand.stayDurations;
-      stayDurations.value = Array.isArray(durations)
-        ? durations.join(', ')
-        : durations || '';
-    } else {
-      resetForm();
-    }
+    },
   },
-  { immediate: true }
-);
+  methods: {
+    resetForm() {
+      this.name = '';
+      this.suiteCategories = [];
+      this.stayDurations = '';
+      this.newCategoryName = '';
+      this.newCategoryImage = '';
+      this.v$.$reset();
+    },
+    addCategory() {
+      if (!this.newCategoryName) return;
+      this.suiteCategories.push({
+        name: this.newCategoryName,
+        image: this.newCategoryImage,
+      });
+      this.newCategoryName = '';
+      this.newCategoryImage = '';
+    },
+    removeCategory(index) {
+      this.suiteCategories.splice(index, 1);
+    },
+    onSave() {
+      this.v$.$touch();
+      if (this.v$.$invalid) return;
 
-const addSuiteItem = () => {
-  suiteItems.value.push({ name: '', image: '' });
+      const categories = this.suiteCategories.map(c => c.name);
+      const images = this.suiteCategories.reduce((acc, curr) => {
+        if (curr.image) acc[curr.name] = curr.image;
+        return acc;
+      }, {});
+
+      const payload = {
+        name: this.name,
+        suite_categories: categories,
+        suite_images: images,
+        stay_durations: this.stayDurations
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean),
+      };
+      this.$emit('save', payload);
+    },
+  },
 };
-
-const removeSuiteItem = index => {
-  suiteItems.value.splice(index, 1);
-};
-
-const onClose = () => {
-  emit('close');
-  resetForm();
-};
-
-const onSave = () => {
-  // Convert suiteItems back to separate structures
-  const validItems = suiteItems.value.filter(item => item.name.trim() !== '');
-  const categories = validItems.map(item => item.name.trim());
-
-  const images = {};
-  validItems.forEach(item => {
-    if (item.image && item.image.trim() !== '') {
-      images[item.name.trim()] = item.image.trim();
-    }
-  });
-
-  const payload = {
-    name: name.value,
-    suite_categories: categories,
-    suite_images: images,
-    stay_durations: stayDurations.value
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s),
-  };
-  emit('save', payload);
-  onClose();
-};
-
-const headerTitle = computed(() =>
-  props.brand
-    ? t('CAPTAIN.BRANDS.BRAND_MODAL.TITLE_EDIT')
-    : t('CAPTAIN.BRANDS.BRAND_MODAL.TITLE_NEW')
-);
-const saveLabel = computed(() =>
-  props.brand
-    ? t('CAPTAIN.BRANDS.BRAND_MODAL.UPDATE')
-    : t('CAPTAIN.BRANDS.BRAND_MODAL.CREATE')
-);
 </script>
 
 <template>
-  <Modal :show="show" :on-close="onClose">
+  <!-- eslint-disable vue/no-bare-strings-in-template, @intlify/vue-i18n/no-raw-text -->
+  <WootModal :show="show" :on-close="() => $emit('close')">
     <div
-      class="flex flex-col gap-4 p-6 w-[600px] bg-white dark:bg-slate-900 rounded-lg"
+      class="flex flex-col w-[600px] bg-white dark:bg-slate-900 rounded-lg shadow-xl overflow-hidden"
     >
-      <h2 class="text-xl font-semibold text-slate-800 dark:text-slate-100">
-        {{ headerTitle }}
-      </h2>
+      <!-- Header -->
+      <div
+        class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center"
+      >
+        <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          {{ headerTitle }}
+        </h2>
+      </div>
 
-      <div class="flex flex-col gap-4">
-        <div>
-          <label
-            class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
-          >
-            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.NAME_LABEL') }}
-          </label>
-          <Input
-            v-model="name"
-            :placeholder="t('CAPTAIN.BRANDS.BRAND_MODAL.NAME_PLACEHOLDER')"
-          />
-        </div>
+      <!-- Scrollable Body -->
+      <div class="flex-1 overflow-y-auto p-6 max-h-[65vh] flex flex-col gap-5">
+        <!-- Brand Name -->
+        <WootInput
+          v-model="name"
+          label="Nome da Marca"
+          placeholder="Ex: Hotel 1001 Noites"
+          :error="v$.name.$error ? 'Nome é obrigatório' : ''"
+        />
 
-        <div>
-          <label
-            class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
-          >
-            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.SUITE_CATEGORIES_LABEL') }}
-          </label>
-
-          <div
-            class="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2 mb-2"
-          >
-            <div
-              v-for="(item, index) in suiteItems"
-              :key="index"
-              class="flex gap-2 items-start"
+        <!-- Suite Categories -->
+        <div
+          class="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-200"
             >
-              <div class="flex-1">
-                <Input
-                  v-model="item.name"
-                  :placeholder="
-                    t('CAPTAIN.BRANDS.BRAND_MODAL.SUITE_NAME_PLACEHOLDER')
-                  "
-                />
-              </div>
-              <div class="flex-1">
-                <Input
-                  v-model="item.image"
-                  :placeholder="
-                    t('CAPTAIN.BRANDS.BRAND_MODAL.SUITE_IMAGE_PLACEHOLDER')
-                  "
-                />
+              Categorias de Suíte
+            </label>
+          </div>
+
+          <div class="flex gap-2 mb-3">
+            <input
+              v-model="newCategoryName"
+              type="text"
+              placeholder="Nome (Ex: Standard)"
+              class="flex-1 text-sm border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+              @keydown.enter.prevent="addCategory"
+            />
+            <input
+              v-model="newCategoryImage"
+              type="text"
+              placeholder="URL da Imagem"
+              class="flex-1 text-sm border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+              @keydown.enter.prevent="addCategory"
+            />
+            <button
+              class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+              @click.prevent="addCategory"
+            >
+              <i class="i-lucide-plus" />
+            </button>
+          </div>
+
+          <div v-if="suiteCategories.length > 0" class="space-y-2">
+            <div
+              v-for="(cat, idx) in suiteCategories"
+              :key="idx"
+              class="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-600"
+            >
+              <div class="flex flex-col">
+                <span
+                  class="font-medium text-sm text-slate-800 dark:text-slate-100"
+                >
+                  {{ cat.name }}
+                </span>
+                <span
+                  v-if="cat.image"
+                  class="text-xs text-slate-500 truncate max-w-[200px]"
+                >
+                  {{ cat.image }}
+                </span>
               </div>
               <button
-                class="mt-2 text-red-500 hover:text-red-700 p-1"
-                :title="t('CAPTAIN.BRANDS.BRAND_MODAL.REMOVE_CATEGORY')"
-                @click="removeSuiteItem(index)"
+                class="text-red-500 hover:text-red-700 p-1"
+                title="Remover categoria"
+                @click="removeCategory(idx)"
               >
-                <i class="i-lucide-trash-2" />
+                <i class="i-lucide-trash-2 size-4" />
               </button>
             </div>
           </div>
-
-          <button
-            class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-transparent border-none p-0 cursor-pointer"
-            @click="addSuiteItem"
+          <p
+            v-else
+            class="text-sm text-slate-500 dark:text-slate-400 italic text-center py-2"
           >
-            <i class="i-lucide-plus" />
-            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.ADD_CATEGORY') }}
-          </button>
-
-          <p class="text-xs text-slate-500 mt-2 dark:text-slate-400">
-            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.SUITE_CATEGORIES_HELP') }}
+            Adicione as categorias de quartos disponíveis para esta marca.
           </p>
         </div>
 
-        <div>
-          <label
-            class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
-          >
-            {{ t('CAPTAIN.BRANDS.BRAND_MODAL.STAYS_LABEL') }}
-          </label>
-          <Input
-            v-model="stayDurations"
-            :placeholder="t('CAPTAIN.BRANDS.BRAND_MODAL.STAYS_PLACEHOLDER')"
-          />
-        </div>
+        <!-- Stays -->
+        <WootInput
+          v-model="stayDurations"
+          label="Durações Aceitas"
+          placeholder="Ex: 2h, 4h, Pernoite, Diária (separados por vírgula)"
+        />
       </div>
 
+      <!-- Footer -->
       <div
-        class="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800"
+        class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2"
       >
-        <Button variant="ghost" @click="onClose">
-          {{ t('CAPTAIN.BRANDS.BRAND_MODAL.CANCEL') }}
-        </Button>
-        <Button @click="onSave">
+        <WootButton variant="ghost" @click="$emit('close')">
+          Cancelar
+        </WootButton>
+        <WootButton @click="onSave">
           {{ saveLabel }}
-        </Button>
+        </WootButton>
       </div>
     </div>
-  </Modal>
+  </WootModal>
 </template>

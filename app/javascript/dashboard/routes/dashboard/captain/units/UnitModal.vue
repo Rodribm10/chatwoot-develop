@@ -1,4 +1,5 @@
 <script>
+/* eslint-disable @intlify/vue-i18n/no-raw-text, vue/no-bare-strings-in-template */
 import { useVuelidate } from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import { useAlert } from 'dashboard/composables';
@@ -153,8 +154,7 @@ export default {
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
+  <!-- eslint-disable @intlify/vue-i18n/no-raw-text, vue/no-bare-strings-in-template -->
   <WootModal :show="show" :on-close="() => $emit('close')">
     <div
       class="flex flex-col w-[600px] bg-white dark:bg-slate-900 rounded-lg shadow-xl overflow-hidden"
@@ -170,12 +170,6 @@ export default {
               : $t('CAPTAIN.UNITS.ADD_TITLE')
           }}
         </h2>
-        <button
-          class="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-          @click="$emit('close')"
-        >
-          <i class="i-lucide-x text-xl" />
-        </button>
       </div>
 
       <!-- Scrollable Body -->
@@ -224,6 +218,7 @@ export default {
           <label
             class="block mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-200"
           >
+            <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
             Caixa de Entrada (WhatsApp de Notificação)
           </label>
           <div class="relative">
@@ -231,12 +226,14 @@ export default {
               v-model="inbox_id"
               class="w-full h-10 px-3 py-2 border rounded-md border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
             >
+              <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
               <option value="">Selecione um Inbox (Opcional)</option>
               <option
                 v-for="inbox in inboxes"
                 :key="inbox.id"
                 :value="inbox.id"
               >
+                <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                 {{ inbox.name }} ({{ inbox.channel_type }})
               </option>
             </select>

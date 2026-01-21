@@ -750,6 +750,8 @@
           },
           "NEW": {
             "CREATE": "Add a scenario",
+            "LOAD_TEMPLATE": "Load Template",
+            "TEMPLATE_SELECT_LABEL": "Select a Template",
             "TITLE": "Create a scenario",
             "FORM": {
               "TITLE": {
@@ -785,6 +787,14 @@
         },
         "EMPTY_MESSAGE": "No scenarios found. Create or add examples to begin.",
         "SEARCH_EMPTY_MESSAGE": "No scenarios found for this search.",
+        "DISABLED": "This scenario is disabled.",
+        "EXAMPLES": {
+          "PROSPECTIVE_BUYER": {
+            "TITLE": "Prospective Buyer",
+            "DESCRIPTION": "Handling customers interested in buying a license.",
+            "INSTRUCTION": "If someone is interested in buying a license, ask the following:\n\n1. How many licenses do you want to buy?\n2. Are you migrating from another platform?\n\nOnce details are collected, follow these steps:\n1. Add a private note with the collected info using [Add Private Note](tool://add_private_note)\n2. Add the \"sales\" label to the contact using [Add Label to Conversation](tool://add_label_to_conversation)\n3. Reply saying \"one of us will be in touch shortly\" and give an estimated response time and [Hand off to Human](tool://handoff)"
+          }
+        },
         "DUPLICATE": {
           "TITLE": "Duplicate scenario",
           "DESCRIPTION": "Choose the destination assistant to copy this scenario.",

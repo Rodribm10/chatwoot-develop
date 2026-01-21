@@ -1,5 +1,6 @@
 <script setup>
-import { computed, reactive, ref } from 'vue';
+/* eslint-disable @intlify/vue-i18n/no-raw-text, vue/no-bare-strings-in-template, @intlify/vue-i18n/no-dynamic-keys */
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useToggle } from '@vueuse/core';
 import { useVuelidate } from '@vuelidate/core';
@@ -16,6 +17,26 @@ import TagMultiSelectComboBox from 'dashboard/components-next/combobox/TagMultiS
 import ScenariosAPI from 'dashboard/api/captain/scenarios';
 import { useRoute } from 'vue-router';
 import { useAlert } from 'dashboard/composables';
+import { SCENARIO_TEMPLATES } from 'dashboard/routes/dashboard/jasmine/data/templates';
+
+const props = defineProps({
+  triggerLabel: {
+    type: String,
+    default: 'CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.CREATE',
+  },
+  startWithTemplates: {
+    type: Boolean,
+    default: false,
+  },
+  triggerIcon: {
+    type: String,
+    default: '',
+  },
+  triggerFaded: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const emit = defineEmits(['add']);
 
@@ -35,6 +56,13 @@ const state = reactive({
 const allTools = useMapGetter('captainTools/getRecords');
 const route = useRoute();
 const isSuggesting = ref(false);
+const showTemplateSelect = ref(false);
+
+watch(showPopover, val => {
+  if (val && props.startWithTemplates) {
+    showTemplateSelect.value = true;
+  }
+});
 
 const toolOptions = computed(() => {
   return allTools.value.map(tool => ({
@@ -113,7 +141,6 @@ const onSuggestTriggers = async () => {
     });
 
     if (response.data.keywords) {
-      // Append if already exists, or replace? Replace feels safer for "suggestion"
       state.trigger_keywords = response.data.keywords;
       useAlert(
         t(
@@ -127,16 +154,26 @@ const onSuggestTriggers = async () => {
     isSuggesting.value = false;
   }
 };
+
+const applyTemplate = template => {
+  state.title = template.title;
+  state.description = template.description;
+  state.instruction = template.instruction;
+  state.trigger_keywords = template.trigger_keywords;
+  showTemplateSelect.value = false;
+};
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-bare-strings-in-template -->
+  <!-- eslint-disable vue/no-bare-strings-in-template, @intlify/vue-i18n/no-raw-text, @intlify/vue-i18n/no-dynamic-keys -->
   <div
     v-on-click-outside="() => togglePopover(false)"
     class="inline-flex relative"
   >
     <Button
-      :label="t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.CREATE')"
+      :label="t(props.triggerLabel)"
+      :icon="props.triggerIcon"
+      :faded="props.triggerFaded"
       sm
       slate
       class="flex-shrink-0"
@@ -150,6 +187,47 @@ const onSuggestTriggers = async () => {
       <h3 class="text-base font-medium text-n-slate-12">
         {{ t(`CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.TITLE`) }}
       </h3>
+
+      <!-- Template Selector -->
+      <div v-if="!showTemplateSelect" class="flex justify-start">
+        <Button
+          :label="t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.LOAD_TEMPLATE')"
+          icon="i-lucide-layout-template"
+          slate
+          faded
+          xs
+          @click="showTemplateSelect = true"
+        />
+      </div>
+      <div v-else class="p-3 bg-n-alpha-2 rounded-lg border border-n-weak">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-n-slate-11">
+            {{
+              t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.NEW.TEMPLATE_SELECT_LABEL')
+            }}
+          </span>
+          <Button
+            icon="i-lucide-x"
+            slate
+            ghost
+            xs
+            @click="showTemplateSelect = false"
+          />
+        </div>
+        <div class="space-y-2">
+          <button
+            v-for="tpl in SCENARIO_TEMPLATES"
+            :key="tpl.id"
+            class="w-full text-left p-2 rounded hover:bg-n-alpha-1 text-sm text-n-slate-12 border border-transparent hover:border-n-weak transition-all"
+            @click="applyTemplate(tpl)"
+          >
+            <span class="font-medium block">{{ tpl.title }}</span>
+            <span class="text-xs text-n-slate-11 line-clamp-1">
+              {{ tpl.description }}
+            </span>
+          </button>
+        </div>
+      </div>
 
       <div class="max-h-[31.25rem] overflow-y-auto flex flex-col gap-4">
         <Input

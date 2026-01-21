@@ -189,14 +189,22 @@ class Inbox < ApplicationRecord
   end
 
   def callback_webhook_url
+    return nil if channel.blank?
+
     case channel_type
     when 'Channel::TwilioSms'
       "#{ENV.fetch('FRONTEND_URL', nil)}/twilio/callback"
     when 'Channel::Sms'
+      return nil if channel.phone_number.blank?
+
       "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/sms/#{channel.phone_number.delete_prefix('+')}"
     when 'Channel::Line'
+      return nil if channel.line_channel_id.blank?
+
       "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/line/#{channel.line_channel_id}"
     when 'Channel::Whatsapp'
+      return nil if channel.phone_number.blank?
+
       "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{channel.phone_number}"
     end
   end

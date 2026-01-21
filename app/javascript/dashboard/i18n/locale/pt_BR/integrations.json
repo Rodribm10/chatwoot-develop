@@ -634,6 +634,10 @@
             "RESPONSE_GUIDELINES": {
               "TITLE": "Diretrizes de resposta",
               "DESCRIPTION": "O jeito e a estrutura das respostas do seu assistente — tranquilo e amigável? Curto e ágil? Detalhado e formal?"
+            },
+            "TOOLS": {
+              "TITLE": "Ferramentas",
+              "DESCRIPTION": "Configure as ferramentas que seu assistente pode usar."
             }
           }
         },
@@ -764,6 +768,8 @@
           },
           "NEW": {
             "CREATE": "Adicionar um cenário",
+            "LOAD_TEMPLATE": "Carregar Modelo",
+            "TEMPLATE_SELECT_LABEL": "Selecione um Modelo",
             "TITLE": "Criar um cenário",
             "FORM": {
               "TITLE": {
@@ -807,6 +813,14 @@
         },
         "EMPTY_MESSAGE": "Nenhum cenário encontrado. Crie ou adicione exemplos para começar.",
         "SEARCH_EMPTY_MESSAGE": "Nenhum cenário encontrado para esta pesquisa.",
+        "DISABLED": "Este cenário está desativado.",
+        "EXAMPLES": {
+          "PROSPECTIVE_BUYER": {
+            "TITLE": "Comprador em Potencial",
+            "DESCRIPTION": "Lidando com clientes interessados em adquirir uma licença.",
+            "INSTRUCTION": "Se alguém estiver interessado em comprar uma licença, pergunte o seguinte:\n\n1. Quantas licenças deseja comprar?\n2. Está migrando de outra plataforma?\n\nAssim que os detalhes forem coletados, siga estas etapas:\n1. Adicione uma nota privada com as informações coletadas usando [Adicionar Nota Privada](tool://add_private_note)\n2. Adicione a etiqueta \"vendas\" ao contato usando [Adicionar Etiqueta à Conversa](tool://add_label_to_conversation)\n3. Responda dizendo \"um de nós entrará em contato em breve\" e forneça um tempo estimado de resposta e [Transferir para Humano](tool://handoff)"
+          }
+        },
         "DUPLICATE": {
           "TITLE": "Duplicar cenário",
           "DESCRIPTION": "Escolha o assistente de destino para copiar este cenário.",
@@ -1519,61 +1533,7 @@
           "DAYS_WEEK": "Dias da Semana"
         }
       }
-    },
-    "SCENARIOS": {
-      "TITLE": "Cenários",
-      "DESCRIPTION": "Cenários ajudam o assistente a entender como lidar com situações específicas.",
-      "EMPTY_MESSAGE": "Nenhum cenário encontrado.",
-      "SEARCH_EMPTY_MESSAGE": "Nenhum cenário corresponde à sua busca.",
-      "BULK_ACTION": {
-        "SELECT_ALL": "Selecionar todos ({count})",
-        "UNSELECT_ALL": "Desmarcar todos ({count})",
-        "SELECTED": "{count} selecionado(s)",
-        "BULK_DELETE_BUTTON": "Excluir Selecionados"
-      },
-      "LIST": {
-        "SEARCH_PLACEHOLDER": "Buscar cenários..."
-      },
-      "ADD": {
-        "SUGGESTED": {
-          "TITLE": "Cenários Sugeridos",
-          "ADD_SINGLE": "Adicionar",
-          "TOOLS_USED": "Ferramentas usadas:"
-        }
-      },
-      "API": {
-        "ADD": {
-          "SUCCESS": "Cenário adicionado com sucesso",
-          "ERROR": "Erro ao adicionar cenário"
-        },
-        "UPDATE": {
-          "SUCCESS": "Cenário atualizado com sucesso",
-          "ERROR": "Erro ao atualizar cenário"
-        },
-        "DELETE": {
-          "SUCCESS": "Cenário excluído com sucesso",
-          "ERROR": "Erro ao excluir cenário"
-        }
-      },
-      "DUPLICATE": {
-        "TITLE": "Duplicar Cenário",
-        "DESCRIPTION": "Escolha para qual assistente você deseja copiar este cenário.",
-        "CONFIRM": "Duplicar",
-        "SELECT": "Selecionar Assistente",
-        "SCENARIO_LABEL": "Cenário:",
-        "TARGET_LABEL": "Assistente de Destino:",
-        "COPY_SUFFIX": " (Cópia)",
-        "SUCCESS": "Cenário duplicado com sucesso",
-        "ERROR": "Erro ao duplicar cenário",
-        "NO_TARGETS": "Não há outros assistentes disponíveis para duplicação."
-      },
-      "EXAMPLES": {
-        "PROSPECTIVE_BUYER": {
-          "TITLE": "Comprador em Potencial",
-          "DESCRIPTION": "Lidando com clientes interessados em adquirir uma licença.",
-          "INSTRUCTION": "Se alguém estiver interessado em comprar uma licença, pergunte o seguinte:\n\n1. Quantas licenças deseja comprar?\n2. Está migrando de outra plataforma?\n\nAssim que os detalhes forem coletados, siga estas etapas:\n1. Adicione uma nota privada com as informações coletadas usando [Adicionar Nota Privada](tool://add_private_note)\n2. Adicione a etiqueta \"vendas\" ao contato usando [Adicionar Etiqueta à Conversa](tool://add_label_to_conversation)\n3. Responda dizendo \"um de nós entrará em contato em breve\" e forneça um tempo estimado de resposta e [Transferir para Humano](tool://handoff)"
-        }
-      }
     }
+
   }
 }

@@ -117,6 +117,7 @@ class Account < ApplicationRecord
   has_many :captain_extras, class_name: 'Captain::Extra', dependent: :destroy_async
   has_many :captain_suites, class_name: 'Captain::Suite', dependent: :destroy_async
   has_one :captain_configuration, class_name: 'Captain::Configuration', dependent: :destroy
+  has_many :captain_assistants, class_name: 'CaptainAssistant', dependent: :destroy_async
 
   has_one_attached :contacts_export
 
