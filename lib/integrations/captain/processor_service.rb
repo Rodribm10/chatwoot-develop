@@ -50,14 +50,21 @@ class Integrations::Captain::ProcessorService < Integrations::BotProcessorServic
   end
 
   def previous_messages
-    previous_messages = []
-    conversation.messages.where(message_type: [:outgoing, :incoming]).where(private: false).offset(1).find_each do |message|
-      next if message.content_type != 'text'
+    current_message_id = event_data[:message].id
 
-      role = determine_role(message)
-      previous_messages << { message: message.content, type: role }
+    # Fetch last 20 messages before the current one
+    messages = conversation.messages
+                           .where(message_type: [:outgoing, :incoming])
+                           .where(private: false)
+                           .where(content_type: 'text')
+                           .where('id < ?', current_message_id) # Exclude current message
+                           .reorder(created_at: :desc) # Get latest first
+                           .limit(20)
+
+    # Reverse to chronological order and map
+    messages.to_a.reverse.map do |message|
+      { message: message.content, type: determine_role(message) }
     end
-    previous_messages
   end
 
   def determine_role(message)
