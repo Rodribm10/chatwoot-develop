@@ -38,6 +38,9 @@ module Captain
         actual_params = resolve_params(args, params)
         File.open(Rails.root.join('log/tool_debug.log'), 'a') do |f|
           f.puts "[#{Time.now}] STARTING CheckAvailabilityTool with params: #{actual_params}"
+          f.puts "[#{Time.now}] PRICING COUNT: #{Captain::Pricing.count}"
+          f.puts "[#{Time.now}] FIRST PRICING: #{Captain::Pricing.first.inspect}"
+          f.puts "[#{Time.now}] ALL PRICINGS: #{Captain::Pricing.all.inspect}"
         end
 
         suite_category = actual_params[:suite]
@@ -56,8 +59,9 @@ module Captain
         File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RESOLVED DATE: #{target_date} | SUITE: #{suite_category}" }
 
         # Find pricing strategy
-        pricing_scope = Captain::Pricing.where(account_id: @conversation.account_id)
-                                        .where('LOWER(suite_category) = ?', suite_category.downcase)
+        account_id = @conversation&.account_id || @assistant&.account_id
+        pricing_scope = Captain::Pricing.where(account_id: account_id)
+                                        .where('suite_category ILIKE ?', "%#{suite_category}%")
 
         pricing_scope = filter_pricings_by_day_range(pricing_scope, target_date) if target_date
 
@@ -101,6 +105,11 @@ module Captain
           File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] FAILURE: #{msg}" }
           return msg
         end
+      rescue StandardError => e
+        File.open(Rails.root.join('log/tool_debug.log'), 'a') do |f|
+          f.puts "[#{Time.now}] CRITICAL ERROR in CheckAvailabilityTool: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+        end
+        raise e
       end
 
       private

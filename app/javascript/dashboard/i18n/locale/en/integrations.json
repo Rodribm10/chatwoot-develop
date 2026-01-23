@@ -1319,6 +1319,56 @@
         "TITLE": "No Connected Inboxes",
         "SUBTITLE": "Connecting an inbox allows the assistant to handle initial questions from your customers before transferring them to you."
       }
+    },
+    "PRICINGS": {
+      "HEADER": "Administrative Panel",
+      "TITLE": "Pricing Table",
+      "DESCRIPTION": "Configure pricing rules by inbox, brand, day, and category.",
+      "ADD_BUTTON": "New Rule",
+      "EMPTY_STATE": "No rules found with current filters.",
+      "FIELDS": {
+        "INBOX": "Inbox",
+        "BRAND": "Brand",
+        "DAY": "Day",
+        "DAYS": "Days",
+        "CATEGORY": "Category",
+        "DURATION": "Duration",
+        "PRICE": "Price",
+        "PRICE_DISPLAY": "$ {price}",
+        "ACTIONS": "Actions",
+        "MIN_PRICE": "Min price",
+        "MAX_PRICE": "Max price"
+      },
+      "FILTERS": {
+        "TITLE": "Filters",
+        "ALL": "All",
+        "ALL_DAYS": "All",
+        "CLEAR": "Clear filters"
+      },
+      "DELETE_CONFIRMATION": "Are you sure you want to delete this rule?",
+      "DELETE_SUCCESS": "Rule removed",
+      "DELETE_ERROR": "Error removing rule",
+      "FETCH_ERROR": "Error fetching data",
+      "MODAL": {
+        "ADD_TITLE": "New Pricing Rule",
+        "EDIT_TITLE": "Edit Rule",
+        "SELECT_DAYS_REQUIRED": "Select at least one day.",
+        "SELECT_BRAND_FIRST": "Select a brand first.",
+        "NO_CATEGORIES": "No categories registered for this brand.",
+        "NO_DURATIONS": "No durations registered for this brand.",
+        "SAVE_SUCCESS": "Price saved!",
+        "SAVE_ERROR": "Error saving price",
+        "CANCEL": "Cancel",
+        "SAVE": "Save",
+        "SELECT_CATEGORY": "Select a category",
+        "SELECT_DURATION": "Select a duration",
+        "PRICE_PLACEHOLDER": "0.00",
+        "REMOVE_INBOX": "Remove",
+        "CLOSE": "×",
+        "FIELDS": {
+          "DAYS_WEEK": "Days of the Week"
+        }
+      }
     }
   }
 }

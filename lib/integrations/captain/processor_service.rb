@@ -7,6 +7,13 @@ class Integrations::Captain::ProcessorService < Integrations::BotProcessorServic
     call_captain(message_content)
   end
 
+  # Prevent bot from replying to itself or other agents
+  def should_run_processor?(message)
+    return false if message.outgoing? || message.sender_type != 'Contact'
+
+    super
+  end
+
   def process_response(message, response)
     if response == 'conversation_handoff'
       message.conversation.bot_handoff!
