@@ -24,6 +24,7 @@ jobs:
   # Backend tests with parallelization
   backend-tests:
     runs-on: [self-hosted, oracle-arm]
+    container: ruby:3.4.4
     strategy:
       fail-fast: false
       max-parallel: 8
@@ -39,8 +40,6 @@ jobs:
           POSTGRES_PASSWORD: ''
           POSTGRES_DB: postgres
           POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 5432:5432
         options: >-
           --mount type=tmpfs,destination=/var/lib/postgresql/data
           --health-cmd pg_isready
@@ -49,9 +48,12 @@ jobs:
           --health-retries 5
       redis:
         image: redis:alpine
-        ports:
-          - 6379:6379
         options: --entrypoint redis-server
+
+    env:
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379
+      RAILS_ENV: test
 
     steps:
       - uses: actions/checkout@v4
@@ -79,8 +81,9 @@ jobs:
 
       - name: Set up database
         run: |
-          psql -U postgres -h localhost -c "CREATE ROLE root LOGIN SUPERUSER;"
-          psql -U postgres -h localhost -c "CREATE DATABASE chatwoot_dev OWNER root;"
+          apt-get update && apt-get install -y postgresql-client
+          psql -U postgres -h postgres -c "CREATE ROLE root LOGIN SUPERUSER;"
+          psql -U postgres -h postgres -c "CREATE DATABASE chatwoot_dev OWNER root;"
         env:
           PGPASSWORD: ''
 
