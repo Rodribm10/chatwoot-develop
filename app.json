@@ -62,7 +62,6 @@
       "plan": "heroku-postgresql:essential-0"
     }
   ],
-  "stack": "heroku-24",
   "buildpacks": [
     {
       "url": "heroku/nodejs"
