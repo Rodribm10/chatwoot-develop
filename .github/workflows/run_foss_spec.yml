@@ -33,8 +33,6 @@ jobs:
 
     env:
       POSTGRES_HOST: localhost
-      POSTGRES_PORT: ${{ 5432 + matrix.ci_node_index }}
-      REDIS_URL: redis://localhost:${{ 6379 + matrix.ci_node_index }}
       RAILS_ENV: test
 
     steps:
@@ -132,3 +130,11 @@ jobs:
         with:
           name: rails-log-folder-${{ matrix.ci_node_index }}
           path: log
+
+      - name: Stop services
+        if: always()
+        run: |
+          docker stop $PG_CONTAINER_NAME || true
+          docker rm $PG_CONTAINER_NAME || true
+          docker stop $RD_CONTAINER_NAME || true
+          docker rm $RD_CONTAINER_NAME || true
