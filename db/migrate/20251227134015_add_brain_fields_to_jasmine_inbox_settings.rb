@@ -8,4 +8,3 @@ class AddBrainFieldsToJasmineInboxSettings < ActiveRecord::Migration[7.1]
     add_column :jasmine_inbox_settings, :intent_keywords, :jsonb, default: {}
   end
 end
-

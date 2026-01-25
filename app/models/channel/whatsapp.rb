@@ -197,7 +197,7 @@ class Channel::Whatsapp < ApplicationRecord
       provider_config.delete('wuzapi_user_token')
     end
 
-    return unless provider_config['wuzapi_admin_token'].present?
+    return if provider_config['wuzapi_admin_token'].blank?
 
     self.wuzapi_admin_token = provider_config['wuzapi_admin_token']
     provider_config.delete('wuzapi_admin_token')
@@ -209,13 +209,13 @@ class Channel::Whatsapp < ApplicationRecord
 
   def perform_webhook_setup
     if provider == 'wuzapi'
-      return unless inbox.present?
+      return if inbox.blank?
 
       base_url = provider_config['wuzapi_base_url']
       # Use encrypted token
       user_token = wuzapi_user_token
 
-      return unless user_token.present?
+      return if user_token.blank?
 
       # Construct Chatwoot Webhook URL
       # Using standard route: /webhooks/whatsapp/:phone_number for WuzAPI as per fix
@@ -286,7 +286,7 @@ class Channel::Whatsapp < ApplicationRecord
     provider_config['wuzapi_user_id'] = result[:wuzapi_user_id]
     self.wuzapi_user_token = result[:wuzapi_user_token]
 
-    masked_token = result[:wuzapi_user_token].to_s[-4..-1]
+    masked_token = result[:wuzapi_user_token].to_s[-4..]
     Rails.logger.info "Wuzapi User Provisioned. ID: #{result[:wuzapi_user_id]}, Token (last 4): ****#{masked_token}"
   end
 end

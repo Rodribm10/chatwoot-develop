@@ -61,7 +61,7 @@ puts '✅ Service Execution Completed.'
 puts '🔎 Checking for messages...'
 
 last_message = conversation.messages.last
-if last_message && last_message.content.include?('confirmamos o pagamento')
+if last_message&.content&.include?('confirmamos o pagamento')
   puts '✅ SUCCESS: Message created!'
   puts "📝 Content: #{last_message.content}"
 else

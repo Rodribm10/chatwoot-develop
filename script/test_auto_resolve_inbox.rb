@@ -2,7 +2,7 @@
 require 'logger'
 
 # Setup logger
-logger = Logger.new(STDOUT)
+logger = Logger.new($stdout)
 logger.level = Logger::INFO
 
 logger.info '--- Testing Auto-Resolve by Inbox Logic ---'

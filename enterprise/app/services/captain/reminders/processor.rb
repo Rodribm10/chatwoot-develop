@@ -32,7 +32,7 @@ class Captain::Reminders::Processor
 
   def suite_available?
     assistant = inbox.captain_assistant
-    return false unless assistant.present?
+    return false if assistant.blank?
 
     tool = Captain::Tools::StatusSuitesTool.new(assistant, conversation: conversation)
     result = tool.execute
@@ -49,8 +49,8 @@ class Captain::Reminders::Processor
     raise ArgumentError, 'Message content is required' if content.blank?
 
     target_conversation = conversation || find_or_create_conversation
-    raise ArgumentError, 'Conversation not found' unless target_conversation.present?
-    raise ArgumentError, 'Assistant not configured for inbox' unless assistant.present?
+    raise ArgumentError, 'Conversation not found' if target_conversation.blank?
+    raise ArgumentError, 'Assistant not configured for inbox' if assistant.blank?
 
     Current.executed_by = assistant
     Current.account = @reminder.account

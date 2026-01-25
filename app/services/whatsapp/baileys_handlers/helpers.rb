@@ -15,7 +15,7 @@ module Whatsapp::BaileysHandlers::Helpers # rubocop:disable Metrics/ModuleLength
     !@raw_message[:key][:fromMe]
   end
 
-  def jid_type # rubocop:disable Metrics/CyclomaticComplexity
+  def jid_type
     jid = @raw_message[:key][:remoteJid]
     server = jid.split('@').last
 
@@ -39,7 +39,7 @@ module Whatsapp::BaileysHandlers::Helpers # rubocop:disable Metrics/ModuleLength
     end
   end
 
-  def message_type # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/MethodLength,Metrics/AbcSize
+  def message_type # rubocop:disable Metrics/MethodLength,Metrics/AbcSize
     msg = unwrap_ephemeral_message(@raw_message[:message])
     if msg.key?(:conversation) || msg.dig(:extendedTextMessage, :text).present?
       'text'
@@ -69,7 +69,7 @@ module Whatsapp::BaileysHandlers::Helpers # rubocop:disable Metrics/ModuleLength
     end
   end
 
-  def message_content # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/MethodLength
+  def message_content # rubocop:disable Metrics/MethodLength
     msg = unwrap_ephemeral_message(@raw_message[:message])
     case message_type
     when 'text'
@@ -96,7 +96,7 @@ module Whatsapp::BaileysHandlers::Helpers # rubocop:disable Metrics/ModuleLength
     end
   end
 
-  def reply_to_message_id # rubocop:disable Metrics/CyclomaticComplexity
+  def reply_to_message_id
     msg = unwrap_ephemeral_message(@raw_message[:message])
     message_key = case message_type
                   when 'text' then :extendedTextMessage

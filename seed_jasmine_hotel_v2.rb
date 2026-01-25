@@ -1,8 +1,8 @@
 # seed_jasmine_hotel_v2.rb
 # Objetivo: Garantir que a Jasmine e seus sub-agentes existam em TODAS as contas do sistema.
 
-puts "Limpando assistentes antigos..."
-Captain::Assistant.where("name LIKE ?", "%Jasmine%").destroy_all
+puts 'Limpando assistentes antigos...'
+Captain::Assistant.where('name LIKE ?', '%Jasmine%').destroy_all
 
 Account.all.each do |account|
   puts "Configurando Jasmine para a conta: #{account.name} (ID: #{account.id})..."
@@ -25,17 +25,17 @@ Account.all.each do |account|
       content: <<~TEXT
         Hotel 1001 Noites Prime – Unidade Ceilândia.
         Público: Casais, hospedagens curtas.
-        
+
         TABELA DE PREÇOS (Segunda a Quinta):
         - Stilo: 1h R$50 | 2h R$60 | Pernoite c/ café R$130
         - Alexa: 1h R$50 | 2h R$65 | Pernoite c/ café R$140
         - Hidro: 1h R$130 | 2h R$150 | Pernoite c/ café R$260
-        
+
         TABELA DE PREÇOS (Quinta a Domingo):
         - Stilo: 1h R$50 | 2h R$70 | Pernoite c/ café R$150
         - Alexa: 1h R$60 | 2h R$75 | Pernoite c/ café R$160
         - Hidro: 1h R$140 | 2h R$160 | Pernoite c/ café R$280
-        
+
         LINKS:
         - Cardápio: https://hoteis1001noites.com.br/cardapio/
         - Waze: https://waze.com/ul?a=share_drive...
@@ -77,13 +77,13 @@ Account.all.each do |account|
     instruction: <<~TEXT
       Você é a Daniela, especialista em reservas.
       Sua função é APENAS coletar dados para reserva futura e confirmar.
-      
+
       Gatilho: Cliente quer reservar para amanhã, sábado, ou data futura.
-      
+
       Ação Obrigatória:
       1. Se o cliente não disse a data/hora/unidade, pergunte.
       2. Use a ferramenta `transfer_to_jasmine` para finalizar o atendimento ou confirmar que registrou.
-      
+
       Nota: Você atende reservas de QUALQUER unidade do grupo.
     TEXT
   )
@@ -97,9 +97,9 @@ Account.all.each do |account|
     instruction: <<~TEXT
       Você é a Jamile.
       Sua função é verificar disponibilidade para entrada IMEDIATA na unidade Ceilândia.
-      
+
       Gatilho: "Tem quarto agora?", "Posso ir ai?", "Tem vaga?"
-      
+
       Ação:
       1. Pergunte qual suíte ele prefere se não disse.
       2. Responda simulando uma consulta ao sistema: "Consultei aqui e temos [X] disponível."
@@ -114,18 +114,18 @@ Account.all.each do |account|
     description: 'Envia fotos das suítes solicitadas.',
     instruction: <<~TEXT
       Você é a Maria, responsável pelo acervo de fotos.
-      
+
       Gatilho: Cliente pede fotos.
-      
+
       Ação:
       1. Identifique qual suíte o cliente quer ver.
       2. Responda: "Claro! Aqui estão as fotos da suíte [Nome] que você pediu:"
       3. (Simulação) [FOTO_DA_SUITE_AQUI]
     TEXT
   )
-  
+
   # Habilitar a feature para a conta
   account.enable_features!(:captain_integration_v2)
 end
 
-puts "Configuração concluída para todas as contas!"
+puts 'Configuração concluída para todas as contas!'

@@ -47,7 +47,7 @@ module Enterprise::MessageTemplates::HookExecutionService
   def send_typing_indicator
     # Access phone number safely via contact association
     phone = conversation.contact&.phone_number
-    return unless phone.present?
+    return if phone.blank?
 
     # Assuming Wuzapi is the provider for Channel::Whatsapp in this context
     # We need to find the Wuzapi client instance or create one.

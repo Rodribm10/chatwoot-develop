@@ -7,13 +7,13 @@ openai_key = ENV.fetch('OPENAI_API_KEY', nil)
 gemini_key = ENV.fetch('GEMINI_API_KEY', nil)
 
 if openai_key.present?
-  puts "✅ OPENAI_API_KEY found: #{openai_key[0..5]}...#{openai_key[-4..-1]}"
+  puts "✅ OPENAI_API_KEY found: #{openai_key[0..5]}...#{openai_key[-4..]}"
 else
   puts '❌ OPENAI_API_KEY NOT found'
 end
 
 if gemini_key.present?
-  puts "✅ GEMINI_API_KEY found: #{gemini_key[0..5]}...#{gemini_key[-4..-1]}"
+  puts "✅ GEMINI_API_KEY found: #{gemini_key[0..5]}...#{gemini_key[-4..]}"
 else
   puts '⚠️ GEMINI_API_KEY NOT found (Optional if using OpenAI)'
 end

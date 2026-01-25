@@ -5,7 +5,7 @@ unless account
   puts 'Nenhuma conta encontrada.'
   exit
 end
-dates = [Date.today, Date.yesterday, 1.week.ago.to_date]
+dates = [Time.zone.today, Date.yesterday, 1.week.ago.to_date]
 
 questions_data = [
   { text: 'Aceita pagamento via PIX?', count: 45, label: 'duvida_valores' },

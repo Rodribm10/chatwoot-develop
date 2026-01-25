@@ -54,6 +54,6 @@ class Api::V1::Accounts::Integrations::LlmModelsController < Api::V1::Accounts::
     Rails.logger.error(
       "[LLM][ModelTest] Failed to persist model test results hook_id=#{hook.id} errors=#{hook.errors.full_messages.join(', ')}"
     )
-    hook.update_columns(settings: settings)
+    hook.update_columns(settings: settings) # rubocop:disable Rails/SkipsModelValidations
   end
 end

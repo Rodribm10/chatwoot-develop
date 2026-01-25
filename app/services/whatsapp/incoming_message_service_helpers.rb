@@ -137,7 +137,7 @@ module Whatsapp::IncomingMessageServiceHelpers
 
     # 2. Media Messages (Image, Video, Audio, Document, Sticker)
     [:imageMessage, :videoMessage, :audioMessage, :documentMessage, :stickerMessage].each do |media_key|
-      next unless message.dig(media_key.to_s, 'contextInfo').present?
+      next if message.dig(media_key.to_s, 'contextInfo').blank?
 
       ctx = message[media_key.to_s]['contextInfo']
       @in_reply_to_external_id = ctx['stanzaID'] || ctx['stanzaId']

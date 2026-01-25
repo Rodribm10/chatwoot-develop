@@ -25,10 +25,8 @@
 #  fk_rails_...  (account_id => accounts.id)
 #  fk_rails_...  (captain_brand_id => captain_brands.id)
 #
-module Captain
-  class Pricing < ApplicationRecord
-    belongs_to :account
-    belongs_to :captain_brand, optional: true
-    belongs_to :inbox, optional: true
-  end
+class Captain::Pricing < ApplicationRecord
+  belongs_to :account
+  belongs_to :captain_brand, optional: true
+  belongs_to :inbox, optional: true
 end

@@ -18,7 +18,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     trigger_media_analysis
 
     Rails.logger.info "[ResponseBuilderJob] Captain V2 Enabled? #{captain_v2_enabled?}"
-    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] ResponseBuilderJob: V2 Enabled? #{captain_v2_enabled?}" }
+    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.zone.now}] ResponseBuilderJob: V2 Enabled? #{captain_v2_enabled?}" }
 
     if captain_v2_enabled?
       generate_response_with_v2
@@ -209,7 +209,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     elapsed_time = Time.zone.now - @start_time
     remaining_delay = target_delay - elapsed_time
 
-    sleep(remaining_delay) if remaining_delay > 0
+    sleep(remaining_delay) if remaining_delay.positive?
   end
 
   def fetch_new_incoming_messages
@@ -217,11 +217,11 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     all_messages = @conversation.messages.order(:created_at)
 
     # Find the last message sent by the assistant (outgoing)
-    last_outgoing_index = all_messages.rindex { |m| m.outgoing? }
+    last_outgoing_index = all_messages.rindex(&:outgoing?)
 
     potential_messages = if last_outgoing_index
                            # Get all messages after the last outgoing one
-                           all_messages[(last_outgoing_index + 1)..-1] || []
+                           all_messages[(last_outgoing_index + 1)..] || []
                          else
                            # If no outgoing messages, use all messages
                            all_messages

@@ -6,7 +6,7 @@ class FixStatusSuitesHeaders < ActiveRecord::Migration[7.1]
     tools = Captain::CustomTool.where('endpoint_url ILIKE ? OR title ILIKE ?', '%/api/PlugPlay/api/SuitesStatus%', '%Status Suites%')
 
     tools.each do |tool|
-      puts "Processing tool: #{tool.title} (ID: #{tool.id})"
+      Rails.logger.debug { "Processing tool: #{tool.title} (ID: #{tool.id})" }
 
       updated = false
       new_auth_config = tool.auth_config || {}
@@ -20,7 +20,7 @@ class FixStatusSuitesHeaders < ActiveRecord::Migration[7.1]
         %w[PLUG-PLAY-ID PLUG-PLAY-TOKEN].each do |header_key|
           next unless query_params.key?(header_key)
 
-          puts "  Found #{header_key} in URL query params. Moving to headers."
+          Rails.logger.debug { "  Found #{header_key} in URL query params. Moving to headers." }
           new_auth_config['headers'][header_key] = query_params[header_key]
           query_params.delete(header_key)
           updated = true
@@ -36,16 +36,16 @@ class FixStatusSuitesHeaders < ActiveRecord::Migration[7.1]
           if tool.param_schema.is_a?(Array)
             original_size = tool.param_schema.size
             tool.param_schema.reject! { |p| %w[PLUG-PLAY-ID PLUG-PLAY-TOKEN].include?(p['name']) }
-            puts '  Removed params from param_schema.' if tool.param_schema.size < original_size
+            Rails.logger.debug '  Removed params from param_schema.' if tool.param_schema.size < original_size
           end
 
           tool.save!
-          puts '  Tool updated successfully.'
+          Rails.logger.debug '  Tool updated successfully.'
         else
-          puts '  No keys found in URL query params. Manual update might be required for values.'
+          Rails.logger.debug '  No keys found in URL query params. Manual update might be required for values.'
         end
       rescue URI::InvalidURIError # [INTENTIONAL] keep for future logging
-        puts "  Skipping invalid URI: #{tool.endpoint_url}"
+        Rails.logger.debug { "  Skipping invalid URI: #{tool.endpoint_url}" }
       end
     end
   end

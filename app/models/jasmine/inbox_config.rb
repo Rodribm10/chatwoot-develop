@@ -29,22 +29,21 @@
 #  fk_rails_...  (account_id => accounts.id)
 #  fk_rails_...  (inbox_id => inboxes.id)
 #
-module Jasmine
-  class InboxConfig < ApplicationRecord
-    self.table_name = 'jasmine_inbox_settings'
+class Jasmine::InboxConfig < ApplicationRecord
+  self.table_name = 'jasmine_inbox_settings'
 
-    belongs_to :account
-    belongs_to :inbox
+  belongs_to :account
+  belongs_to :inbox
 
-    validates :account_id, presence: true
-    validates :inbox_id, presence: true
-    validate :validate_account_consistency
+  validates :account_id, presence: true
+  validates :inbox_id, presence: true
+  validate :validate_account_consistency
 
-    private
+  private
 
-    def validate_account_consistency
-      return if inbox.nil?
-      errors.add(:base, 'Inbox account mismatch') if inbox.account_id != account_id
-    end
+  def validate_account_consistency
+    return if inbox.nil?
+
+    errors.add(:base, 'Inbox account mismatch') if inbox.account_id != account_id
   end
 end

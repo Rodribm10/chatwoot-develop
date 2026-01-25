@@ -1,4 +1,4 @@
-class Webhooks::WuzapiController < ActionController::Base
+class Webhooks::WuzapiController < ApplicationController
   skip_before_action :verify_authenticity_token
   before_action :fetch_inbox
   before_action :verify_secret

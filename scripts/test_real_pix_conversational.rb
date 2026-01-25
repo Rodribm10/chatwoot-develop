@@ -8,11 +8,11 @@ account = Account.first
 inbox = Inbox.find_by(name: 'Wuzapi') || Inbox.first
 assistant = Captain::Assistant.find_by(name: 'Jasmine') || Captain::Assistant.first
 # Force use of ENV key if assistant key is likely invalid/old
-puts "ENV Key suffix: #{ENV['OPENAI_API_KEY'].to_s[-4..-1]}"
+puts "ENV Key suffix: #{ENV['OPENAI_API_KEY'].to_s[-4..]}"
 assistant.api_key = ENV['OPENAI_API_KEY'] if ENV['OPENAI_API_KEY'].present?
 assistant.save(validate: false)
 
-puts "Assistant Key (col) after: #{assistant.reload.api_key.to_s[-4..-1]}"
+puts "Assistant Key (col) after: #{assistant.reload.api_key.to_s[-4..]}"
 
 unit = Captain::Unit.find_by(name: 'Unidade Ceilândia') || Captain::Unit.first
 
@@ -74,7 +74,7 @@ rescue StandardError
 end
 
 service = Captain::Llm::AssistantChatService.new(assistant: assistant, conversation: conversation)
-puts "Service API Key resolved to: #{service.send(:api_key).to_s[-4..-1]}"
+puts "Service API Key resolved to: #{service.send(:api_key).to_s[-4..]}"
 
 response = service.generate_response(additional_message: msg1.content)
 

@@ -1,7 +1,5 @@
-module Llm
-  class BaseAiService
-    def initialize
-      # Base initialization logic if needed
-    end
+class Llm::BaseAiService
+  def initialize
+    # Base initialization logic if needed
   end
 end

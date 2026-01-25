@@ -37,9 +37,22 @@ class Webhooks::WhatsappController < ActionController::API
   # This prevents ANY binary data from leaking into JSON serialization
   def sanitize_payload_for_sidekiq
     raw = params.to_unsafe_hash
+    clean_payload = build_base_payload(raw)
 
-    # Build a completely NEW payload with only safe fields
-    clean_payload = {
+    clean_payload['event'] = build_clean_event(raw['event']) if raw['event'].is_a?(Hash)
+
+    if raw['whatsapp'].is_a?(Hash)
+      clean_payload['whatsapp'] = { 'event' => clean_payload['event'] }.merge(
+        raw['whatsapp'].slice('type', 'state', 'instanceName', 'userID')
+      )
+    end
+
+    Rails.logger.info 'WuzAPI: Payload sanitized (WHITELIST mode)'
+    deep_force_utf8(clean_payload)
+  end
+
+  def build_base_payload(raw)
+    {
       'type' => raw['type'],
       'state' => raw['state'],
       'instanceName' => raw['instanceName'],
@@ -48,142 +61,102 @@ class Webhooks::WhatsappController < ActionController::API
       'action' => raw['action'],
       'phone_number' => raw['phone_number']
     }
+  end
 
-    # Only copy safe event fields
-    if raw['event'].is_a?(Hash)
-      clean_event = {}
+  def build_clean_event(raw_event)
+    clean_event = {}
 
-      # Info fields (all safe strings/ids)
-      if raw['event']['Info'].is_a?(Hash)
-        clean_event['Info'] = raw['event']['Info'].slice(
-          'ID', 'Type', 'MediaType', 'Chat', 'Sender', 'SenderAlt', 'RecipientAlt', 'IsFromMe', 'IsGroup',
-          'Timestamp', 'PushName', 'MessageSource'
-        )
-      end
-
-      # Safe event metadata
-      %w[Chat Sender IsFromMe IsGroup Timestamp AddressingMode BroadcastListOwner
-         BroadcastRecipients RecipientAlt SenderAlt MessageIDs MessageSender].each do |key|
-        clean_event[key] = raw['event'][key] if raw['event'].key?(key)
-      end
-
-      # Message content - WHITELIST only safe fields
-      if raw['event']['Message'].is_a?(Hash)
-        msg = raw['event']['Message']
-        clean_msg = {}
-
-        # Text messages
-        clean_msg['conversation'] = msg['conversation'] if msg['conversation'].is_a?(String)
-
-        if msg['extendedTextMessage'].is_a?(Hash)
-          clean_msg['extendedTextMessage'] = {
-            'text' => msg['extendedTextMessage']['text']
-          }
-          # Only copy contextInfo if it doesn't have quotedMessage with binaries
-          # Only copy contextInfo if it doesn't have quotedMessage with binaries
-          if msg['extendedTextMessage']['contextInfo'].is_a?(Hash)
-            ctx = msg['extendedTextMessage']['contextInfo']
-            clean_msg['extendedTextMessage']['contextInfo'] = {
-              'stanzaID' => ctx['stanzaID'] || ctx['stanzaId'],
-              'participant' => ctx['participant']
-            }.compact
-          end
-        end
-
-        # Image messages - ONLY safe metadata, NO binaries
-        if msg['imageMessage'].is_a?(Hash)
-          img = msg['imageMessage']
-          clean_msg['imageMessage'] = {
-            'URL' => img['URL'] || img['url'],
-            'directPath' => img['directPath'],
-            'mediaKey' => img['mediaKey'],
-            'fileEncSha256' => img['fileEncSha256'] || img['fileEncSHA256'],
-            'fileSha256' => img['fileSha256'] || img['fileSHA256'],
-            'fileLength' => img['fileLength'],
-            'mimetype' => img['mimetype'],
-            'width' => img['width'],
-            'height' => img['height'],
-            'caption' => img['caption'],
-            'contextInfo' => {
-              'stanzaID' => img.dig('contextInfo', 'stanzaID') || img.dig('contextInfo', 'stanzaId'),
-              'participant' => img.dig('contextInfo', 'participant')
-            }.compact
-          }.compact
-          # EXPLICITLY NO: JPEGThumbnail, scansSidecar, firstScanSidecar, etc
-        end
-
-        # Video messages - ONLY safe metadata
-        if msg['videoMessage'].is_a?(Hash)
-          vid = msg['videoMessage']
-          clean_msg['videoMessage'] = {
-            'URL' => vid['URL'] || vid['url'],
-            'directPath' => vid['directPath'],
-            'mediaKey' => vid['mediaKey'],
-            'fileEncSha256' => vid['fileEncSha256'] || vid['fileEncSHA256'],
-            'fileSha256' => vid['fileSha256'] || vid['fileSHA256'],
-            'fileLength' => vid['fileLength'],
-            'mimetype' => vid['mimetype'],
-            'seconds' => vid['seconds'],
-            'caption' => vid['caption'],
-            'contextInfo' => {
-              'stanzaID' => vid.dig('contextInfo', 'stanzaID') || vid.dig('contextInfo', 'stanzaId'),
-              'participant' => vid.dig('contextInfo', 'participant')
-            }.compact
-          }.compact
-        end
-
-        # Audio messages
-        if msg['audioMessage'].is_a?(Hash)
-          aud = msg['audioMessage']
-          clean_msg['audioMessage'] = {
-            'URL' => aud['URL'] || aud['url'],
-            'directPath' => aud['directPath'],
-            'mediaKey' => aud['mediaKey'],
-            'fileEncSha256' => aud['fileEncSha256'] || aud['fileEncSHA256'],
-            'fileSha256' => aud['fileSha256'] || aud['fileSHA256'],
-            'fileLength' => aud['fileLength'],
-            'mimetype' => aud['mimetype'],
-            'seconds' => aud['seconds'],
-            'ptt' => aud['ptt'],
-            'contextInfo' => {
-              'stanzaID' => aud.dig('contextInfo', 'stanzaID') || aud.dig('contextInfo', 'stanzaId'),
-              'participant' => aud.dig('contextInfo', 'participant')
-            }.compact
-          }.compact
-        end
-
-        # Document messages
-        if msg['documentMessage'].is_a?(Hash)
-          doc = msg['documentMessage']
-          clean_msg['documentMessage'] = {
-            'URL' => doc['URL'] || doc['url'],
-            'directPath' => doc['directPath'],
-            'mediaKey' => doc['mediaKey'],
-            'fileEncSha256' => doc['fileEncSha256'] || doc['fileEncSHA256'],
-            'fileSha256' => doc['fileSha256'] || doc['fileSHA256'],
-            'fileLength' => doc['fileLength'],
-            'mimetype' => doc['mimetype'],
-            'fileName' => doc['fileName'],
-            'title' => doc['title']
-          }.compact
-        end
-
-        clean_event['Message'] = clean_msg unless clean_msg.empty?
-      end
-
-      clean_payload['event'] = clean_event
-    end
-
-    # Also copy whatsapp key if present (but sanitize it too)
-    if raw['whatsapp'].is_a?(Hash)
-      # Just reference the same clean event structure
-      clean_payload['whatsapp'] = { 'event' => clean_payload['event'] }.merge(
-        raw['whatsapp'].slice('type', 'state', 'instanceName', 'userID')
+    if raw_event['Info'].is_a?(Hash)
+      clean_event['Info'] = raw_event['Info'].slice(
+        'ID', 'Type', 'MediaType', 'Chat', 'Sender', 'SenderAlt', 'RecipientAlt', 'IsFromMe', 'IsGroup',
+        'Timestamp', 'PushName', 'MessageSource'
       )
     end
 
-    Rails.logger.info 'WuzAPI: Payload sanitized (WHITELIST mode)'
-    deep_force_utf8(clean_payload)
+    # Safe event metadata
+    %w[Chat Sender IsFromMe IsGroup Timestamp AddressingMode BroadcastListOwner
+       BroadcastRecipients RecipientAlt SenderAlt MessageIDs MessageSender].each do |key|
+      clean_event[key] = raw_event[key] if raw_event.key?(key)
+    end
+
+    if raw_event['Message'].is_a?(Hash)
+      clean_msg = build_clean_message(raw_event['Message'])
+      clean_event['Message'] = clean_msg unless clean_msg.empty?
+    end
+
+    clean_event
+  end
+
+  def build_clean_message(msg)
+    clean_msg = {}
+    clean_msg['conversation'] = msg['conversation'] if msg['conversation'].is_a?(String)
+
+    clean_msg.merge!(clean_extended_text_message(msg['extendedTextMessage']))
+    clean_msg.merge!(clean_media_message(msg, 'imageMessage'))
+    clean_msg.merge!(clean_media_message(msg, 'videoMessage'))
+    clean_msg.merge!(clean_media_message(msg, 'audioMessage'))
+    clean_msg.merge!(clean_document_message(msg['documentMessage']))
+
+    clean_msg
+  end
+
+  def clean_extended_text_message(ext_msg)
+    return {} unless ext_msg.is_a?(Hash)
+
+    result = { 'extendedTextMessage' => { 'text' => ext_msg['text'] } }
+
+    result['extendedTextMessage']['contextInfo'] = clean_context_info(ext_msg['contextInfo']) if ext_msg['contextInfo'].is_a?(Hash)
+
+    result
+  end
+
+  def clean_context_info(ctx)
+    {
+      'stanzaID' => ctx['stanzaID'] || ctx['stanzaId'],
+      'participant' => ctx['participant']
+    }.compact
+  end
+
+  def clean_media_message(msg, type)
+    media = msg[type]
+    return {} unless media.is_a?(Hash)
+
+    clean_data = {
+      'URL' => media['URL'] || media['url'],
+      'directPath' => media['directPath'],
+      'mediaKey' => media['mediaKey'],
+      'fileEncSha256' => media['fileEncSha256'] || media['fileEncSHA256'],
+      'fileSha256' => media['fileSha256'] || media['fileSHA256'],
+      'fileLength' => media['fileLength'],
+      'mimetype' => media['mimetype'],
+      'seconds' => media['seconds'],
+      'caption' => media['caption'],
+      'ptt' => media['ptt'],
+      'width' => media['width'],
+      'height' => media['height']
+    }
+
+    clean_data['contextInfo'] = clean_context_info(media['contextInfo']) if media['contextInfo'].is_a?(Hash)
+
+    { type => clean_data.compact }
+  end
+
+  def clean_document_message(doc)
+    return {} unless doc.is_a?(Hash)
+
+    {
+      'documentMessage' => {
+        'URL' => doc['URL'] || doc['url'],
+        'directPath' => doc['directPath'],
+        'mediaKey' => doc['mediaKey'],
+        'fileEncSha256' => doc['fileEncSha256'] || doc['fileEncSHA256'],
+        'fileSha256' => doc['fileSha256'] || doc['fileSHA256'],
+        'fileLength' => doc['fileLength'],
+        'mimetype' => doc['mimetype'],
+        'fileName' => doc['fileName'],
+        'title' => doc['title']
+      }.compact
+    }
   end
 
   def deep_force_utf8(obj)

@@ -108,7 +108,7 @@ class Captain::Assistant < ApplicationRecord
       next unless tool_class
 
       # Avoid duplicates if tool is already added (e.g. hardcoded ones)
-      next if tools.any? { |t| t.is_a?(tool_class) }
+      next if tools.any?(tool_class)
 
       tools << tool_class.new(self, conversation: conversation, user: user)
     end

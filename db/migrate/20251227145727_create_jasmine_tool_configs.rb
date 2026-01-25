@@ -4,12 +4,12 @@ class CreateJasmineToolConfigs < ActiveRecord::Migration[7.1]
       t.references :account, null: false, foreign_key: true
       t.references :inbox, null: false, foreign_key: true
       t.string :tool_key, null: false, index: true
-      
+
       # Configs
       t.boolean :is_enabled, default: false, null: false
       t.string :plug_play_id
       t.text :plug_play_token
-      
+
       # Stats
       t.datetime :last_tested_at
       t.integer :last_test_status
