@@ -20,7 +20,12 @@ class SuperAdmin::InstanceStatusesController < SuperAdmin::ApplicationController
   end
 
   def instance_meta
-    @metrics['Database Migrations'] = ActiveRecord::Base.connection_pool.migration_context.needs_migration? ? 'pending' : 'completed'
+    context = if ActiveRecord::Base.respond_to?(:connection_pool)
+                ActiveRecord::Base.connection_pool.migration_context
+              else
+                ActiveRecord::Base.connection.migration_context
+              end
+    @metrics['Database Migrations'] = context.needs_migration? ? 'pending' : 'completed'
   end
 
   def chatwoot_version
@@ -53,7 +58,8 @@ class SuperAdmin::InstanceStatusesController < SuperAdmin::ApplicationController
       @metrics["Redis 'maxmemory' setting"] = redis_server['maxmemory']
       @metrics["Redis 'maxmemory_policy' setting"] = redis_server['maxmemory_policy']
     end
-  rescue Redis::CannotConnectError
+  rescue StandardError => e
+    Rails.logger.warn "Redis status check failed: #{e.message}"
     @metrics['Redis alive'] = false
   end
 end
