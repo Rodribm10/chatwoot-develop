@@ -129,7 +129,7 @@ has been assigned to you"
 
     it 'returns appropriate body suited for the notification type assigned_conversation_new_message when attachment message' do
       conversation = create(:conversation)
-      message = create(:message, sender: create(:user), content: nil, conversation: conversation)
+      message = build(:message, sender: create(:user), content: nil, conversation: conversation)
       attachment = message.attachments.new(file_type: :image, account_id: message.account_id)
       attachment.file.attach(io: Rails.root.join('spec/assets/avatar.png').open, filename: 'avatar.png', content_type: 'image/png')
       message.save!

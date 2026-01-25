@@ -60,6 +60,7 @@ gem 'aws-actionmailbox-ses', '~> 0'
 
 ##-- gems for database --#
 gem 'groupdate'
+gem 'fiddle'
 gem 'pg'
 gem 'redis'
 gem 'redis-namespace'

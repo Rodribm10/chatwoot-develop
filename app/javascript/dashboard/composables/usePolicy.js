@@ -109,7 +109,8 @@ export function usePolicy() {
     if (!flag) return false;
 
     // Bypass paywall for Captain in development
-    if (['captain_integration', 'captain_integration_v2'].includes(flag)) return false;
+    if (['captain_integration', 'captain_integration_v2'].includes(flag))
+      return false;
 
     if (isACustomBrandedInstance.value) {
       // custom branded instances never show paywall
