@@ -118,6 +118,9 @@ jobs:
       - name: Seed database
         run: bundle exec rake db:schema:load
 
+      - name: Run migrations
+        run: bundle exec rake db:migrate
+
       - name: Run backend tests (parallelized)
         run: |
           # Get all spec files and split them using round-robin distribution
