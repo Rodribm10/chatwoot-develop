@@ -1,4 +1,6 @@
 module Enterprise::Inbox
+  # member_ids_with_assignment_capacity is used in enterprise to check for agent capacity
+
   def member_ids_with_assignment_capacity
     return super unless enable_auto_assignment?
 

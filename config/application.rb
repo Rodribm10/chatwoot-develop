@@ -42,8 +42,7 @@ module Chatwoot
     config.eager_load_paths << Rails.root.join('enterprise/lib')
     config.eager_load_paths << Rails.root.join('enterprise/listeners')
     # rubocop:disable Rails/FilePath
-    enterprise_app_paths = Dir["#{Rails.root}/enterprise/app/*"].reject { |path| %w[views javascript assets].include?(File.basename(path)) }
-    config.eager_load_paths += enterprise_app_paths
+    config.eager_load_paths += Dir["#{Rails.root}/enterprise/app/**"]
     # rubocop:enable Rails/FilePath
     # Add enterprise views to the view paths
     config.paths['app/views'].unshift('enterprise/app/views')

@@ -20,12 +20,12 @@ class SuperAdmin::InstanceStatusesController < SuperAdmin::ApplicationController
   end
 
   def instance_meta
-    context = if ActiveRecord::Base.respond_to?(:connection_pool)
-                ActiveRecord::Base.connection_pool.migration_context
-              else
-                ActiveRecord::Base.connection.migration_context
-              end
-    @metrics['Database Migrations'] = context.needs_migration? ? 'pending' : 'completed'
+    @metrics['Database Migrations'] = begin
+      ActiveRecord::Base.connection.migration_context.needs_migration? ? 'pending' : 'completed'
+    rescue StandardError => e
+      Rails.logger.warn "Migration context check failed: #{e.message}"
+      'unknown'
+    end
   end
 
   def chatwoot_version
