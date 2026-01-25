@@ -9,12 +9,12 @@ if u
   if u.save
     puts 'User saved successfully.'
   else
-    puts 'Error saving user: ' + u.errors.full_messages.join(', ')
+    puts "Error saving user: #{u.errors.full_messages.join(', ')}"
   end
-  
+
   # Reload and verify
   u.reload
-  puts 'Password check immediately after save: ' + u.valid_password?(password).to_s
+  puts "Password check immediately after save: #{u.valid_password?(password)}"
 else
   puts 'User NOT FOUND to reset password.'
 end

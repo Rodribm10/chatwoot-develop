@@ -116,7 +116,7 @@ module Captain
         contact = nil
 
         # Try finding by phone
-        contact = @account.contacts.find_by_phone_number(phone) if phone.present?
+        contact = @account.contacts.find_by(phone_number: phone) if phone.present?
 
         # Try finding by email
         contact = @account.contacts.find_by(email: email) if contact.nil? && email.present?
@@ -162,16 +162,12 @@ module Captain
 
         return :scheduled unless check_in && check_out
 
-        if check_in.to_date == now.to_date
-          :scheduled # Or 'awaiting_checkin' if we want to be more specific, but MVP 'scheduled' is usually 'Entrada'
+        if now >= check_out
+          :completed
         elsif now >= check_in && now < check_out
-          :active # 'Hospedada'
-        elsif now >= check_out
-          :completed # 'Saída' / checkout done
-        elsif now < check_in
-          :scheduled
+          :active
         else
-          :scheduled # Default
+          :scheduled
         end
       end
     end

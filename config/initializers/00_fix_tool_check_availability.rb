@@ -2,7 +2,7 @@
 # This ensures the tool is enabled even if the console environment is broken.
 
 Rails.application.config.after_initialize do
-  puts '--- [FIX] Verifying CheckAvailabilityTool Config ---'
+  Rails.logger.info '--- [FIX] Verifying CheckAvailabilityTool Config ---'
 
   begin
     assistant = Captain::Assistant.first
@@ -13,14 +13,14 @@ Rails.application.config.after_initialize do
       if config.new_record? || !config.is_enabled
         config.is_enabled = true
         config.save!
-        puts "--- [FIX] SUCCESS: check_availability ENABLED for #{assistant.name} ---"
+        Rails.logger.info "--- [FIX] SUCCESS: check_availability ENABLED for #{assistant.name} ---"
       else
-        puts "--- [FIX] SKIPPED: Already enabled for #{assistant.name} ---"
+        Rails.logger.info "--- [FIX] SKIPPED: Already enabled for #{assistant.name} ---"
       end
     else
-      puts '--- [FIX] WARNING: No Assistant found to fix. ---'
+      Rails.logger.warn '--- [FIX] WARNING: No Assistant found to fix. ---'
     end
   rescue StandardError => e
-    puts "--- [FIX] ERROR: #{e.message} ---"
+    Rails.logger.error "--- [FIX] ERROR: #{e.message} ---"
   end
 end

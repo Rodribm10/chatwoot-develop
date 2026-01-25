@@ -38,11 +38,9 @@ module Captain
         actual_params = resolve_params(args, params)
         account_id = @conversation&.account_id || @assistant&.account_id
 
-        File.open(Rails.root.join('log/tool_debug.log'), 'a') do |f|
-          f.puts "[#{Time.now}] STARTING CheckAvailabilityTool with params: #{actual_params}"
-          f.puts "[#{Time.now}] PRICING COUNT: #{Captain::Pricing.where(account_id: account_id).count}"
-          f.puts "[#{Time.now}] FIRST PRICING: #{Captain::Pricing.where(account_id: account_id).first.inspect}"
-        end
+        Rails.logger.info "[CheckAvailabilityTool] STARTING with params: #{actual_params}"
+        Rails.logger.debug { "[CheckAvailabilityTool] PRICING COUNT: #{Captain::Pricing.where(account_id: account_id).count}" }
+        Rails.logger.debug { "[CheckAvailabilityTool] FIRST PRICING: #{Captain::Pricing.where(account_id: account_id).first.inspect}" }
 
         suite_category = actual_params[:suite]
         requested_duration = actual_params[:duration].presence # Don't default yet
@@ -57,7 +55,7 @@ module Captain
 
         # [DATE RESOLUTION]
         target_date = resolve_target_date(actual_params)
-        File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RESOLVED DATE: #{target_date} | SUITE: #{suite_category}" }
+        Rails.logger.info "[CheckAvailabilityTool] RESOLVED DATE: #{target_date} | SUITE: #{suite_category}"
 
         # [DEBUG] Log the context
         current_inbox_id = @conversation&.inbox_id
@@ -96,9 +94,7 @@ module Captain
         # Use the matched category if found, otherwise stick to the original input (fallback)
         final_suite_category = matched_category || suite_category
 
-        File.open(Rails.root.join('log/tool_debug.log'), 'a') do |f|
-          f.puts "[#{Time.now}] KEYWORD MATCH: Input='#{suite_category}' -> Resolved='#{final_suite_category}'"
-        end
+        Rails.logger.info "[CheckAvailabilityTool] KEYWORD MATCH: Input='#{suite_category}' -> Resolved='#{final_suite_category}'"
 
         pricing_scope = Captain::Pricing.where(account_id: account_id)
                                         .where('suite_category ILIKE ?', final_suite_category)
@@ -130,7 +126,7 @@ module Captain
 
           if available_options.present?
             msg = "Disponível! Para a suíte #{final_suite_category} em #{target_date&.strftime('%d/%m')}, tenho estas opções: #{available_options}. Pergunte qual duração o cliente prefere."
-            File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] MENU MODE: #{msg}" }
+            Rails.logger.info "[CheckAvailabilityTool] MENU MODE: #{msg}"
             return msg
           else
             msg = "Não encontrei tarifas para a suíte #{final_suite_category} nesta data. Confirme o nome da suíte."
@@ -146,7 +142,7 @@ module Captain
             final_price, unit: 'R$ ', separator: ',', delimiter: '.'
           )} (#{pricing.day_range})."
           persist_last_availability(final_suite_category, requested_duration, pricing, target_date)
-          File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] SUCCESS: #{msg}" }
+          Rails.logger.info "[CheckAvailabilityTool] SUCCESS: #{msg}"
           return msg
         else
           available_options = pricing_scope.map do |p|
@@ -163,9 +159,7 @@ module Captain
           return msg
         end
       rescue StandardError => e
-        File.open(Rails.root.join('log/tool_debug.log'), 'a') do |f|
-          f.puts "[#{Time.now}] CRITICAL ERROR in CheckAvailabilityTool: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
-        end
+        Rails.logger.error "[CheckAvailabilityTool] CRITICAL ERROR: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
         raise e
       end
 
