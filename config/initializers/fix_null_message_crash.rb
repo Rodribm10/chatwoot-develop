@@ -13,7 +13,7 @@ Rails.application.config.to_prepare do
     def ensure_content_presence_defensive
       # If content is present, or we have attachments, we are good.
       # We check .any? and .size to be robust against unsaved attachments in some contexts.
-      return if content.present? || attachments.any? || attachments.size > 0 || attachments.to_a.any?
+      return if content.present? || attachments.any?
 
       # Identifica a origem para um fallback mais inteligente
       if incoming?
