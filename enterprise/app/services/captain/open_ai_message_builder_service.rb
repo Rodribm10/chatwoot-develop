@@ -12,6 +12,15 @@ class Captain::OpenAiMessageBuilderService
     parts
   end
 
+  def generate_text_content
+    content = generate_content
+    return content if content.is_a?(String)
+
+    content.map do |part|
+      part[:type] == 'text' ? part[:text] : "[#{part[:type]}]"
+    end.join("\n")
+  end
+
   private
 
   def text_part(text)
@@ -36,8 +45,13 @@ class Captain::OpenAiMessageBuilderService
 
   def image_parts(image_attachments)
     image_attachments.each_with_object([]) do |attachment, parts|
-      url = get_attachment_url(attachment)
-      parts << image_part(url) if url.present?
+      description = attachment.meta&.dig('description')
+      if description.present?
+        parts << text_part("[Imagem]: #{description}")
+      else
+        url = get_attachment_url(attachment)
+        parts << image_part(url) if url.present?
+      end
     end
   end
 

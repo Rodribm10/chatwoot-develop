@@ -24,9 +24,9 @@ module Wuzapi
     end
 
     # User Endpoints (Use token header)
-    def send_text(user_token, phone_number, body)
+    def send_text(user_token, phone_number, body, **options)
       # Payload MUST be Case-Sensitive: Key 'Phone' and 'Body'
-      payload = { 'Phone' => phone_number, 'Body' => body }
+      payload = { 'Phone' => phone_number, 'Body' => body }.merge(options)
       request(:post, '/chat/send/text', payload, user_auth_headers(user_token))
     end
 
@@ -51,6 +51,12 @@ module Wuzapi
       payload = { 'Phone' => phone_number, 'State' => state }
       payload['Media'] = media if media
       request(:post, '/chat/presence', payload, user_auth_headers(user_token))
+    end
+
+    def download_media(user_token, media_url)
+      # Some WuzAPI versions use a dedicated download endpoint to proxy Meta CDN
+      payload = { 'URL' => media_url }
+      request(:post, '/chat/downloadimage', payload, user_auth_headers(user_token))
     end
 
     def session_status(user_token)

@@ -122,9 +122,11 @@ const fetchData = async () => {
   }
 };
 
+const deleteDialogRef = ref(null);
+
 const confirmDelete = pricing => {
   pricingToDelete.value = pricing;
-  showDeleteConfirmation.value = true;
+  deleteDialogRef.value.open();
 };
 
 const deletePricing = async () => {
@@ -341,15 +343,27 @@ const clearFilters = () => {
                       ? pricing.inboxNames.join(', ')
                       : pricing.inbox_names?.length
                         ? pricing.inbox_names.join(', ')
-                        : pricing.inboxName ||
-                          pricing.inbox_name ||
-                          pricing.inbox_id
+                        : inboxes.find(
+                            i => String(i.id) === String(pricing.inbox_id)
+                          )?.name || 'Global (Todos os Inboxes)'
                   }}
                 </td>
                 <td
                   class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100"
                 >
-                  {{ pricing.brandName || pricing.brand_id }}
+                  {{
+                    brands.find(
+                      b =>
+                        String(b.id) === String(pricing.captain_brand_id) ||
+                        String(b.id) === String(pricing.brand_id) ||
+                        String(b.id) === String(pricing.captainBrandId) ||
+                        String(b.id) === String(pricing.brandId)
+                    )?.name ||
+                    pricing.captain_brand_id ||
+                    pricing.brand_id ||
+                    pricing.captainBrandId ||
+                    pricing.brandId
+                  }}
                 </td>
                 <td class="px-6 py-4 text-slate-600 dark:text-slate-300">
                   {{ pricing.dayRange || pricing.day_range }}
@@ -374,13 +388,13 @@ const clearFilters = () => {
                     class="text-blue-600 hover:text-blue-800 font-medium"
                     @click="openEditModal(pricing)"
                   >
-                    {{ $t('CAPTAIN.RESERVATIONS.AUTOMATIONS.EDIT') }}
+                    {{ $t('CAPTAIN.PRICINGS.EDIT') }}
                   </button>
                   <button
                     class="text-red-600 hover:text-red-800 font-medium transition-colors"
                     @click="confirmDelete(pricing)"
                   >
-                    {{ $t('CAPTAIN.RESERVATIONS.AUTOMATIONS.DELETE') }}
+                    {{ $t('CAPTAIN.PRICINGS.DELETE') }}
                   </button>
                 </td>
               </tr>
@@ -396,6 +410,7 @@ const clearFilters = () => {
     </div>
 
     <PricingModal
+      :key="selectedPricing?.id || 'new'"
       :show="showModal"
       :pricing="selectedPricing"
       :brands="brands"
@@ -405,12 +420,14 @@ const clearFilters = () => {
     />
 
     <Dialog
-      :show="showDeleteConfirmation"
-      :title="t('CAPTAIN.PRICINGS.DELETE_BUTTON')"
-      :message="t('CAPTAIN.PRICINGS.DELETE_CONFIRMATION')"
-      :confirm-text="t('CAPTAIN.PRICINGS.DELETE_BUTTON')"
-      :cancel-text="t('CAPTAIN.BRAND_MODAL.CANCEL')"
-      variant="danger"
+      ref="deleteDialogRef"
+      :title="$t('CAPTAIN.PRICINGS.DELETE_BTN')"
+      :description="$t('CAPTAIN.PRICINGS.DELETE_CONFIRMATION')"
+      :confirm-button-label="$t('CAPTAIN.PRICINGS.DELETE_BTN')"
+      :cancel-button-label="$t('CAPTAIN.PRICINGS.MODAL.CANCEL')"
+      type="alert"
+      show-cancel-button
+      show-confirm-button
       @close="showDeleteConfirmation = false"
       @confirm="deletePricing"
     />

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_10_123000) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_10_123002) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -344,6 +344,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_10_123000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.jsonb "suite_images", default: {}, null: false
+    t.jsonb "suite_keywords"
     t.index ["account_id"], name: "index_captain_brands_on_account_id"
   end
 
@@ -493,6 +494,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_10_123000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "inbox_id"
+    t.text "keywords"
     t.index ["account_id"], name: "index_captain_pricings_on_account_id"
     t.index ["captain_brand_id"], name: "index_captain_pricings_on_captain_brand_id"
     t.index ["inbox_id"], name: "index_captain_pricings_on_inbox_id"
@@ -838,7 +840,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_10_123000) do
     t.string "wuzapi_user_token_iv"
     t.string "wuzapi_admin_token"
     t.string "wuzapi_admin_token_iv"
+    t.jsonb "provider_connection", default: {}
     t.index ["phone_number"], name: "index_channel_whatsapp_on_phone_number", unique: true
+    t.index ["provider_connection"], name: "index_channel_whatsapp_provider_connection", where: "((provider)::text = ANY ((ARRAY['baileys'::character varying, 'zapi'::character varying])::text[]))", using: :gin
   end
 
   create_table "companies", force: :cascade do |t|
@@ -1074,6 +1078,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_10_123000) do
     t.bigint "user_id"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.boolean "show_on_sidebar", default: false, null: false
     t.index ["account_id"], name: "index_dashboard_apps_on_account_id"
     t.index ["user_id"], name: "index_dashboard_apps_on_user_id"
   end
@@ -1378,6 +1383,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_10_123000) do
     t.jsonb "additional_attributes", default: {}
     t.text "processed_message_content"
     t.jsonb "sentiment", default: {}
+    t.integer "in_reply_to_id"
     t.index "((additional_attributes -> 'campaign_id'::text))", name: "index_messages_on_additional_attributes_campaign_id", using: :gin
     t.index ["account_id", "content_type", "created_at"], name: "idx_messages_account_content_created"
     t.index ["account_id", "created_at", "message_type"], name: "index_messages_on_account_created_type"
@@ -1387,6 +1393,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_10_123000) do
     t.index ["conversation_id", "account_id", "message_type", "created_at"], name: "index_messages_on_conversation_account_type_created"
     t.index ["conversation_id"], name: "index_messages_on_conversation_id"
     t.index ["created_at"], name: "index_messages_on_created_at"
+    t.index ["in_reply_to_id"], name: "index_messages_on_in_reply_to_id"
     t.index ["inbox_id"], name: "index_messages_on_inbox_id"
     t.index ["sender_type", "sender_id"], name: "index_messages_on_sender_type_and_sender_id"
     t.index ["source_id"], name: "index_messages_on_source_id"
@@ -1719,6 +1726,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_10_123000) do
   add_foreign_key "jasmine_inbox_settings", "inboxes"
   add_foreign_key "jasmine_tool_configs", "accounts"
   add_foreign_key "jasmine_tool_configs", "inboxes"
+  add_foreign_key "messages", "messages", column: "in_reply_to_id"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").
       after(:insert).

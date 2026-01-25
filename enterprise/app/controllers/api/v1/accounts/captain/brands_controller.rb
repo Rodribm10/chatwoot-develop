@@ -43,7 +43,7 @@ module Api
           end
 
           def brand_params
-            params.require(:brand).permit(:name, suite_categories: [], stay_durations: [], suite_images: {})
+            params.require(:brand).permit(:name, suite_categories: [], stay_durations: [], suite_images: {}, suite_keywords: {})
           end
         end
       end

@@ -44,6 +44,54 @@
         "STAYS_PLACEHOLDER": "Ex: 2h, 4h, Pernoite, Diária (separados por vírgula)"
       }
     },
+    "PRICINGS": {
+      "LIST": {
+        "GLOBAL": "Global (Todos os Inboxes)"
+      },
+      "DELETE_BTN": "Excluir Regra",
+      "DELETE_CONFIRMATION": "Tem certeza que deseja excluir esta regra de preço?",
+      "FIELDS": {
+        "INBOX": "Inbox",
+        "BRAND": "Marca",
+        "DAYS": "Dias",
+        "CATEGORY": "Categoria",
+        "DURATION": "Duração",
+        "PRICE": "Preço",
+        "ACTIONS": "Ações",
+        "PRICE_DISPLAY": "R$ %{price}",
+        "MIN_PRICE": "Preço Mínimo",
+        "MAX_PRICE": "Preço Máximo",
+        "DAY": "Dia",
+        "KEYWORDS": "Palavras-chave"
+      },
+      "FILTERS": {
+        "ALL": "Todas",
+        "ALL_DAYS": "Todos os Dias",
+        "CLEAR": "Limpar Filtros"
+      },
+      "EDIT": "Editar",
+      "DELETE": "Excluir",
+      "HEADER": "Gerenciamento de Tarifas",
+      "TITLE": "Tarifas e Disponibilidade",
+      "DESCRIPTION": "Gerencie os preços das suítes por dia da semana, categoria e duração.",
+      "ADD_BUTTON": "Nova Regra",
+      "EMPTY_STATE": "Nenhuma regra de preço encontrada.",
+      "MODAL": {
+        "EDIT_TITLE": "Editar Regra de Preço",
+        "ADD_TITLE": "Nova Regra de Preço",
+        "SAVE": "Salvar",
+        "CANCEL": "Cancelar",
+        "SELECT_DAYS_REQUIRED": "Selecione pelo menos um dia",
+        "SELECT_CATEGORY": "Selecione uma categoria",
+        "SELECT_BRAND_FIRST": "Selecione uma marca primeiro",
+        "NO_CATEGORIES": "Nenhuma categoria encontrada",
+        "SELECT_DURATION": "Selecione uma duração",
+        "NO_DURATIONS": "Nenhuma duração encontrada",
+        "PRICE_PLACEHOLDER": "0.00",
+        "REMOVE_INBOX": "Remover Inbox",
+        "CLOSE": "Remover"
+      }
+    },
     "CUSTOM_TOOLS": {
       "OPTIONS": {
         "TEST_TOOL": "Testar Ferramenta",

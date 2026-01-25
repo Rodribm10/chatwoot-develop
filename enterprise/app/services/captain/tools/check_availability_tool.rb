@@ -15,7 +15,7 @@ module Captain
           properties: {
             suite: {
               type: 'string',
-              description: 'Nome da suíte/categoria (ex: Stilo, Master ou Hidro)'
+              description: 'Nome da suíte/categoria (ex: Stilo, Master, Hidro ou Spa)'
             },
             duration: {
               type: 'integer',
@@ -36,11 +36,12 @@ module Captain
 
       def execute(*args, **params)
         actual_params = resolve_params(args, params)
+        account_id = @conversation&.account_id || @assistant&.account_id
+
         File.open(Rails.root.join('log/tool_debug.log'), 'a') do |f|
           f.puts "[#{Time.now}] STARTING CheckAvailabilityTool with params: #{actual_params}"
-          f.puts "[#{Time.now}] PRICING COUNT: #{Captain::Pricing.count}"
-          f.puts "[#{Time.now}] FIRST PRICING: #{Captain::Pricing.first.inspect}"
-          f.puts "[#{Time.now}] ALL PRICINGS: #{Captain::Pricing.all.inspect}"
+          f.puts "[#{Time.now}] PRICING COUNT: #{Captain::Pricing.where(account_id: account_id).count}"
+          f.puts "[#{Time.now}] FIRST PRICING: #{Captain::Pricing.where(account_id: account_id).first.inspect}"
         end
 
         suite_category = actual_params[:suite]
@@ -58,10 +59,66 @@ module Captain
         target_date = resolve_target_date(actual_params)
         File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RESOLVED DATE: #{target_date} | SUITE: #{suite_category}" }
 
-        # Find pricing strategy
-        account_id = @conversation&.account_id || @assistant&.account_id
+        # [DEBUG] Log the context
+        current_inbox_id = @conversation&.inbox_id
+        # [KEYWORD SEARCH]
+        # 1. First, find if the term matches any Brand suite_keywords or suite_categories
+        account_brands = Captain::Brand.where(account_id: account_id)
+
+        # Try to find a category that matches the input directly (case insensitive)
+        matched_category = nil
+
+        normalized_input = suite_category.to_s.strip.downcase
+
+        # Iterate over brands to find a match in categories or keywords
+        account_brands.find_each do |brand|
+          # Check direct category name match
+          found_cat = brand.suite_categories&.find { |cat| cat.to_s.downcase == normalized_input }
+          if found_cat
+            matched_category = found_cat
+            break
+          end
+
+          # Check keywords match
+          # suite_keywords is a Hash: { "Category Name" => "keyword1, keyword2" }
+          brand.suite_keywords&.each do |cat_name, keywords_str|
+            next if keywords_str.blank?
+
+            keywords_list = keywords_str.to_s.downcase.split(',').map(&:strip)
+            if keywords_list.any? { |kw| normalized_input.include?(kw) }
+              matched_category = cat_name
+              break
+            end
+          end
+          break if matched_category
+        end
+
+        # Use the matched category if found, otherwise stick to the original input (fallback)
+        final_suite_category = matched_category || suite_category
+
+        File.open(Rails.root.join('log/tool_debug.log'), 'a') do |f|
+          f.puts "[#{Time.now}] KEYWORD MATCH: Input='#{suite_category}' -> Resolved='#{final_suite_category}'"
+        end
+
         pricing_scope = Captain::Pricing.where(account_id: account_id)
-                                        .where('suite_category ILIKE ?', "%#{suite_category}%")
+                                        .where('suite_category ILIKE ?', final_suite_category)
+
+        # [INBOX PRIORITY] Filter by Current Inbox > Global
+        current_inbox_id = @conversation&.inbox_id
+        pricing_scope = if current_inbox_id.present?
+                          # STRICT MODE: Only fetch prices for THIS specific inbox.
+                          # Supports both legacy (inbox_id column) and new (has_many through join table)
+                          pricing_scope.left_joins(:inboxes)
+                                       .where('captain_pricings.inbox_id = :id OR captain_pricing_inboxes.inbox_id = :id', id: current_inbox_id)
+                                       .distinct
+                        else
+                          # No Context (Playground/Test): Global Only
+                          pricing_scope.where(inbox_id: nil)
+                        end
+
+        # Sort in Ruby to ensure Specific Inbox (non-nil) comes before Global (nil)
+        # This implements the "Override" behavior.
+        pricing_scope = pricing_scope.sort_by { |p| p.inbox_id ? 0 : 1 }
 
         pricing_scope = filter_pricings_by_day_range(pricing_scope, target_date) if target_date
 
@@ -72,11 +129,11 @@ module Captain
           end.join(', ')
 
           if available_options.present?
-            msg = "Disponível! Para a suíte #{suite_category} em #{target_date&.strftime('%d/%m')}, tenho estas opções: #{available_options}. Pergunte qual duração o cliente prefere."
+            msg = "Disponível! Para a suíte #{final_suite_category} em #{target_date&.strftime('%d/%m')}, tenho estas opções: #{available_options}. Pergunte qual duração o cliente prefere."
             File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] MENU MODE: #{msg}" }
             return msg
           else
-            msg = "Não encontrei tarifas para a suíte #{suite_category} nesta data. Confirme o nome da suíte."
+            msg = "Não encontrei tarifas para a suíte #{final_suite_category} nesta data. Confirme o nome da suíte."
             return msg
           end
         end
@@ -85,10 +142,10 @@ module Captain
 
         if pricing
           final_price = pricing.price.to_f
-          msg = "Disponível! A Suíte #{suite_category} para #{requested_duration}h em #{target_date&.strftime('%d/%m')} está saindo por #{ActiveSupport::NumberHelper.number_to_currency(
+          msg = "Disponível! A Suíte #{final_suite_category} para #{requested_duration}h em #{target_date&.strftime('%d/%m')} está saindo por #{ActiveSupport::NumberHelper.number_to_currency(
             final_price, unit: 'R$ ', separator: ',', delimiter: '.'
           )} (#{pricing.day_range})."
-          persist_last_availability(suite_category, requested_duration, pricing, target_date)
+          persist_last_availability(final_suite_category, requested_duration, pricing, target_date)
           File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] SUCCESS: #{msg}" }
           return msg
         else
@@ -97,9 +154,9 @@ module Captain
           end.join(', ')
 
           if available_options.present?
-            msg = "Não encontrei tarifa exata para #{requested_duration}h. IMPORTANTE: Informe ao cliente que temos estas opções disponíveis para #{suite_category}: #{available_options}. Pergunte qual ele prefere."
+            msg = "Não encontrei tarifa exata para #{requested_duration}h. IMPORTANTE: Informe ao cliente que temos estas opções disponíveis para #{final_suite_category}: #{available_options}. Pergunte qual ele prefere."
           else
-            msg = "Não encontrei tarifas cadastradas para a suíte #{suite_category} nesta data (#{target_date}). Por favor, confirme se o nome da suíte está correto."
+            msg = "Não encontrei tarifas cadastradas para a suíte #{final_suite_category} nesta data (#{target_date}). Por favor, confirme se o nome da suíte está correto."
           end
 
           File.open(Rails.root.join('log/tool_debug.log'), 'a') { |f| f.puts "[#{Time.now}] FAILURE: #{msg}" }
@@ -117,6 +174,10 @@ module Captain
       # Helper to ensure we have a conversation object
       def ensure_conversation_context!
         return if @conversation.present?
+      end
+
+      def resolve_account_id(conversation, assistant)
+        conversation&.account_id || assistant&.account_id
       end
 
       def infer_unit
@@ -196,7 +257,8 @@ module Captain
         # 2. Tenta match pelo texto normalizado (ex: "pernoite")
         requested_text = requested_duration.to_s.strip.downcase
         matched = pricings.find do |pricing|
-          pricing.duration.to_s.strip.downcase == requested_text
+          p_dur = pricing.duration.to_s.strip.downcase
+          p_dur == requested_text || p_dur.include?(requested_text) || requested_text.include?(p_dur) || normalize_duration_input(p_dur) == normalized_request
         end
 
         return matched if matched

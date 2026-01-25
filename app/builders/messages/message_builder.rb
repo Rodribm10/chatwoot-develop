@@ -16,7 +16,8 @@ class Messages::MessageBuilder
     @automation_rule = content_attributes&.dig(:automation_rule_id)
     return unless params.instance_of?(ActionController::Parameters)
 
-    @in_reply_to = content_attributes&.dig(:in_reply_to)
+    # Try to find in_reply_to in params (top level) or content_attributes
+    @in_reply_to = params[:in_reply_to_id] || params[:in_reply_to] || content_attributes&.dig(:in_reply_to)
     @items = content_attributes&.dig(:items)
   end
 
@@ -140,7 +141,7 @@ class Messages::MessageBuilder
       content_type: @params[:content_type],
       content_attributes: content_attributes.presence,
       items: @items,
-      in_reply_to: @in_reply_to,
+      in_reply_to_id: @in_reply_to,
       echo_id: @params[:echo_id],
       source_id: @params[:source_id]
     }.merge(external_created_at).merge(automation_rule_id).merge(campaign_id).merge(template_params)

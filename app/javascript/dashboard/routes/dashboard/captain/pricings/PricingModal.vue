@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-bare-strings-in-template, @intlify/vue-i18n/no-raw-text -->
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -58,14 +59,23 @@ const toggleDay = day => {
       (a, b) => daysOptions.indexOf(a) - daysOptions.indexOf(b)
     );
   }
-  formData.value.day_range = selectedDays.value.join(', ');
 };
+
+watch(
+  selectedDays,
+  newDays => {
+    formData.value.day_range = newDays.join(', ');
+  },
+  { deep: true }
+);
 
 const parseDays = rangeString => {
   if (!rangeString) return [];
+  const normalizedRange = rangeString.toUpperCase();
+
   // Handle "SEGUNDA A QUARTA" range format legacy support
-  if (rangeString.includes(' A ')) {
-    const [start, end] = rangeString.split(' A ');
+  if (normalizedRange.includes(' A ')) {
+    const [start, end] = normalizedRange.split(' A ');
     const startIndex = daysOptions.indexOf(start);
     const endIndex = daysOptions.indexOf(end);
     if (startIndex !== -1 && endIndex !== -1 && startIndex <= endIndex) {
@@ -73,8 +83,8 @@ const parseDays = rangeString => {
     }
   }
   // Handle comma separated
-  return rangeString
-    .split(', ')
+  return normalizedRange
+    .split(',')
     .map(s => s.trim())
     .filter(s => daysOptions.includes(s));
 };
@@ -96,7 +106,10 @@ const removeInbox = inboxId => {
 const isEditing = computed(() => !!props.pricing?.id); // Changed to check for pricing.id to correctly identify editing mode
 
 const selectedBrand = computed(() => {
-  return props.brands.find(b => b.id === formData.value.captain_brand_id);
+  if (!formData.value.captain_brand_id) return undefined;
+  return props.brands.find(
+    b => String(b.id) === String(formData.value.captain_brand_id)
+  );
 });
 
 const brandCategories = computed(() => {
@@ -126,11 +139,23 @@ watch(
       let normalizedInboxIds = [];
       if (newVal.inbox_ids?.length) {
         normalizedInboxIds = newVal.inbox_ids;
-      } else if (newVal.inbox_id) {
-        normalizedInboxIds = [newVal.inbox_id];
+      } else if (newVal.inbox_id || newVal.inboxId) {
+        normalizedInboxIds = [newVal.inbox_id || newVal.inboxId];
       }
-      formData.value = { ...newVal, inbox_ids: normalizedInboxIds };
-      selectedDays.value = parseDays(newVal.day_range || newVal.dayRange);
+      formData.value = {
+        captain_brand_id:
+          newVal.captain_brand_id ||
+          newVal.captainBrandId ||
+          newVal.brand_id ||
+          newVal.brandId ||
+          '',
+        inbox_ids: normalizedInboxIds,
+        day_range: newVal.day_range || newVal.dayRange || '',
+        suite_category: newVal.suite_category || newVal.suiteCategory || '',
+        duration: newVal.duration || '',
+        price: newVal.price || '',
+      };
+      selectedDays.value = parseDays(formData.value.day_range);
       selectedInboxes.value = normalizedInboxIds;
     } else {
       formData.value = {
@@ -256,7 +281,7 @@ const savePricing = async () => {
               class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
               :class="[
                 selectedDays.includes(day)
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  ? '!bg-blue-600 text-white border-blue-600 shadow-md'
                   : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
               ]"
               @click="toggleDay(day)"

@@ -13,29 +13,20 @@ module Api
 
           def create
             @pricing = Current.account.captain_pricings.new(pricing_params.except(:inbox_ids))
-            if @pricing.save
-              sync_inboxes(@pricing, pricing_params[:inbox_ids])
-              render :show, status: :created
-            else
-              render_error_response(@pricing)
-            end
+            @pricing.save!
+            sync_inboxes(@pricing, pricing_params[:inbox_ids])
+            render :show, status: :created
           end
 
           def update
-            if @pricing.update(pricing_params.except(:inbox_ids))
-              sync_inboxes(@pricing, pricing_params[:inbox_ids])
-              render :show
-            else
-              render_error_response(@pricing)
-            end
+            @pricing.update!(pricing_params.except(:inbox_ids))
+            sync_inboxes(@pricing, pricing_params[:inbox_ids])
+            render :show
           end
 
           def destroy
-            if @pricing.destroy
-              head :no_content
-            else
-              render_error_response(@pricing)
-            end
+            @pricing.destroy!
+            head :no_content
           end
 
           private
@@ -52,6 +43,7 @@ module Api
               :suite_category,
               :duration,
               :price,
+              :keywords,
               inbox_ids: []
             )
           end

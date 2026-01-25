@@ -40,6 +40,14 @@ def send_reaction_message(phone_number, message_id, reaction_emoji)
 end
 ```
 
+> [!IMPORTANT] > **Correção (24/01)**: É necessário remover o prefixo `WAID:` do ID da mensagem, caso contrário o Wuzapi rejeita silenciosamente.
+> Adicione logo antes do `if use_me_prefix`:
+>
+> ```ruby
+> # Strip WAID prefix if present
+> message_id = message_id.gsub(/^WAID:/, '') if message_id.present?
+> ```
+
 ### B. Lógica de Decisão e Classificação (AgentRunnerService)
 
 **Arquivo**: `enterprise/app/services/captain/assistant/agent_runner_service.rb`
@@ -156,6 +164,18 @@ class ReactToMessageTool < BaseTool
   # ...
 end
 ```
+
+### D. Lição Aprendida: ID de Reação
+
+**Arquivo**: `lib/wuzapi/client.rb` & `app/services/whatsapp/providers/wuzapi_service.rb`
+
+Houve uma confusão inicial onde tentamos alterar o payload para usar `MessageId` (como nas respostas), mas a documentação e testes confirmaram que a chave correta para **Reações** é `Id`.
+
+O problema real era o **valor** do ID:
+
+- O Chatwoot gera IDs internos com prefixo `WAID:` (ex: `WAID:XYZ123`).
+- A API Wuzapi espera o ID limpo (ex: `XYZ123`).
+- **Solução Definitiva**: Manter a chave `Id` no Client e aplicar o `.gsub(/^WAID:/, '')` no Service (visto na seção B).
 
 ## 3. Passo a Passo de Recuperação
 

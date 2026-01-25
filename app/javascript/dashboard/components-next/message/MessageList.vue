@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, computed, reactive } from 'vue';
+import { defineProps, computed, reactive, ref } from 'vue';
 import Message from './Message.vue';
 import { MESSAGE_TYPES } from './constants.js';
 import { useCamelCase } from 'dashboard/composables/useTransformKeys';
@@ -48,7 +48,9 @@ const allMessages = computed(() => {
 const currentChat = useMapGetter('getSelectedChat');
 
 // Cache for fetched reply messages to avoid duplicate API calls
+// Using a ref to trigger reactivity when messages are fetched
 const fetchedReplyMessages = reactive(new Map());
+const fetchTrigger = ref(0); // Trigger to force re-render when async fetch completes
 
 /**
  * Fetches a specific message from the API by trying to get messages around it
@@ -61,6 +63,9 @@ const fetchReplyMessage = async (messageId, conversationId) => {
   if (fetchedReplyMessages.has(messageId)) {
     return fetchedReplyMessages.get(messageId);
   }
+
+  // Mark as loading to prevent duplicate fetches
+  fetchedReplyMessages.set(messageId, 'loading');
 
   try {
     const response = await MessageApi.getPreviousMessages({
@@ -75,14 +80,17 @@ const fetchReplyMessage = async (messageId, conversationId) => {
     if (targetMessage) {
       const camelCaseMessage = useCamelCase(targetMessage);
       fetchedReplyMessages.set(messageId, camelCaseMessage);
+      fetchTrigger.value += 1; // Trigger reactivity
       return camelCaseMessage;
     }
 
     // Cache null result to avoid repeated API calls
     fetchedReplyMessages.set(messageId, null);
+    fetchTrigger.value += 1; // Trigger reactivity
     return null;
   } catch (error) {
     fetchedReplyMessages.set(messageId, null);
+    fetchTrigger.value += 1; // Trigger reactivity
     return null;
   }
 };
@@ -126,9 +134,14 @@ const shouldGroupWithNext = (index, searchList) => {
  * @returns {Object|null} - The message being replied to, or null if not found
  */
 const getInReplyToMessage = parentMessage => {
+  // Access fetchTrigger to make this function reactive to async fetches
+  // eslint-disable-next-line no-unused-expressions
+  fetchTrigger.value;
+
   if (!parentMessage) return null;
 
   const inReplyToMessageId =
+    parentMessage.inReplyToId ??
     parentMessage.contentAttributes?.inReplyTo ??
     parentMessage.content_attributes?.in_reply_to;
 
@@ -144,15 +157,18 @@ const getInReplyToMessage = parentMessage => {
     );
   }
 
-  // Then check fetch cache
+  // Then check fetch cache (ignore 'loading' placeholder)
   if (!replyMessage && fetchedReplyMessages.has(inReplyToMessageId)) {
-    replyMessage = fetchedReplyMessages.get(inReplyToMessageId);
+    const cached = fetchedReplyMessages.get(inReplyToMessageId);
+    if (cached && cached !== 'loading') {
+      replyMessage = cached;
+    }
   }
 
   // If still not found and we have conversation context, fetch it
   if (!replyMessage && currentChat.value?.id) {
     fetchReplyMessage(inReplyToMessageId, currentChat.value.id);
-    return null; // Let UI handle loading state
+    return null; // Will re-render when fetchTrigger updates
   }
 
   return replyMessage ? useCamelCase(replyMessage) : null;

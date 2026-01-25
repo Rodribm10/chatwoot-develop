@@ -26,17 +26,20 @@ module Jasmine
     end
 
     def respond
-      intent = IntentDetector.new(message.content, intent_keywords).detect
+      trigger_media_analysis if message.attachments.any?
+      llm_content = message.content_for_llm
+
+      intent = IntentDetector.new(llm_content, intent_keywords).detect
       strategy = StrategyDecider.new(intent, jasmine_state).decide
 
-      rag_context = fetch_rag_if_needed(strategy, message.content)
+      rag_context = fetch_rag_if_needed(strategy, llm_content)
 
       prompt = PromptAssembler.new(
         config: config,
         state: jasmine_state,
         history: recent_history,
         rag_context: rag_context,
-        current_message: message.content
+        current_message: llm_content
       ).assemble
 
       response = call_llm(prompt)
@@ -112,6 +115,15 @@ module Jasmine
 
     def log_decision(intent, strategy, rag_context)
       Rails.logger.info "[Jasmine::Brain] Intent: #{intent}, Strategy: #{strategy}, RAG: #{rag_context.present? ? 'yes' : 'no'}"
+    end
+
+    def trigger_media_analysis
+      Rails.logger.info "[Jasmine::Brain] Triggering Media Analysis for Message #{message.id}"
+      Jasmine::MediaAnalyzerService.new(message: message).perform
+      message.attachments.reload # CRITICAL: Ensure we see the new metadata
+      Rails.logger.info "[Jasmine::Brain] Media Analysis Completed for Message #{message.id}"
+    rescue StandardError => e
+      Rails.logger.error "[Jasmine::Brain] Media analysis failed: #{e.message}"
     end
 
     # =========================================

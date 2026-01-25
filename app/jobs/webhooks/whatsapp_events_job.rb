@@ -37,11 +37,12 @@ class Webhooks::WhatsappEventsJob < ApplicationJob
     return unless params[:phone_number]
 
     # Try exact match first, then try adding + if missing
-    channel = Channel::Whatsapp.find_by(phone_number: params[:phone_number])
+    phone = params[:phone_number].to_s.strip
+    channel = Channel::Whatsapp.find_by(phone_number: phone)
     return channel if channel
 
-    # If params[:phone_number] doesn't have +, try adding it
-    Channel::Whatsapp.find_by(phone_number: "+#{params[:phone_number]}")
+    # If phone doesn't have +, try adding it
+    Channel::Whatsapp.find_by(phone_number: "+#{phone}")
   end
 
   def find_channel_from_whatsapp_business_payload(params)

@@ -8,6 +8,7 @@
 #  phone_number                   :string           not null
 #  provider                       :string           default("default")
 #  provider_config                :jsonb
+#  provider_connection            :jsonb
 #  wuzapi_admin_token             :string
 #  wuzapi_admin_token_iv          :string
 #  wuzapi_user_token              :string
@@ -18,7 +19,8 @@
 #
 # Indexes
 #
-#  index_channel_whatsapp_on_phone_number  (phone_number) UNIQUE
+#  index_channel_whatsapp_on_phone_number      (phone_number) UNIQUE
+#  index_channel_whatsapp_provider_connection  (provider_connection) WHERE ((provider)::text = ANY ((ARRAY['baileys'::character varying, 'zapi'::character varying])::text[])) USING gin
 #
 
 class Channel::Whatsapp < ApplicationRecord

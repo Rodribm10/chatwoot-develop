@@ -14,11 +14,22 @@ module Whatsapp::Providers
 
       return send_reaction_message(normalized_phone, message) if message.content_attributes['is_reaction'] || message.content_attributes[:is_reaction]
 
-      if message.attachments.present?
-        send_attachment_message(user_token, normalized_phone, message)
-      else
-        client.send_text(user_token, normalized_phone, message.content)
-      end
+      response = if message.attachments.present?
+                   send_attachment_message(user_token, normalized_phone, message)
+                 else
+                   params = {}
+                   # Extract and clean reply ID (remove WAID: prefix if stored)
+                   if (reply_id = message.content_attributes['in_reply_to_external_id']).present?
+                     params['MessageId'] = reply_id.gsub(/^WAID:/, '')
+                   elsif (reply_id = message.in_reply_to_external_id).present?
+                     params['MessageId'] = reply_id.gsub(/^WAID:/, '')
+                   end
+
+                   client.send_text(user_token, normalized_phone, message.content, **params)
+                 end
+
+      # Extract message ID from WuzAPI response and format as WAID:xxx
+      extract_message_id(response)
     end
 
     def send_attachment_message(user_token, phone_number, message)
@@ -49,6 +60,9 @@ module Whatsapp::Providers
         target_msg = message.conversation.messages.find_by(id: message.content_attributes['in_reply_to'])
         message_id = target_msg&.source_id
       end
+
+      # Strip WAID prefix if present
+      message_id = message_id.gsub(/^WAID:/, '') if message_id.present?
 
       use_me_prefix = reaction_to_own_message?(message)
 
@@ -133,6 +147,17 @@ module Whatsapp::Providers
 
     def client
       @client ||= ::Wuzapi::Client.new(@base_url)
+    end
+
+    # Extract message ID from WuzAPI response and format it as WAID:xxx
+    # WuzAPI returns: {"code" => 200, "data" => {"Id" => "xxx", ...}, "success" => true}
+    def extract_message_id(response)
+      return nil unless response.is_a?(Hash)
+
+      message_id = response.dig('data', 'Id') || response.dig(:data, :Id)
+      return nil if message_id.blank?
+
+      "WAID:#{message_id}"
     end
 
     def reaction_to_own_message?(message)
