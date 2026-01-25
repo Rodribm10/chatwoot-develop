@@ -105,6 +105,13 @@ jobs:
           rm -rf enterprise
           rm -rf spec/enterprise
 
+      - name: Set up database
+        run: |
+          psql -U postgres -h localhost -c "CREATE ROLE root LOGIN SUPERUSER;"
+          psql -U postgres -h localhost -c "CREATE DATABASE chatwoot_dev OWNER root;"
+        env:
+          PGPASSWORD: ''
+
       - name: Create database
         run: bundle exec rake db:create
 

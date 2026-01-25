@@ -108,7 +108,7 @@ describe Twitter::SendOnTwitterService do
             inbox: twitter_inbox,
             account: account,
             conversation: tweet_conversation,
-            in_reply_to: outgoing_message.id
+            in_reply_to: outgoing_message
           )
           described_class.new(message: reply_message).perform
           expect(twitter_client).to have_received(:send_tweet_reply).with(
