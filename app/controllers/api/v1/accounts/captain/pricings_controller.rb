@@ -11,28 +11,12 @@ class Api::V1::Accounts::Captain::PricingsController < Api::V1::Accounts::BaseCo
   end
 
   def create
-    # Handle multiple inboxes (cloning/distributing the price)
     inbox_ids_param = params[:pricing][:inbox_ids]
 
-    if inbox_ids_param.present? && inbox_ids_param.is_a?(Array)
-      last_pricing = nil
-      ActiveRecord::Base.transaction do
-        inbox_ids_param.each do |iid|
-          # Create for each inbox. Merge overwrites default params.
-          # Convert iid to integer just in case
-          pricing = current_account.captain_pricings.new(pricing_params)
-          pricing.inbox_id = iid.to_i
-          pricing.save!
-          last_pricing = pricing
-        end
-      end
-      render json: last_pricing
+    if inbox_ids_param.is_a?(Array) && inbox_ids_param.present?
+      render json: create_for_multiple_inboxes(inbox_ids_param)
     else
-      # Create Global (inbox_id: nil) if no specific inbox selected
-      @pricing = current_account.captain_pricings.new(pricing_params)
-      @pricing.inbox_id = nil
-      @pricing.save!
-      render json: @pricing
+      render json: create_single_pricing
     end
   rescue StandardError => e
     Rails.logger.error "Error creating pricing: #{e.message}"
@@ -69,7 +53,7 @@ class Api::V1::Accounts::Captain::PricingsController < Api::V1::Accounts::BaseCo
     # Filter by inbox if provided (returns Specific Inbox + Global rules)
     @pricings = @pricings.where(inbox_id: [params[:inbox_id], nil]) if params[:inbox_id].present?
 
-    return unless params[:query].present?
+    return if params[:query].blank?
 
     # Fuzzy search using ILIKE for case-insensitive matching
     @pricings = @pricings.left_outer_joins(:captain_brand).where(
@@ -80,5 +64,25 @@ class Api::V1::Accounts::Captain::PricingsController < Api::V1::Accounts::BaseCo
 
   def pricing_params
     params.require(:pricing).permit(:captain_brand_id, :day_range, :suite_category, :duration, :price)
+  end
+
+  def create_for_multiple_inboxes(inbox_ids)
+    last_pricing = nil
+    ActiveRecord::Base.transaction do
+      inbox_ids.each do |iid|
+        pricing = current_account.captain_pricings.new(pricing_params)
+        pricing.inbox_id = iid.to_i
+        pricing.save!
+        last_pricing = pricing
+      end
+    end
+    last_pricing
+  end
+
+  def create_single_pricing
+    @pricing = current_account.captain_pricings.new(pricing_params)
+    @pricing.inbox_id = nil
+    @pricing.save!
+    @pricing
   end
 end

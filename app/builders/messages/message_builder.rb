@@ -6,19 +6,13 @@ class Messages::MessageBuilder
   attr_reader :message
 
   def initialize(user, conversation, params)
-    @params = params
-    @private = params[:private] || false
-    @conversation = conversation
     @user = user
+    @conversation = conversation
     @account = conversation.account
-    @message_type = params[:message_type] || 'outgoing'
-    @attachments = params[:attachments]
-    @automation_rule = content_attributes&.dig(:automation_rule_id)
+    @params = params
     return unless params.instance_of?(ActionController::Parameters)
 
-    # Try to find in_reply_to in params (top level) or content_attributes
-    @in_reply_to = params[:in_reply_to_id] || params[:in_reply_to] || content_attributes&.dig(:in_reply_to)
-    @items = content_attributes&.dig(:items)
+    init_message_attributes
   end
 
   def perform
@@ -222,6 +216,16 @@ class Messages::MessageBuilder
     message_drops(@conversation).merge({
                                          'agent' => UserDrop.new(sender)
                                        })
+  end
+
+  def init_message_attributes
+    @private = @params[:private] || false
+    @message_type = @params[:message_type] || 'outgoing'
+    @attachments = @params[:attachments]
+    @automation_rule = content_attributes&.dig(:automation_rule_id)
+    # Try to find in_reply_to in params (top level) or content_attributes
+    @in_reply_to = @params[:in_reply_to_id] || @params[:in_reply_to] || content_attributes&.dig(:in_reply_to)
+    @items = content_attributes&.dig(:items)
   end
 end
 
