@@ -83,7 +83,7 @@ params = {
 }
 
 # Ensure logger prints to stdout
-Rails.logger = Logger.new(STDOUT)
+Rails.logger = Logger.new($stdout)
 
 puts '--- Execution Start ---'
 begin

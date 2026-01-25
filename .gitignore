@@ -95,9 +95,20 @@ yarn-debug.log*
 .claude/settings.local.json
 .cursor
 CLAUDE.local.md
+.agent/
 
 # Histoire deployment
 .netlify
 .histoire
 .pnpm-store/*
 local/
+
+# Reference and temporary files
+reference_chatwoot/
+*.jpg
+*.png
+*.txt
+reproduce_encoding.rb
+debug_media.rb
+test.jpg
+teste_imagem.jpg

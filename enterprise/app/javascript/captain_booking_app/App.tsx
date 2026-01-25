@@ -10,7 +10,8 @@ import { FormDataModel, ApiPostPayload, SubmissionState, N8nApiResponse, Brand, 
 import { submitReservation, checkPaymentStatus } from './services/apiService.ts';
 import { suiteService } from './services/suiteService.ts';
 import { hotelUnitService } from './services/hotelUnitService.ts';
-import { brandService } from './services/brandService.ts';
+import { brandService } from './services/brandService.ts'; // Keep for now if needed, but prefer masterDataService
+import { masterDataService, CaptainConfig } from './services/masterDataService.ts';
 import { pricingService } from './services/pricingService.ts';
 import { extraService } from './services/extraService.ts';
 
@@ -35,27 +36,33 @@ const App: React.FC = () => {
   const [view, setView] = React.useState<'form' | 'payment' | 'success' | 'expired'>('form');
   const [isDataLoading, setIsDataLoading] = React.useState(true);
 
-  // Configuração de Título e Subtítulo (Persistência Local)
-  const [appConfig, setAppConfig] = React.useState({
-    title: 'Reserva Premium',
-    subtitle: 'Hotel 1001 Noites Prime'
+  // Configuração de Título e Subtítulo (Vinda do Backend)
+  const [appConfig, setAppConfig] = React.useState<CaptainConfig>({
+    title: 'Reserva Rápida',
+    subtitle: 'Agende sua estadia',
+    primary_color: '#1E90FF',
+    phone_number: '' // Added phone number
   });
 
+  // Load backend config
   React.useEffect(() => {
-    const savedConfig = localStorage.getItem('hotelAppConfig');
-    if (savedConfig) {
-      try {
-        setAppConfig(JSON.parse(savedConfig));
-      } catch (e) {
-        console.error("Erro ao carregar configurações", e);
-      }
-    }
+      const fetchConfig = async () => {
+          try {
+              const config = await masterDataService.getConfig();
+              if (config) {
+                  setAppConfig(config);
+                  // Apply primary color to document body or root variable if needed for global access, 
+                  // but we will use it in inline styles for the main container.
+              }
+          } catch (e) {
+              console.error("Failed to load app config", e);
+          }
+      };
+      fetchConfig();
   }, []);
 
-  const handleSaveConfig = (newConfig: { title: string; subtitle: string }) => {
-    setAppConfig(newConfig);
-    localStorage.setItem('hotelAppConfig', JSON.stringify(newConfig));
-  };
+  // Removed localStorage logic as it conflicts with Admin panel source of truth
+  // const handleSaveConfig = ... (Removed)
 
   const initialFormData: FormDataModel = {
     nome: '',
@@ -161,14 +168,30 @@ const App: React.FC = () => {
   const loadInitialData = React.useCallback(async () => {
     setIsDataLoading(true);
     try {
-      const allBrands = await brandService.getAllBrands();
-      const allUnits = await hotelUnitService.getAllUnits();
-      setBrands(allBrands);
-      setUnits(allUnits);
-      setBrandOptions(allBrands.map(b => ({ value: String(b.id), label: b.name })));
+      const data = await masterDataService.getMasterData();
       
-      const extras = await extraService.getExtras();
+      setBrands(data.brands);
+      // Units are typically nested or we can fetch them if separate, but master_data usually has them.
+      // If data.brands includes units, we can flatten them if needed, or setUnits logic might need adjustment.
+      // Based on previous code: setUnits(allUnits).
+      // Let's assume masterDataService.getBrands() returns everything we need or we update logic.
+      
+      // Actually, looking at the previous code, it fetched brands and units separately.
+      // The new master_data endpoint returns brands with units nested: brands: brands.as_json(include: :units)
+      // So we extract units from brands.
+      
+      const allUnits: HotelUnit[] = data.brands.flatMap(b => (b as any).units || []);
+      setUnits(allUnits);
+      
+      setBrandOptions(data.brands.map(b => ({ value: String(b.id), label: b.name })));
+      
+      const extras = data.extras || [];
       setAvailableExtras(extras.filter(e => e.active).sort((a, b) => a.order - b.order));
+      
+      if (data.app_config) {
+          setAppConfig(data.app_config);
+      }
+
     } catch (error) {
       console.error("Failed to load initial data:", error);
     } finally {
@@ -189,7 +212,7 @@ const App: React.FC = () => {
       const selectedBrand = brands.find(b => b.id === brandId);
       
       if (selectedBrand) {
-        setUnitOptions(units.filter(u => u.brandId === brandId).map(u => ({ value: String(u.id), label: u.name })));
+        setUnitOptions(units.filter(u => u.captain_brand_id === brandId).map(u => ({ value: String(u.id), label: u.name })));
         setDurationOptions(selectedBrand.stay_durations.map(d => ({ value: d, label: d })));
       }
     } else {
@@ -236,8 +259,21 @@ const App: React.FC = () => {
             try {
                 const pricingData = await pricingService.getPricingData(parseInt(formData.selectedBrand, 10));
                 const dayOfWeek = new Date(formData.checkInDateTime).getDay();
-                const dayRange = (dayOfWeek >= 1 && dayOfWeek <= 3) ? "SEGUNDA A QUARTA" : "QUINTA A DOMINGO";
-                const price = pricingData?.[dayRange]?.[formData.selectedCategory]?.[formData.stayDuration];
+                let dayRange = (dayOfWeek >= 1 && dayOfWeek <= 3) ? "SEGUNDA A QUARTA" : "QUINTA A DOMINGO";
+                
+                // Fallback logic: check specific range, then check if it's one of those long strings, then fallback to 'all'
+                let price = pricingData?.[dayRange]?.[formData.selectedCategory]?.[formData.stayDuration];
+
+                if (price === undefined) {
+                   // Try to find a key that contains the day range or is 'all'
+                   const fallbackKey = Object.keys(pricingData || {}).find(k => 
+                     k === 'all' || k.toLowerCase().includes('segunda') || k === dayRange
+                   );
+                   if (fallbackKey) {
+                     price = pricingData[fallbackKey]?.[formData.selectedCategory]?.[formData.stayDuration];
+                   }
+                }
+
                 
                 if (price !== undefined && price > 0) {
                     setBasePrice(price);
@@ -679,32 +715,39 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+    <div 
+        className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center transition-colors duration-500"
+        style={{ backgroundColor: appConfig.primary_color || '#1E90FF' }}
+    >
       <div className="w-full max-w-3xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 relative">
-        {/* Decorative Top Accent */}
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#1B3B5F] to-[#1E90FF]"></div>
+        {/* Decorative Top Accent - Slightly lighter/darker than primary */}
+        <div 
+            className="absolute top-0 left-0 w-full h-2"
+            style={{ 
+                background: `linear-gradient(to right, ${appConfig.primary_color}, #ffffff)` 
+            }}
+        ></div>
         
         <div className="p-8 sm:p-12">
-            <div className="flex justify-between items-start mb-10 border-b border-[#1B3B5F]/10 pb-6">
+            <div className="flex justify-between items-start mb-10 border-b border-gray-100 pb-6">
             <div className="space-y-1">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1B3B5F] tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
                     {view === 'payment' ? 'Pagamento Seguro' : 
                     view === 'success' ? 'Reserva Confirmada' :
                     view === 'expired' ? 'Tempo Esgotado' :
                     appConfig.title}
                 </h1>
-                {view === 'form' && <p className="text-[#9CA3AF] text-sm font-medium">{appConfig.subtitle}</p>}
+                {view === 'form' && <p className="text-gray-500 text-sm font-medium">{appConfig.subtitle}</p>}
             </div>
-            <Button onClick={() => setCurrentView('admin')} variant="outline" size="sm" className="hidden sm:flex rounded-full px-5 text-xs font-bold uppercase tracking-wider hover:bg-[#F8FAFC]">
-                Admin
-            </Button>
+            {/* Admin button removed */}
             </div>
             {renderContent()}
         </div>
       </div>
       
-      <footer className="text-center text-xs font-medium text-[#1E90FF]/60 mt-8">
+      <footer className="text-center text-xs font-medium text-white/80 mt-8">
         &copy; {new Date().getFullYear()} {appConfig.title} &bull; Experiência Exclusiva
+        {appConfig.phone_number && <span className="block mt-1">Contato: {appConfig.phone_number}</span>}
       </footer>
     </div>
   );

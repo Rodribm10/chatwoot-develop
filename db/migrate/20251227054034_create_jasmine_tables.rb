@@ -19,7 +19,7 @@ class CreateJasmineTables < ActiveRecord::Migration[7.1]
       t.string :name, null: false
       t.text :description
       # Owner inbox is optional (nullable), but if present, must exist in inboxes table
-      t.references :owner_inbox, null: true, foreign_key: { to_table: :inboxes } 
+      t.references :owner_inbox, null: true, foreign_key: { to_table: :inboxes }
       t.integer :visibility, default: 0 # 0=private, 1=shared, 2=global
       t.boolean :is_active, default: true
 
@@ -69,9 +69,9 @@ class CreateJasmineTables < ActiveRecord::Migration[7.1]
       t.timestamps
     end
     add_index :jasmine_document_chunks, [:account_id, :collection_id, :document_id], name: 'index_jasmine_chunks_on_acc_coll_doc'
-    
+
     # HNSW Index for Vector Search (Cosine Distance)
-    # Ensure pgvector extension is enabled in a previous migration or here if needed, 
+    # Ensure pgvector extension is enabled in a previous migration or here if needed,
     # but based on plan it is already enabled.
     add_index :jasmine_document_chunks, :embedding, using: :hnsw, opclass: :vector_cosine_ops
   end

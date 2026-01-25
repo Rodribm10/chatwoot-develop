@@ -20,7 +20,12 @@ class SuperAdmin::InstanceStatusesController < SuperAdmin::ApplicationController
   end
 
   def instance_meta
-    @metrics['Database Migrations'] = ActiveRecord::Base.connection.migration_context.needs_migration? ? 'pending' : 'completed'
+    @metrics['Database Migrations'] = begin
+      ActiveRecord::Base.connection.migration_context.needs_migration? ? 'pending' : 'completed'
+    rescue StandardError => e
+      Rails.logger.warn "Migration context check failed: #{e.message}"
+      'unknown'
+    end
   end
 
   def chatwoot_version
@@ -28,7 +33,7 @@ class SuperAdmin::InstanceStatusesController < SuperAdmin::ApplicationController
   end
 
   def sha
-    @metrics['Git SHA'] = GIT_HASH
+    @metrics['Git SHA'] = defined?(GIT_HASH) ? GIT_HASH : 'n/a'
   end
 
   def postgres_status
@@ -53,7 +58,8 @@ class SuperAdmin::InstanceStatusesController < SuperAdmin::ApplicationController
       @metrics["Redis 'maxmemory' setting"] = redis_server['maxmemory']
       @metrics["Redis 'maxmemory_policy' setting"] = redis_server['maxmemory_policy']
     end
-  rescue Redis::CannotConnectError
+  rescue StandardError => e
+    Rails.logger.warn "Redis status check failed: #{e.message}"
     @metrics['Redis alive'] = false
   end
 end

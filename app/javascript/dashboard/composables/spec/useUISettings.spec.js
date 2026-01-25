@@ -102,7 +102,7 @@ describe('useUISettings', () => {
         conversation_sidebar_items_order:
           DEFAULT_CONVERSATION_SIDEBAR_ITEMS_ORDER,
         contact_sidebar_items_order: DEFAULT_CONTACT_SIDEBAR_ITEMS_ORDER,
-        email_signature_enabled: true,
+        inbox_email_signature_enabled: true,
         editor_message_key: 'enter',
         channel_email_quoted_reply_enabled: true,
       },

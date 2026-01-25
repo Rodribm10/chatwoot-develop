@@ -8,7 +8,7 @@ class Captain::Tools::FaqLookupTool < Captain::Tools::BasePublicTool
 
   def perform(tool_context, **args)
     File.open(Rails.root.join('log/faq_debug.log'), 'a') do |f|
-      f.puts "[#{Time.now}] FaqLookupTool CALLED with args: #{args.inspect}"
+      f.puts "[#{Time.zone.now}] FaqLookupTool CALLED with args: #{args.inspect}"
     end
 
     # Flexible argument handling: resolve if args is a hash or keywords
@@ -20,7 +20,7 @@ class Captain::Tools::FaqLookupTool < Captain::Tools::BasePublicTool
 
     # Use existing vector search on approved responses
     if query.blank?
-      File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RETURN: No query provided" }
+      File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.zone.now}] RETURN: No query provided" }
       return "No relevant FAQs found for: #{query}"
     end
 
@@ -30,13 +30,13 @@ class Captain::Tools::FaqLookupTool < Captain::Tools::BasePublicTool
 
     if responses.empty?
       log_tool_usage('no_results', { query: query })
-      File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RETURN: No results for '#{query}'" }
+      File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.zone.now}] RETURN: No results for '#{query}'" }
       "No relevant FAQs found for: #{query}"
     else
       log_tool_usage('found_results', { query: query, count: responses.size })
       result = format_responses(responses)
       File.open(Rails.root.join('log/faq_debug.log'), 'a') do |f|
-        f.puts "[#{Time.now}] SUCCESS: Found #{responses.size} results for '#{query}'. First: #{responses.first&.question}"
+        f.puts "[#{Time.zone.now}] SUCCESS: Found #{responses.size} results for '#{query}'. First: #{responses.first&.question}"
       end
       result
     end
@@ -52,7 +52,7 @@ class Captain::Tools::FaqLookupTool < Captain::Tools::BasePublicTool
     end
 
     File.open(Rails.root.join('log/faq_debug.log'), 'a') do |f|
-      f.puts "[#{Time.now}] distance_threshold: #{threshold}, before=#{responses.size}, after=#{filtered.size}"
+      f.puts "[#{Time.zone.now}] distance_threshold: #{threshold}, before=#{responses.size}, after=#{filtered.size}"
     end
 
     return responses if filtered.empty?
@@ -77,7 +77,7 @@ class Captain::Tools::FaqLookupTool < Captain::Tools::BasePublicTool
 
     conversation = ::Conversation.find_by(id: conversation_id)
     File.open(Rails.root.join('log/faq_debug.log'), 'a') do |f|
-      f.puts "[#{Time.now}] fallback_query: Fetching fresh conversation ID #{conversation_id}"
+      f.puts "[#{Time.zone.now}] fallback_query: Fetching fresh conversation ID #{conversation_id}"
     end
 
     latest_message = latest_non_greeting_message(conversation)
@@ -94,20 +94,20 @@ class Captain::Tools::FaqLookupTool < Captain::Tools::BasePublicTool
     last_message = resolve_last_user_message(tool_context)
     if last_message.present?
       File.open(Rails.root.join('log/faq_debug.log'), 'a') do |f|
-        f.puts "[#{Time.now}] resolve_query: Using state[:last_user_message] = '#{last_message}'"
+        f.puts "[#{Time.zone.now}] resolve_query: Using state[:last_user_message] = '#{last_message}'"
       end
       return last_message
     end
 
     # If query was passed explicitly and is not a greeting, use it
     if query.present? && !greeting_query?(query)
-      File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.now}] resolve_query: Using explicit query = '#{query}'" }
+      File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.zone.now}] resolve_query: Using explicit query = '#{query}'" }
       return query
     end
 
     # Fallback: get the most recent incoming message from conversation
     fallback = fallback_query(tool_context)
-    File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.now}] resolve_query: Using fallback = '#{fallback}'" }
+    File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.zone.now}] resolve_query: Using fallback = '#{fallback}'" }
     fallback
   end
 
@@ -118,7 +118,7 @@ class Captain::Tools::FaqLookupTool < Captain::Tools::BasePublicTool
       candidate = Thread.current[:captain_last_user_message].to_s.strip
       if candidate.present?
         File.open(Rails.root.join('log/faq_debug.log'), 'a') do |f|
-          f.puts "[#{Time.now}] resolve_last_user_message: Using thread-local last_user_message"
+          f.puts "[#{Time.zone.now}] resolve_last_user_message: Using thread-local last_user_message"
         end
       end
     end
@@ -131,7 +131,7 @@ class Captain::Tools::FaqLookupTool < Captain::Tools::BasePublicTool
   def find_conversation_from_context(tool_context)
     state = resolve_context(tool_context)
     conversation_id = state.dig(:conversation, :id)
-    return nil unless conversation_id.present?
+    return nil if conversation_id.blank?
 
     ::Conversation.find_by(id: conversation_id)
   end
@@ -147,12 +147,12 @@ class Captain::Tools::FaqLookupTool < Captain::Tools::BasePublicTool
                .map { |content| content.to_s.strip }
 
     File.open(Rails.root.join('log/faq_debug.log'), 'a') do |f|
-      f.puts "[#{Time.now}] latest_non_greeting_message: conv_id=#{conversation.id}, messages=#{messages.inspect}"
+      f.puts "[#{Time.zone.now}] latest_non_greeting_message: conv_id=#{conversation.id}, messages=#{messages.inspect}"
     end
 
     # Return the FIRST non-greeting message (which is the most recent due to desc order)
     result = messages.find { |content| content.present? && !greeting_query?(content) }
-    File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.now}] latest_non_greeting_message: selected='#{result}'" }
+    File.open(Rails.root.join('log/faq_debug.log'), 'a') { |f| f.puts "[#{Time.zone.now}] latest_non_greeting_message: selected='#{result}'" }
     result.to_s
   end
 

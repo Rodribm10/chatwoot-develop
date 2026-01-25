@@ -32,8 +32,8 @@ class Captain::Reservations::CreateService
     inbox = conversation&.inbox || find_inbox
     contact_inbox = conversation&.contact_inbox || find_or_create_contact_inbox(inbox)
 
-    raise ArgumentError, 'Inbox not found' unless inbox.present?
-    raise ArgumentError, 'Contact not found' unless contact_inbox&.contact.present?
+    raise ArgumentError, 'Inbox not found' if inbox.blank?
+    raise ArgumentError, 'Contact not found' if contact_inbox&.contact.blank?
 
     check_in_at = parse_time(params[:check_in_at])
     raise ArgumentError, 'Check-in time is required' unless check_in_at
@@ -149,13 +149,13 @@ class Captain::Reservations::CreateService
   end
 
   def find_brand(brand_id)
-    return unless brand_id.present?
+    return if brand_id.blank?
 
     Captain::Brand.find_by(id: brand_id, account_id: account.id)
   end
 
   def find_unit(unit_id)
-    return unless unit_id.present?
+    return if unit_id.blank?
 
     Captain::Unit.find_by(id: unit_id, account_id: account.id)
   end

@@ -10,7 +10,7 @@ Rails.application.config.after_initialize do
   if api_key.present?
     # Sanitize the key: remove common accidental image suffixes and whitespace
     sanitized_key = api_key.to_s.gsub(/\.(png|jpg|jpeg|gif|webp|svg|@2x|@3x).*$/i, '').strip
-    
+
     Agents.configure do |config|
       config.openai_api_key = sanitized_key
       if api_endpoint.present?

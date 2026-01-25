@@ -4,6 +4,10 @@ describe MessageTemplates::Template::OutOfOffice do
   context 'when this hook is called' do
     let(:conversation) { create(:conversation) }
 
+    before do
+      conversation.inbox.update!(out_of_office_message: 'We are currently away.')
+    end
+
     it 'creates the out of office messages' do
       described_class.new(conversation: conversation).perform
       expect(conversation.messages.template.count).to eq(1)

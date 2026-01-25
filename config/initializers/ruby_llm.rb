@@ -15,7 +15,7 @@ Rails.application.config.after_initialize do
       Rails.logger.error "[RubyLLM] Init failed: #{e.class} #{e.message}"
     end
     Rails.logger.info "[RubyLLM] Configured with OPENAI_API_KEY: #{api_key[0..10]}..."
-    puts "[RubyLLM] Configured with OPENAI_API_KEY: #{api_key[0..10]}..." # Log to stdout for rails runner visibility
+    Rails.logger.debug { "[RubyLLM] Configured with OPENAI_API_KEY: #{api_key[0..10]}..." } # Log to stdout for rails runner visibility
   else
     Rails.logger.warn '[RubyLLM] No OPENAI_API_KEY found in environment'
   end

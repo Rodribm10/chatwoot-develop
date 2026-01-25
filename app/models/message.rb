@@ -106,7 +106,7 @@ class Message < ApplicationRecord
   # [:external_created_at] : Can specify if the message was created at a different timestamp externally
   # [:external_error : Can specify if the message creation failed due to an error at external API
   # [:data] : Used for structured content types such as voice_call
-  store :content_attributes, accessors: [:submitted_email, :items, :submitted_values, :email, :in_reply_to, :deleted,
+  store :content_attributes, accessors: [:submitted_email, :items, :submitted_values, :email, :deleted,
                                          :external_created_at, :story_sender, :story_id, :external_error,
                                          :translations, :in_reply_to_external_id, :is_unsupported, :data], coder: JSON
 
@@ -127,6 +127,7 @@ class Message < ApplicationRecord
   belongs_to :inbox
   belongs_to :conversation, touch: true
   belongs_to :sender, polymorphic: true, optional: true
+  belongs_to :in_reply_to, class_name: 'Message', optional: true
 
   has_many :attachments, dependent: :destroy, autosave: true, before_add: :validate_attachments_limit
   has_one :csat_survey_response, dependent: :destroy_async
@@ -257,16 +258,30 @@ class Message < ApplicationRecord
   # Returns message content suitable for LLM consumption
   # Falls back to audio transcription or attachment placeholder when content is nil
   def content_for_llm
-    return content if content.present?
+    parts = []
+    parts << content if content.present?
 
-    audio_transcription = attachments
-                          .where(file_type: :audio)
-                          .filter_map { |att| att.meta&.dig('transcribed_text') }
-                          .join(' ')
-                          .presence
-    return "[Voice Message] #{audio_transcription}" if audio_transcription.present?
+    # Audio handling
+    audio_transcriptions = attachments
+                           .where(file_type: :audio)
+                           .filter_map { |att| att.meta&.dig('transcribed_text') }
 
-    '[Attachment]' if attachments.any?
+    parts << "[Mensagem de Voz]: #{audio_transcriptions.join(' ')}" if audio_transcriptions.any?
+
+    # Image handling (placeholders if not analyzed yet)
+    image_descriptions = attachments
+                         .where(file_type: :image)
+                         .filter_map { |att| att.meta&.dig('description') }
+
+    parts << "[Imagem]: #{image_descriptions.join(', ')}" if image_descriptions.any?
+
+    # Fallback for other attachments
+    if parts.empty? && attachments.any?
+      other_types = attachments.where.not(file_type: [:audio, :image]).pluck(:file_type).uniq
+      parts << "[Anexo: #{other_types.join(', ')}]"
+    end
+
+    parts.join("\n").presence || ''
   end
 
   private

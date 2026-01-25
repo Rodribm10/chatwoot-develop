@@ -26,18 +26,10 @@ class Api::V1::Accounts::Inboxes::WuzapiController < Api::V1::Accounts::BaseCont
     status = status_data['status'] || status_data['state'] || status_data
     Rails.logger.info "Wuzapi Connect/QR Flow - Current Status: #{status}"
 
-    if %w[CONNECTED inChat success].include?(status)
-      Rails.logger.info 'Wuzapi is already connected. Skipping QR.'
-      render json: { qrcode: nil, status: 'CONNECTED', message: 'Already connected' }
-      return
-    end
+    return if already_connected?(status)
 
     qr_data = client.get_qr_code(user_token)
-    Rails.logger.info "Wuzapi QR Data Response keys: #{begin
-      qr_data.keys
-    rescue StandardError
-      'nil'
-    end}"
+    log_qr_data_keys(qr_data)
     render json: qr_data
   rescue Wuzapi::Client::Error => e
     Rails.logger.error "Wuzapi QR Error: #{e.message}"
@@ -118,8 +110,24 @@ class Api::V1::Accounts::Inboxes::WuzapiController < Api::V1::Accounts::BaseCont
       Rails.logger.error "Wuzapi Token Missing for Inbox #{@inbox.id}"
       raise 'Token Wuzapi ausente; reprovisionar usuário'
     else
-      Rails.logger.info "Wuzapi Request using Token (last 6): ******#{token.to_s[-6..-1]}"
+      Rails.logger.info "Wuzapi Request using Token (last 6): ******#{token.to_s[-6..]}"
     end
     token
+  end
+
+  def already_connected?(status)
+    if %w[CONNECTED inChat success].include?(status)
+      Rails.logger.info 'Wuzapi is already connected. Skipping QR.'
+      render json: { qrcode: nil, status: 'CONNECTED', message: 'Already connected' }
+      true
+    else
+      false
+    end
+  end
+
+  def log_qr_data_keys(qr_data)
+    Rails.logger.info "Wuzapi QR Data Response keys: #{qr_data.keys}"
+  rescue StandardError
+    Rails.logger.info 'Wuzapi QR Data Response keys: nil'
   end
 end

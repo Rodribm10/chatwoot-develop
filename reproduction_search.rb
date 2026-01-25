@@ -8,7 +8,7 @@ puts "Assistant: #{assistant.name} (ID: #{assistant.id})"
 count = Captain::AssistantResponse.where(assistant_id: assistant.id).count
 puts "Total Responses for Assistant 1: #{count}"
 
-if count > 0
+if count.positive?
   puts "\nSample Responses:"
   Captain::AssistantResponse.where(assistant_id: assistant.id).limit(5).each do |resp|
     puts "ID: #{resp.id}"
@@ -23,7 +23,7 @@ else
   puts 'Checking ALL responses...'
   total_count = Captain::AssistantResponse.count
   puts "Total Responses in System: #{total_count}"
-  if total_count > 0
+  if total_count.positive?
     first = Captain::AssistantResponse.first
     puts "First Response Assistant ID: #{first.assistant_id}"
   end

@@ -17,7 +17,7 @@ export interface SuiteCategoryImage {
 export interface HotelUnit {
   id: number;
   name: string;
-  brandId: number;
+  captain_brand_id: number; // Corrected from brandId to match API snake_case
   visible_suite_categories: string[];
   suite_category_images: SuiteCategoryImage[] | null;
 }

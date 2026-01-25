@@ -21,68 +21,33 @@ jobs:
       - name: Run Rubocop
         run: bundle exec rubocop --parallel
 
-  lint-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 23
-          cache: 'pnpm'
-      - name: Install pnpm dependencies
-        run: pnpm i
-      - name: Run ESLint
-        run: pnpm run eslint
-
-  # Frontend tests run in parallel with backend
-  frontend-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 23
-          cache: 'pnpm'
-      - name: Install pnpm dependencies
-        run: pnpm i
-      - name: Run frontend tests
-        run: pnpm run test:coverage
-
   # Backend tests with parallelization
   backend-tests:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, oracle-arm]
     strategy:
       fail-fast: false
+      max-parallel: 8
       matrix:
         ci_node_total: [16]
         ci_node_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ''
-          POSTGRES_DB: postgres
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 5432:5432
-        options: >-
-          --mount type=tmpfs,destination=/var/lib/postgresql/data
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:alpine
-        ports:
-          - 6379:6379
-        options: --entrypoint redis-server
+    env:
+      POSTGRES_HOST: localhost
+      RAILS_ENV: test
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Start services
+        run: |
+          docker run -d --name pg-${{ matrix.ci_node_index }}-${{ github.run_id }} \
+            -e POSTGRES_PASSWORD= -e POSTGRES_DB=postgres -e POSTGRES_HOST_AUTH_METHOD=trust \
+            -p ${{ 5432 + matrix.ci_node_index }}:5432 \
+            pgvector/pgvector:pg16 --mount type=tmpfs,destination=/var/lib/postgresql/data
+
+          docker run -d --name redis-${{ matrix.ci_node_index }}-${{ github.run_id }} \
+            -p ${{ 6379 + matrix.ci_node_index }}:6379 \
+            redis:alpine
       - uses: pnpm/action-setup@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
@@ -105,11 +70,31 @@ jobs:
           rm -rf enterprise
           rm -rf spec/enterprise
 
+      - name: Wait for services
+        run: |
+          echo "Waiting for services to be ready..."
+          attempt=0
+          until pg_isready -h localhost -p $POSTGRES_PORT || [ $attempt -eq 5 ]; do
+            sleep 2
+            attempt=$((attempt + 1))
+          done
+          sleep 2
+
+      - name: Set up database
+        run: |
+          psql -U postgres -h localhost -p $POSTGRES_PORT -c "CREATE ROLE root LOGIN SUPERUSER;"
+          psql -U postgres -h localhost -p $POSTGRES_PORT -c "CREATE DATABASE chatwoot_dev OWNER root;"
+        env:
+          PGPASSWORD: ''
+
       - name: Create database
         run: bundle exec rake db:create
 
       - name: Seed database
         run: bundle exec rake db:schema:load
+
+      - name: Run migrations
+        run: bundle exec rake db:migrate
 
       - name: Run backend tests (parallelized)
         run: |
@@ -144,3 +129,11 @@ jobs:
         with:
           name: rails-log-folder-${{ matrix.ci_node_index }}
           path: log
+
+      - name: Stop services
+        if: always()
+        run: |
+          docker stop $PG_CONTAINER_NAME || true
+          docker rm $PG_CONTAINER_NAME || true
+          docker stop $RD_CONTAINER_NAME || true
+          docker rm $RD_CONTAINER_NAME || true

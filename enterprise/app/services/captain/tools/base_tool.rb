@@ -16,7 +16,7 @@ class Captain::Tools::BaseTool < RubyLLM::Tool
     RubyLLM.logger.debug "Tool #{name} returned: #{result.inspect}"
 
     return result if result.is_a?(RubyLLM::Tool::Halt)
-    return result unless fallback_message.present?
+    return result if fallback_message.blank?
     return result unless errorish_result?(result)
 
     fallback_message

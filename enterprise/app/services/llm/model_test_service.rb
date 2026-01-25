@@ -1,5 +1,5 @@
 class Llm::ModelTestService
-  TEST_PROMPT = 'Reply with the word ok.'
+  TEST_PROMPT = 'Reply with the word ok.'.freeze
 
   def initialize(provider:, model:, api_key:)
     @provider = provider

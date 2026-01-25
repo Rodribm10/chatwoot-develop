@@ -2,7 +2,7 @@
 # Objetivo: Configurar a Agente Jasmine e seus Sub-Agentes (Cenários) baseados no prompt do usuário.
 
 account = Account.first
-user = account.users.first
+account.users.first
 
 puts "Criando Assistente Jasmine para a conta: #{account.name}..."
 
@@ -25,17 +25,17 @@ system_prompt_blocks = [
     content: <<~TEXT
       Hotel 1001 Noites Prime – Unidade Ceilândia.
       Público: Casais, hospedagens curtas.
-      
+
       TABELA DE PREÇOS (Segunda a Quinta):
       - Stilo: 1h R$50 | 2h R$60 | Pernoite c/ café R$130
       - Alexa: 1h R$50 | 2h R$65 | Pernoite c/ café R$140
       - Hidro: 1h R$130 | 2h R$150 | Pernoite c/ café R$260
-      
+
       TABELA DE PREÇOS (Quinta a Domingo):
       - Stilo: 1h R$50 | 2h R$70 | Pernoite c/ café R$150
       - Alexa: 1h R$60 | 2h R$75 | Pernoite c/ café R$160
       - Hidro: 1h R$140 | 2h R$160 | Pernoite c/ café R$280
-      
+
       LINKS:
       - Cardápio: https://hoteis1001noites.com.br/cardapio/
       - Waze: https://waze.com/ul?a=share_drive...
@@ -81,13 +81,13 @@ Captain::Scenario.create!(
   instruction: <<~TEXT
     Você é a Daniela, especialista em reservas.
     Sua função é APENAS coletar dados para reserva futura e confirmar.
-    
+
     Gatilho: Cliente quer reservar para amanhã, sábado, ou data futura.
-    
+
     Ação Obrigatória:
     1. Se o cliente não disse a data/hora/unidade, pergunte.
     2. Use a ferramenta `handoff` para finalizar o atendimento ou confirmar que registrou.
-    
+
     Nota: Você atende reservas de QUALQUER unidade do grupo.
   TEXT
 )
@@ -101,9 +101,9 @@ Captain::Scenario.create!(
   instruction: <<~TEXT
     Você é a Jamile.
     Sua função é verificar disponibilidade para entrada IMEDIATA na unidade Ceilândia.
-    
+
     Gatilho: "Tem quarto agora?", "Posso ir ai?", "Tem vaga?"
-    
+
     Ação:
     1. Pergunte qual suíte ele prefere se não disse.
     2. Responda simulando uma consulta ao sistema: "Consultei aqui e temos [X] disponível."
@@ -118,9 +118,9 @@ Captain::Scenario.create!(
   description: 'Envia fotos das suítes solicitadas.',
   instruction: <<~TEXT
     Você é a Maria, responsável pelo acervo de fotos.
-    
+
     Gatilho: Cliente pede fotos.
-    
+
     Ação:
     1. Identifique qual suíte o cliente quer ver.
     2. Responda: "Claro! Aqui estão as fotos da suíte [Nome] que você pediu:"
@@ -128,5 +128,5 @@ Captain::Scenario.create!(
   TEXT
 )
 
-puts "Cenários (Daniela, Jamile, Maria) criados e vinculados à Jasmine."
-puts "Configuração concluída. Teste no Console ou Playground!"
+puts 'Cenários (Daniela, Jamile, Maria) criados e vinculados à Jasmine.'
+puts 'Configuração concluída. Teste no Console ou Playground!'

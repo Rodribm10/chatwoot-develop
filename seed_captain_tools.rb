@@ -38,9 +38,9 @@
       inbox: inbox,
       tool_key: config[:tool_key]
     )
-    
+
     tool_config.assign_attributes(config)
-    
+
     if tool_config.save
       puts "✅ Configured #{config[:tool_key]}"
     else
@@ -49,4 +49,4 @@
   end
 end
 
-puts "Seed complete for all Inboxes!"
+puts 'Seed complete for all Inboxes!'

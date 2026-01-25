@@ -59,7 +59,7 @@ assistant ||= Captain::Assistant.create!(
   description: 'Gerente virtual',
   llm_provider: 'openai',
   llm_model: 'gpt-4o-mini',
-  api_key: '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',
+  api_key: ENV.fetch('OPENAI_API_KEY', 'sk-placeholder-key'),
   config: assistant_config
 )
 

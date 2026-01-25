@@ -86,7 +86,6 @@ class Captain::Llm::SystemPromptsService
       SYSTEM_PROMPT_MESSAGE
     end
 
-    # rubocop:disable Metrics/MethodLength
     def copilot_response_generator(product_name, available_tools, config = {})
       citation_guidelines = if config['feature_citation']
                               <<~CITATION_TEXT
@@ -149,7 +148,6 @@ class Captain::Llm::SystemPromptsService
         #{available_tools}
       SYSTEM_PROMPT_MESSAGE
     end
-    # rubocop:enable Metrics/MethodLength
 
     def assistant_response_generator(assistant_name, product_name, config = {})
       json_instruction = <<~JSON_INSTRUCTION
@@ -258,7 +256,7 @@ class Captain::Llm::SystemPromptsService
     end
 
     def assistant_prompt_from_blocks(blocks)
-      Array(blocks).map do |block|
+      Array(blocks).filter_map do |block|
         title = block['title'] || block[:title]
         content = block['content'] || block[:content]
         next if title.to_s.strip.empty? && content.to_s.strip.empty?
@@ -268,7 +266,7 @@ class Captain::Llm::SystemPromptsService
         else
           "[#{title}]\n#{content}".strip
         end
-      end.compact.join("\n\n")
+      end.join("\n\n")
     end
 
     def paginated_faq_generator(start_page, end_page, language = 'english')

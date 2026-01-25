@@ -6,18 +6,13 @@ class Messages::MessageBuilder
   attr_reader :message
 
   def initialize(user, conversation, params)
-    @params = params
-    @private = params[:private] || false
-    @conversation = conversation
     @user = user
+    @conversation = conversation
     @account = conversation.account
-    @message_type = params[:message_type] || 'outgoing'
-    @attachments = params[:attachments]
-    @automation_rule = content_attributes&.dig(:automation_rule_id)
+    @params = params
     return unless params.instance_of?(ActionController::Parameters)
 
-    @in_reply_to = content_attributes&.dig(:in_reply_to)
-    @items = content_attributes&.dig(:items)
+    init_message_attributes
   end
 
   def perform
@@ -56,14 +51,12 @@ class Messages::MessageBuilder
         file: uploaded_attachment
       )
 
-      attachment.file_type = if uploaded_attachment.is_a?(String)
-                               file_type_by_signed_id(
-                                 uploaded_attachment
-                               )
-                             else
-                               file_type(uploaded_attachment&.content_type)
-                             end
+      attachment.file_type = resolve_file_type(uploaded_attachment)
     end
+  end
+
+  def resolve_file_type(attachment)
+    attachment.is_a?(String) ? file_type_by_signed_id(attachment) : file_type(attachment&.content_type)
   end
 
   def process_emails
@@ -140,7 +133,7 @@ class Messages::MessageBuilder
       content_type: @params[:content_type],
       content_attributes: content_attributes.presence,
       items: @items,
-      in_reply_to: @in_reply_to,
+      in_reply_to_id: @in_reply_to,
       echo_id: @params[:echo_id],
       source_id: @params[:source_id]
     }.merge(external_created_at).merge(automation_rule_id).merge(campaign_id).merge(template_params)
@@ -221,6 +214,23 @@ class Messages::MessageBuilder
     message_drops(@conversation).merge({
                                          'agent' => UserDrop.new(sender)
                                        })
+  end
+
+  def init_message_attributes
+    @private = @params[:private] || false
+    @message_type = @params[:message_type] || 'outgoing'
+    @attachments = @params[:attachments]
+    @automation_rule = extract_automation_rule
+    @in_reply_to = extract_in_reply_to
+    @items = content_attributes&.dig(:items)
+  end
+
+  def extract_automation_rule
+    content_attributes&.dig(:automation_rule_id)
+  end
+
+  def extract_in_reply_to
+    @params[:in_reply_to_id] || @params[:in_reply_to] || content_attributes&.dig(:in_reply_to)
   end
 end
 

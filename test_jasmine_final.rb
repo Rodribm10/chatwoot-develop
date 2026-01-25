@@ -11,7 +11,6 @@ def test_msg(assistant, msg)
   puts "  (Raciocínio: #{res['reasoning']})"
 end
 
-test_msg(assistant, "Oi, qual o valor da pernoite na Alexa?")
-test_msg(assistant, "Quero reservar para amanhã 22h")
-test_msg(assistant, "ESTOU COM MUITA RAIVA!")
-
+test_msg(assistant, 'Oi, qual o valor da pernoite na Alexa?')
+test_msg(assistant, 'Quero reservar para amanhã 22h')
+test_msg(assistant, 'ESTOU COM MUITA RAIVA!')

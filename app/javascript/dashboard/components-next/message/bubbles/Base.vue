@@ -63,9 +63,11 @@ const messageClass = computed(() => {
 });
 
 const scrollToMessage = () => {
-  emitter.emit(BUS_EVENTS.SCROLL_TO_MESSAGE, {
-    messageId: inReplyTo.value.id,
-  });
+  if (inReplyTo.value?.id) {
+    emitter.emit(BUS_EVENTS.SCROLL_TO_MESSAGE, {
+      messageId: inReplyTo.value.id,
+    });
+  }
 };
 
 const shouldShowMeta = computed(
@@ -76,7 +78,7 @@ const shouldShowMeta = computed(
 );
 
 const replyToPreview = computed(() => {
-  if (!inReplyTo) return '';
+  if (!inReplyTo.value) return '';
 
   const { content, attachments } = inReplyTo.value;
 

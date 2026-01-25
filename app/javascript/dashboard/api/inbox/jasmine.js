@@ -46,23 +46,32 @@ class JasmineAPI extends ApiClient {
   }
 
   unlinkCollection(inboxId, collectionId) {
-    return axios.delete(`${this.url}/${inboxId}/jasmine/collections/${collectionId}`);
+    return axios.delete(
+      `${this.url}/${inboxId}/jasmine/collections/${collectionId}`
+    );
   }
 
   // Documents
   getDocuments(collectionId) {
-    return axios.get(`${this.jasmineUrl}/collections/${collectionId}/documents`);
+    return axios.get(
+      `${this.jasmineUrl}/collections/${collectionId}/documents`
+    );
   }
 
   uploadDocument(collectionId, content, title) {
-    return axios.post(`${this.jasmineUrl}/collections/${collectionId}/documents`, {
-      title,
-      content,
-    });
+    return axios.post(
+      `${this.jasmineUrl}/collections/${collectionId}/documents`,
+      {
+        title,
+        content,
+      }
+    );
   }
 
   deleteDocument(collectionId, documentId) {
-    return axios.delete(`${this.jasmineUrl}/collections/${collectionId}/documents/${documentId}`);
+    return axios.delete(
+      `${this.jasmineUrl}/collections/${collectionId}/documents/${documentId}`
+    );
   }
 
   // Playground
@@ -85,4 +94,3 @@ class JasmineAPI extends ApiClient {
 }
 
 export default new JasmineAPI();
-

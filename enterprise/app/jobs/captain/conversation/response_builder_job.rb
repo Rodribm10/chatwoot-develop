@@ -15,9 +15,10 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     Current.account = conversation.account
 
     trigger_typing_status('on')
+    trigger_media_analysis
 
     Rails.logger.info "[ResponseBuilderJob] Captain V2 Enabled? #{captain_v2_enabled?}"
-    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] ResponseBuilderJob: V2 Enabled? #{captain_v2_enabled?}" }
+    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.zone.now}] ResponseBuilderJob: V2 Enabled? #{captain_v2_enabled?}" }
 
     if captain_v2_enabled?
       generate_response_with_v2
@@ -55,7 +56,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
     # Aggregation Logic
     new_messages = fetch_new_incoming_messages
-    aggregated_text = new_messages.map(&:content).join("\n")
+    aggregated_text = new_messages.map { |m| prepare_message_text_content(m) }.join("\n")
     exclude_ids = new_messages.map(&:id)
 
     @response = Captain::Llm::AssistantChatService.new(assistant: @assistant, conversation: @conversation).generate_response(
@@ -82,7 +83,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
     # Aggregation Logic (V2)
     new_messages = fetch_new_incoming_messages
-    aggregated_text = new_messages.map(&:content).join("\n")
+    aggregated_text = new_messages.map { |m| prepare_message_text_content(m) }.join("\n")
     exclude_ids = new_messages.map(&:id)
 
     history = collect_previous_messages(exclude_ids: exclude_ids)
@@ -208,7 +209,7 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     elapsed_time = Time.zone.now - @start_time
     remaining_delay = target_delay - elapsed_time
 
-    sleep(remaining_delay) if remaining_delay > 0
+    sleep(remaining_delay) if remaining_delay.positive?
   end
 
   def fetch_new_incoming_messages
@@ -216,11 +217,11 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
     all_messages = @conversation.messages.order(:created_at)
 
     # Find the last message sent by the assistant (outgoing)
-    last_outgoing_index = all_messages.rindex { |m| m.outgoing? }
+    last_outgoing_index = all_messages.rindex(&:outgoing?)
 
     potential_messages = if last_outgoing_index
                            # Get all messages after the last outgoing one
-                           all_messages[(last_outgoing_index + 1)..-1] || []
+                           all_messages[(last_outgoing_index + 1)..] || []
                          else
                            # If no outgoing messages, use all messages
                            all_messages
@@ -287,10 +288,17 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
   end
 
   def extract_faq_answer(result)
-    match = result.to_s.match(/Answer:\s*(.+)$/m)
-    return result.to_s.strip if match.blank?
+    return nil if result.blank?
 
-    match[1].to_s.strip
+    # 1. Tenta extrair usando o padrão 'Answer: '
+    match = result.to_s.match(/Answer:\s*(.+)$/m)
+    return match[1].to_s.strip if match.present? && match[1].present?
+
+    # 2. Fallback: Se não tem o marcador, usa o texto todo se não for uma mensagem de erro
+    clean_text = result.to_s.strip
+    return nil if clean_text.match?(/No relevant FAQs found/i)
+
+    clean_text.presence
   end
 
   def faq_question_like?(query)
@@ -309,6 +317,10 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
   def prepare_multimodal_message_content(message)
     Captain::OpenAiMessageBuilderService.new(message: message).generate_content
+  end
+
+  def prepare_message_text_content(message)
+    Captain::OpenAiMessageBuilderService.new(message: message).generate_text_content
   end
 
   def handoff_requested?
@@ -575,6 +587,22 @@ class Captain::Conversation::ResponseBuilderJob < ApplicationJob
 
   def log_error(error)
     ChatwootExceptionTracker.new(error, account: account).capture_exception
+  end
+
+  def trigger_media_analysis
+    # Inspect ALL new incoming messages, as user might send Image + Text in quick succession
+    new_messages = fetch_new_incoming_messages
+    return if new_messages.blank?
+
+    new_messages.each do |msg|
+      next if msg.attachments.blank?
+
+      Rails.logger.info "[ResponseBuilderJob] Triggering Jasmine Media Analysis for Message #{msg.id}"
+      Jasmine::MediaAnalyzerService.new(message: msg).perform
+      msg.attachments.reload
+    end
+  rescue StandardError => e
+    Rails.logger.error "[ResponseBuilderJob] Media analysis failed: #{e.message}"
   end
 
   def captain_v2_enabled?

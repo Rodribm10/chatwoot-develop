@@ -1,19 +1,17 @@
 # local_test_wuzapi.rb
 
 # 1. Mock do Client para não fazer requisição real, apenas imprimir o que seria enviado
-module Wuzapi
-  class Client
-    def request(method, path, payload, headers)
-      puts "\n--- [SIMULAÇÃO DE ENVIO] ---"
-      puts "Method: #{method.upcase}"
-      puts "Path: #{path}"
-      puts "Payload: #{JSON.pretty_generate(payload)}"
-      puts "Headers: #{headers}"
-      puts "--------------------------\n"
+class Wuzapi::Client
+  def request(method, path, payload, headers)
+    puts "\n--- [SIMULAÇÃO DE ENVIO] ---"
+    puts "Method: #{method.upcase}"
+    puts "Path: #{path}"
+    puts "Payload: #{JSON.pretty_generate(payload)}"
+    puts "Headers: #{headers}"
+    puts "--------------------------\n"
 
-      # Retorna falso sucesso só para o script continuar
-      { 'success' => true }
-    end
+    # Retorna falso sucesso só para o script continuar
+    { 'success' => true }
   end
 end
 

@@ -27,9 +27,8 @@ export const pricingService = {
   // Busca os dados de preço de uma marca e formata para a UI
   async getPricingData(brandId: number): Promise<PricingData> {
     const data = await fetchMasterData();
-    // Pricing rows from Rails are in 'pricings' key
-    // snake_case keys from Rails: brand_id
-    const rows = data.pricings.filter((p: any) => p.captain_brand_id === brandId); // Rails association key might be captain_brand_id?
+    // Use loose equality or cast both to string to be safe with IDs from JSON
+    const rows = data.pricings.filter((p: any) => String(p.captain_brand_id) === String(brandId));
     // Wait, in the migration: t.references :captain_brand
     // So the column is captain_brand_id.
     // But `types.ts` `PricingRow` likely expects `brand_id`.

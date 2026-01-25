@@ -59,6 +59,6 @@ class Captain::Llm::ContactIdentityService
   def normalize_name(name)
     parts = name.split
     parts.shift if parts.first&.downcase.in?(%w[a o])
-    parts.map { |part| part.capitalize }.join(' ')
+    parts.map(&:capitalize).join(' ')
   end
 end

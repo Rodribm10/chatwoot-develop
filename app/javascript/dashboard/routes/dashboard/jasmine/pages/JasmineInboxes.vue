@@ -45,8 +45,8 @@ const getChannelName = channelType => {
   >
     <template #header>
       <BaseSettingsHeader
-        title="Agentes Jasmine AI"
-        description="Gerencie seus agentes de IA SDR. Selecione uma caixa de entrada para configurar sua base de conhecimento."
+        :title="$t('JASMINE.HEADER.TITLE')"
+        :description="$t('JASMINE.HEADER.DESCRIPTION')"
       />
     </template>
 
@@ -64,14 +64,12 @@ const getChannelName = channelType => {
               class="flex items-center justify-center size-12 rounded-lg bg-n-blue-2"
             >
               <span
-                :class="[
-                  getChannelIcon(inbox.channel_type),
-                  'size-6 text-n-blue-text',
-                ]"
+                class="size-6 text-n-blue-text"
+                :class="[getChannelIcon(inbox.channel_type)]"
               />
             </div>
             <span
-              v-tooltip="'Ativo'"
+              v-tooltip="$t('JASMINE.INBOX_LIST.ACTIVE')"
               class="text-white p-0.5 rounded-full size-5 flex items-center justify-center bg-n-teal-9"
             >
               <i class="i-ph-check-bold text-sm" />
@@ -83,13 +81,20 @@ const getChannelName = channelType => {
             <span class="text-base font-semibold text-n-slate-12">{{
               inbox.name
             }}</span>
-            <Button label="Configurar" link @click.stop="openInbox(inbox.id)" />
+            <Button
+              :label="$t('JASMINE.INBOX_LIST.CONFIGURE')"
+              link
+              @click.stop="openInbox(inbox.id)"
+            />
           </div>
 
           <!-- Description -->
           <p class="text-sm text-n-slate-11">
-            Canal {{ getChannelName(inbox.channel_type) }} configurado para
-            Jasmine AI
+            {{
+              $t('JASMINE.INBOX_LIST.DESCRIPTION', {
+                channel: getChannelName(inbox.channel_type),
+              })
+            }}
           </p>
         </div>
       </div>

@@ -65,7 +65,7 @@ class Conversations::MessageWindowService
   end
 
   def whatsapp_messaging_window
-    return nil if @conversation.inbox.channel.provider == 'wuzapi'
+    return nil if @conversation.inbox.channel&.provider == 'wuzapi'
 
     MESSAGING_WINDOW_24_HOURS
   end

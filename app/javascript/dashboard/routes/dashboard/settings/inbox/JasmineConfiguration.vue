@@ -70,10 +70,10 @@ export default {
     <div class="settings-section">
       <div class="flex flex-col gap-1 items-start mb-4">
         <h2 class="text-xl font-medium text-slate-900 dark:text-slate-100">
-          Jasmine AI Configuration
+          {{ $t('JASMINE.CONFIG.TITLE') }}
         </h2>
         <p class="text-sm text-slate-600 dark:text-slate-400">
-          Configure the AI agent for this inbox.
+          {{ $t('JASMINE.CONFIG.DESCRIPTION') }}
         </p>
       </div>
 
@@ -85,7 +85,7 @@ export default {
             class="form-checkbox h-5 w-5 text-woot-500 rounded border-gray-300 focus:ring-woot-500"
           />
           <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
-            Enable Jasmine AI Agent
+            {{ $t('JASMINE.CONFIG.ENABLE') }}
           </span>
         </label>
       </div>
@@ -94,21 +94,21 @@ export default {
         <label
           class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2"
         >
-          System Prompt
+          {{ $t('JASMINE.CONFIG.SYSTEM_PROMPT') }}
         </label>
         <textarea
           v-model="systemPrompt"
           rows="6"
           class="w-full text-sm rounded-md border-gray-300 dark:border-slate-700 dark:bg-slate-900 focus:border-woot-500 focus:ring-woot-500"
-          placeholder="You are a helpful SDR agent..."
-        ></textarea>
+          :placeholder="$t('JASMINE.CONFIG.SYSTEM_PROMPT_HELP')"
+        />
         <p class="mt-1 text-xs text-slate-500">
-          Define the persona and behavioral rules for the agent.
+          {{ $t('JASMINE.CONFIG.SYSTEM_PROMPT_HELP') }}
         </p>
       </div>
 
       <woot-button :is-loading="isUpdating" @click="updateSettings">
-        Update Configuration
+        {{ $t('JASMINE.CONFIG.UPDATE_BUTTON') }}
       </woot-button>
 
       <JasmineKnowledgeBase v-if="showKnowledgeBase" :inbox-id="inbox.id" />

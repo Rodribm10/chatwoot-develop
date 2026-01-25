@@ -19,25 +19,7 @@ class Api::V1::Accounts::Conversations::CrmInsightsController < Api::V1::Account
   def serialize_insight(insight)
     return nil if insight.blank?
 
-    {
-      id: insight.id,
-      conversation_id: insight.conversation_id,
-      account_id: insight.account_id,
-      contact_id: insight.contact_id,
-      summary_text: insight.summary_text,
-      structured_data: insight.structured_data,
-      contact_sessions_count: insight.contact_sessions_count,
-      last_contact_at: insight.last_contact_at,
-      updated_at: insight.updated_at,
-      generated_at: insight.generated_at,
-      range_from_message_id: insight.range_from_message_id,
-      range_to_message_id: insight.range_to_message_id,
-      status: insight.status,
-      error_message: insight.error_message,
-      schema_version: insight.schema_version,
-      model: insight.model,
-      confidence: insight.confidence
-    }
+    insight_attributes(insight)
   end
 
   def insights_payload
@@ -67,5 +49,27 @@ class Api::V1::Accounts::Conversations::CrmInsightsController < Api::V1::Account
     end
 
     meta
+  end
+
+  def insight_attributes(insight)
+    {
+      id: insight.id,
+      conversation_id: insight.conversation_id,
+      account_id: insight.account_id,
+      contact_id: insight.contact_id,
+      summary_text: insight.summary_text,
+      structured_data: insight.structured_data,
+      contact_sessions_count: insight.contact_sessions_count,
+      last_contact_at: insight.last_contact_at,
+      updated_at: insight.updated_at,
+      generated_at: insight.generated_at,
+      range_from_message_id: insight.range_from_message_id,
+      range_to_message_id: insight.range_to_message_id,
+      status: insight.status,
+      error_message: insight.error_message,
+      schema_version: insight.schema_version,
+      model: insight.model,
+      confidence: insight.confidence
+    }
   end
 end

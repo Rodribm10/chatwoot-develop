@@ -77,7 +77,6 @@ class Inbox < ApplicationRecord
   has_one :agent_bot, through: :agent_bot_inbox
   has_many :webhooks, dependent: :destroy_async
   has_many :hooks, dependent: :destroy_async, class_name: 'Integrations::Hook'
-  has_many :inbox_automations, dependent: :destroy_async, class_name: 'Captain::InboxAutomation'
 
   # Jasmine
   has_one :jasmine_inbox_config, class_name: 'Jasmine::InboxConfig', dependent: :destroy

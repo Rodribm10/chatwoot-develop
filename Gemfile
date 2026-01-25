@@ -60,6 +60,7 @@ gem 'aws-actionmailbox-ses', '~> 0'
 
 ##-- gems for database --#
 gem 'groupdate'
+gem 'fiddle'
 gem 'pg'
 gem 'redis'
 gem 'redis-namespace'
@@ -271,4 +272,4 @@ group :development, :test do
   gem 'spring-watcher-listen'
 end
 
-gem "rqrcode", "~> 3.2"
+gem 'rqrcode', '~> 3.2'

@@ -19,8 +19,8 @@ class Captain::Reminders::CreateService
     inbox = conversation&.inbox || find_inbox
     contact_inbox = conversation&.contact_inbox || find_or_create_contact_inbox(inbox)
 
-    raise ArgumentError, 'Inbox not found' unless inbox.present?
-    raise ArgumentError, 'Contact not found' unless contact_inbox&.contact.present?
+    raise ArgumentError, 'Inbox not found' if inbox.blank?
+    raise ArgumentError, 'Contact not found' if contact_inbox&.contact.blank?
 
     schedule_time = parse_time(params[:scheduled_at])
     raise ArgumentError, 'Scheduled time is required' unless schedule_time

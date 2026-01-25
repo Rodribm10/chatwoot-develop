@@ -36,13 +36,13 @@ run:
 	@if [ -f ./.overmind.sock ]; then \
 		echo "Overmind is already running. Use 'make force_run' to start a new instance."; \
 	else \
-		overmind start -f Procfile.dev; \
+		export PATH="$$HOME/.rbenv/bin:$$HOME/.rbenv/shims:$$PATH"; eval "$$(rbenv init -)"; overmind start -f Procfile.dev; \
 	fi
 
 force_run:
 	rm -f ./.overmind.sock
 	rm -f tmp/pids/*.pid
-	overmind start -f Procfile.dev
+	export PATH="$$HOME/.rbenv/bin:$$HOME/.rbenv/shims:$$PATH"; eval "$$(rbenv init -)"; overmind start -f Procfile.dev
 
 force_run_tunnel:
 	lsof -ti:3000 | xargs kill -9 2>/dev/null || true
@@ -59,4 +59,7 @@ debug_worker:
 docker: 
 	docker build -t $(APP_NAME) -f ./docker/Dockerfile .
 
-.PHONY: setup db_create db_migrate db_seed db_reset db console server burn docker run force_run force_run_tunnel debug debug_worker
+sidekiq:
+	export PATH="$$HOME/.rbenv/bin:$$HOME/.rbenv/shims:$$PATH"; eval "$$(rbenv init -)"; bundle exec sidekiq -C config/sidekiq.yml
+
+.PHONY: setup db_create db_migrate db_seed db_reset db console server burn docker run force_run force_run_tunnel debug debug_worker sidekiq

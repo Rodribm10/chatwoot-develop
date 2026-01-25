@@ -32,7 +32,7 @@ class Captain::Assistant::AgentRunnerService
 
     # [FEATURE] Short-circuit for thank you/emoji messages to ensure reaction tool usage
     Rails.logger.info "[Captain V2] Checking for reaction. Message: #{message_to_process.inspect}"
-    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] AgentRunnerService: checking reaction for #{message_to_process.inspect}" }
+    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.zone.now}] AgentRunnerService: checking reaction for #{message_to_process.inspect}" }
 
     reaction_response = check_and_react_to_message(message_to_process)
     return reaction_response if reaction_response
@@ -41,7 +41,7 @@ class Captain::Assistant::AgentRunnerService
     runner = Agents::Runner.with_agents(*agents)
     runner = add_callbacks_to_runner(runner) if @callbacks.any?
 
-    puts "[DEBUG V2] Running with agents: #{agents.map(&:name).join(', ')}"
+    Rails.logger.debug { "[DEBUG V2] Running with agents: #{agents.map(&:name).join(', ')}" }
 
     # Use assistant's API key if present, otherwise fallback to global config
     result = with_assistant_api_key do
@@ -89,7 +89,7 @@ class Captain::Assistant::AgentRunnerService
     end
 
     Rails.logger.info "[Captain V2] Reaction Pre-Check: Text='#{text}' Category=#{matched_category}"
-    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.now}] AgentRunnerService: Text='#{text}' Category=#{matched_category}" }
+    File.open('/tmp/v2_debug.log', 'a') { |f| f.puts "[#{Time.zone.now}] AgentRunnerService: Text='#{text}' Category=#{matched_category}" }
 
     if matched_category
       Rails.logger.info "[Captain V2] Detected #{matched_category}. Executing ReactToMessageTool directly."
@@ -140,7 +140,7 @@ class Captain::Assistant::AgentRunnerService
     # Remove the last user message from history because it will be passed as the main message to the runner
     last_user_index = message_history.rindex { |msg| msg[:role] == 'user' || msg[:role] == :user }
     filtered_history = if last_user_index
-                         message_history[0...last_user_index] + message_history[(last_user_index + 1)..-1]
+                         message_history[0...last_user_index] + message_history[(last_user_index + 1)..]
                        else
                          message_history
                        end
@@ -328,7 +328,7 @@ class Captain::Assistant::AgentRunnerService
   def sanitize_global_api_key
     # Force sanitization of the global gem config just in case it's dirty
     raw_key = InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_API_KEY')&.value.presence || ENV.fetch('OPENAI_API_KEY', nil)
-    return unless raw_key.present?
+    return if raw_key.blank?
 
     sanitized_key = raw_key.to_s.gsub(/\.(png|jpg|jpeg|gif|webp|svg|@2x|@3x).*$/i, '').strip
     Agents.configure { |config| config.openai_api_key = sanitized_key }

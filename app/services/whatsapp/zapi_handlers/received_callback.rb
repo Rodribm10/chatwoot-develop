@@ -39,7 +39,7 @@ module Whatsapp::ZapiHandlers::ReceivedCallback # rubocop:disable Metrics/Module
       !@raw_message.key?(:notification)
   end
 
-  def message_type # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+  def message_type
     return 'text' if @raw_message.key?(:text)
     return 'reaction' if @raw_message.key?(:reaction)
     return 'audio' if @raw_message.key?(:audio)

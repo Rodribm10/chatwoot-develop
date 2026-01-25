@@ -45,7 +45,7 @@ class Captain::Tools::SearchDocumentationService < Captain::Tools::BaseTool
   end
 
   def low_confidence?(response)
-    return false unless response&.respond_to?(:neighbor_distance)
+    return false unless response.respond_to?(:neighbor_distance)
 
     response.neighbor_distance.to_f > LOW_CONFIDENCE_DISTANCE
   end

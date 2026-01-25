@@ -28,7 +28,7 @@ class Captain::Tools::ListReservationsTool < Captain::Tools::BasePublicTool
       "ID #{reservation.id} - #{reservation.suite_identifier} - #{check_in} - #{unit_name} - status: #{status} - pagamento: #{payment}"
     end
 
-    "Reservas recentes:\n" + formatted.join("\n")
+    "Reservas recentes:\n#{formatted.join("\n")}"
   end
 
   private

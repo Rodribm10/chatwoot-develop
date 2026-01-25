@@ -12,16 +12,23 @@ Rails.application.config.to_prepare do
 
     def ensure_content_presence_defensive
       # If content is present, or we have attachments, we are good.
+      # We check .any? and .size to be robust against unsaved attachments in some contexts.
       return if content.present? || attachments.any?
 
-      # If we are here, we are about to crash.
-      # Set a default content message and log it.
+      # Identifica a origem para um fallback mais inteligente
+      if incoming?
+        # Casos onde o cliente envia mídias/eventos não suportados ou vazios
+        event_info = content_attributes&.dig('event_type')
+        self.content = event_info.present? ? "(Evento de plataforma: #{event_info})" : '(Conteúdo ou Mídia não processada)'
+      else
+        # Casos onde o assistente ou sistema falhou em gerar texto
+        self.content = '(O assistente tentou enviar uma resposta vazia)'
+      end
 
-      Rails.logger.warn "⚠️ [DEFENSIVE FIX] Message would have crashed! Validations: 'Text and attachments cannot be both nil'."
-      Rails.logger.warn "   - Caller: #{caller[0..5].join("\n   - ")}"
-      Rails.logger.warn "   - Attributes: #{attributes.inspect}"
-
-      self.content = '(System Message - Auto-fixed empty content)'
+      # Log rico para depuração futura
+      Rails.logger.warn "⚠️ [DEFENSIVE FIX] #{message_type.upcase} message (ID: #{id || 'new'}) would have crashed Chatwoot!"
+      Rails.logger.warn "   - Context: Channel=#{inbox&.channel_type} | AccountID=#{account_id}"
+      Rails.logger.warn "   - Attributes: #{attributes.except('content').inspect}"
     end
   end
 end

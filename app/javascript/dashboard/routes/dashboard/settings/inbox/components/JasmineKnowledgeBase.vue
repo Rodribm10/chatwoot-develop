@@ -101,11 +101,13 @@ export default {
       }
     },
     async deleteDocument(collectionId, documentId) {
-      if (!confirm('Are you sure you want to delete this document?')) return;
+      // eslint-disable-next-line no-alert
+      if (!window.confirm(this.$t('JASMINE.KNOWLEDGE_BASE.DELETE_CONFIRM')))
+        return;
       this.isDeletingDocument = documentId;
       try {
         await JasmineAPI.deleteDocument(collectionId, documentId);
-        useAlert('Document deleted successfully');
+        useAlert(this.$t('JASMINE.KNOWLEDGE_BASE.DOCUMENT_DELETE_SUCCESS'));
         this.fetchDocuments(collectionId);
       } catch (error) {
         useAlert('Failed to delete document');
@@ -143,14 +145,14 @@ export default {
     <div class="flex justify-between items-center mb-6">
       <div>
         <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Knowledge Base
+          {{ $t('JASMINE.KNOWLEDGE_BASE.TITLE') }}
         </h3>
         <p class="text-sm text-slate-500 dark:text-slate-400">
-          Manage knowledge collections for this inbox
+          {{ $t('JASMINE.KNOWLEDGE_BASE.DESCRIPTION') }}
         </p>
       </div>
       <woot-button size="small" @click="showCreateCollectionModal = true">
-        + New Collection
+        {{ $t('JASMINE.KNOWLEDGE_BASE.ADD_BUTTON') }}
       </woot-button>
     </div>
 
@@ -173,8 +175,8 @@ export default {
         >
           <div class="flex items-center gap-3">
             <span
+              class="i-lucide-chevron-right size-4 transition-transform text-slate-400"
               :class="[
-                'i-lucide-chevron-right size-4 transition-transform text-slate-400',
                 expandedCollectionId === collection.id ? 'rotate-90' : '',
               ]"
             />
@@ -197,7 +199,7 @@ export default {
           class="border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 p-4"
         >
           <h5 class="text-xs font-semibold uppercase text-slate-500 mb-3">
-            Documents
+            {{ $t('JASMINE.KNOWLEDGE_BASE.DOCUMENTS') }}
           </h5>
 
           <!-- Loading Documents -->
@@ -206,7 +208,7 @@ export default {
             class="flex items-center gap-2 text-sm text-slate-400 py-2"
           >
             <span class="i-lucide-loader-2 size-4 animate-spin" />
-            Loading documents...
+            {{ $t('JASMINE.KNOWLEDGE_BASE.LOADING_DOCS') }}
           </div>
 
           <!-- Documents List -->
@@ -224,7 +226,7 @@ export default {
                   <p
                     class="font-medium text-sm text-slate-800 dark:text-slate-200 truncate"
                   >
-                    {{ doc.title || 'Untitled Document' }}
+                    {{ doc.title || $t('JASMINE.KNOWLEDGE_BASE.UNTITLED_DOC') }}
                   </p>
                   <p class="text-xs text-slate-400 truncate">
                     {{ new Date(doc.created_at).toLocaleDateString() }}
@@ -234,10 +236,8 @@ export default {
               <div class="flex items-center gap-3 shrink-0">
                 <!-- Status Badge -->
                 <span
-                  :class="[
-                    'inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full',
-                    getStatusClass(doc.status),
-                  ]"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full"
+                  :class="[getStatusClass(doc.status)]"
                 >
                   <span
                     v-if="isProcessing(doc.status)"
@@ -264,7 +264,7 @@ export default {
               v-if="documents.length === 0"
               class="text-center py-6 text-sm text-slate-400"
             >
-              No documents yet. Add your first document below.
+              {{ $t('JASMINE.KNOWLEDGE_BASE.NO_DOCS') }}
             </div>
           </div>
 
@@ -273,19 +273,21 @@ export default {
             class="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4"
           >
             <h6 class="text-xs font-semibold uppercase text-slate-500 mb-3">
-              Add New Document
+              {{ $t('JASMINE.KNOWLEDGE_BASE.ADD_DOC_HEADER') }}
             </h6>
             <input
               v-model="newDocTitle"
               type="text"
               class="w-full mb-2 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
-              placeholder="Document title (optional)"
+              :placeholder="$t('JASMINE.KNOWLEDGE_BASE.DOC_TITLE_PLACEHOLDER')"
             />
             <textarea
               v-model="newDocContent"
               rows="4"
               class="w-full mb-3 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 resize-none"
-              placeholder="Paste or type your knowledge content here..."
+              :placeholder="
+                $t('JASMINE.KNOWLEDGE_BASE.DOC_CONTENT_PLACEHOLDER')
+              "
             />
             <div class="flex justify-end">
               <woot-button
@@ -294,7 +296,7 @@ export default {
                 :disabled="!newDocContent.trim()"
                 @click="addDocument(collection.id)"
               >
-                Add Document
+                {{ $t('JASMINE.KNOWLEDGE_BASE.ADD_DOC_BUTTON') }}
               </woot-button>
             </div>
           </div>
@@ -307,7 +309,7 @@ export default {
         class="text-center py-12 text-slate-400"
       >
         <span class="i-lucide-folder-open size-12 mx-auto mb-3 opacity-50" />
-        <p class="text-sm">No collections yet. Create one to get started.</p>
+        <p class="text-sm">{{ $t('JASMINE.KNOWLEDGE_BASE.NO_COLLECTIONS') }}</p>
       </div>
     </div>
 
@@ -319,34 +321,40 @@ export default {
     >
       <div class="bg-white dark:bg-slate-900 p-6 rounded-xl w-96 shadow-2xl">
         <h3 class="text-lg font-semibold mb-4 text-slate-900 dark:text-white">
-          Create Collection
+          {{ $t('JASMINE.KNOWLEDGE_BASE.CREATE_MODAL.TITLE') }}
         </h3>
         <input
           v-model="newCollectionName"
           type="text"
           class="w-full mb-4 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
-          placeholder="Collection name"
+          :placeholder="
+            $t('JASMINE.KNOWLEDGE_BASE.CREATE_MODAL.NAME_PLACEHOLDER')
+          "
           @keyup.enter="createCollection"
         />
         <select
           v-model="newCollectionVisibility"
           class="w-full mb-4 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
         >
-          <option value="private">Private (This inbox only)</option>
-          <option value="shared">Shared (All inboxes)</option>
+          <option value="private">
+            {{ $t('JASMINE.KNOWLEDGE_BASE.CREATE_MODAL.VISIBILITY_PRIVATE') }}
+          </option>
+          <option value="shared">
+            {{ $t('JASMINE.KNOWLEDGE_BASE.CREATE_MODAL.VISIBILITY_SHARED') }}
+          </option>
         </select>
         <div class="flex justify-end gap-2">
           <woot-button
             variant="clear"
             @click="showCreateCollectionModal = false"
           >
-            Cancel
+            {{ $t('JASMINE.KNOWLEDGE_BASE.CREATE_MODAL.CANCEL') }}
           </woot-button>
           <woot-button
             :disabled="!newCollectionName.trim()"
             @click="createCollection"
           >
-            Create
+            {{ $t('JASMINE.KNOWLEDGE_BASE.CREATE_MODAL.CREATE') }}
           </woot-button>
         </div>
       </div>

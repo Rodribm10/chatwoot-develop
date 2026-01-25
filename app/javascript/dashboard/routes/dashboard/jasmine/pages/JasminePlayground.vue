@@ -63,8 +63,8 @@ const clearChat = () => {
   <SettingsLayout :is-loading="false">
     <template #header>
       <BaseSettingsHeader
-        title="Playground Jasmine AI"
-        description="Teste as respostas da Jasmine em tempo real antes de ativar para os clientes."
+        :title="$t('JASMINE.PLAYGROUND.TITLE')"
+        :description="$t('JASMINE.PLAYGROUND.DESCRIPTION')"
       />
     </template>
 
@@ -73,20 +73,25 @@ const clearChat = () => {
         <!-- Inbox Selector -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-n-slate-12 mb-2">
-            Selecione uma Inbox para testar
+            {{ $t('JASMINE.PLAYGROUND.SELECT_INBOX') }}
           </label>
           <select
             v-model="selectedInboxId"
             class="w-full max-w-md px-3 py-2 text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12"
           >
-            <option :value="null">Escolha uma inbox...</option>
+            <option :value="null">
+              {{ $t('JASMINE.PLAYGROUND.CHOOSE_INBOX') }}
+            </option>
             <option v-for="inbox in inboxes" :key="inbox.id" :value="inbox.id">
               {{ inbox.name }}
             </option>
           </select>
           <p v-if="selectedInbox" class="text-xs text-n-slate-11 mt-1">
-            ⚠️ Certifique-se de que a Jasmine está ativada e configurada para
-            esta inbox
+            {{
+              $t('JASMINE.PLAYGROUND.FETCH_ERROR', {
+                error: $t('JASMINE.PLAYGROUND.WARNING'),
+              })
+            }}
           </p>
         </div>
 
@@ -102,17 +107,17 @@ const clearChat = () => {
               class="text-center text-n-slate-11 py-12"
             >
               <span class="i-lucide-message-square size-12 mb-4 opacity-50" />
-              <p>Envie uma mensagem para testar a Jasmine</p>
+              <p>{{ $t('JASMINE.PLAYGROUND.EMPTY_STATE_TITLE') }}</p>
               <p class="text-xs mt-2">
-                Experimente: "Olá", "Quanto custa?", "Como funciona?"
+                {{ $t('JASMINE.PLAYGROUND.EMPTY_STATE_EXAMPLES') }}
               </p>
             </div>
 
             <div
               v-for="(msg, index) in messages"
               :key="index"
+              class="max-w-[80%] rounded-lg p-3"
               :class="[
-                'max-w-[80%] rounded-lg p-3',
                 msg.role === 'user'
                   ? 'ml-auto bg-n-blue-9 text-white'
                   : msg.role === 'error'
@@ -125,10 +130,16 @@ const clearChat = () => {
                 v-if="msg.debug"
                 class="mt-2 pt-2 border-t border-n-weak text-xs text-n-slate-11"
               >
-                <span class="font-mono"
-                  >{{ msg.debug.model }} | temp:
-                  {{ msg.debug.temperature }}</span
-                >
+                <span class="font-mono">
+                  {{
+                    $t('JASMINE.PLAYGROUND.MODEL', { model: msg.debug.model })
+                  }}
+                  {{
+                    $t('JASMINE.PLAYGROUND.TEMPERATURE', {
+                      temp: msg.debug.temperature,
+                    })
+                  }}
+                </span>
               </div>
             </div>
 
@@ -137,7 +148,9 @@ const clearChat = () => {
               class="flex items-center gap-2 text-n-slate-11"
             >
               <span class="i-lucide-loader-2 size-4 animate-spin" />
-              <span class="text-sm">Jasmine está pensando...</span>
+              <span class="text-sm">{{
+                $t('JASMINE.PLAYGROUND.LOADING')
+              }}</span>
             </div>
           </div>
 
@@ -148,7 +161,7 @@ const clearChat = () => {
                 v-model="inputMessage"
                 type="text"
                 class="flex-1 px-3 py-2 text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12"
-                placeholder="Digite uma mensagem de teste..."
+                :placeholder="$t('JASMINE.PLAYGROUND.INPUT_PLACEHOLDER')"
                 :disabled="isLoading"
                 @keyup.enter="sendMessage"
               />
@@ -158,7 +171,7 @@ const clearChat = () => {
                 @click="sendMessage"
               />
               <Button
-                v-tooltip="'Limpar conversa'"
+                v-tooltip="$t('JASMINE.PLAYGROUND.CLEAR_TOOLTIP')"
                 icon="i-lucide-trash-2"
                 faded
                 slate
@@ -176,7 +189,7 @@ const clearChat = () => {
         >
           <div class="text-center">
             <span class="i-lucide-inbox size-16 mb-4 opacity-30" />
-            <p>Selecione uma inbox acima para começar a testar</p>
+            <p>{{ $t('JASMINE.PLAYGROUND.NO_INBOX_SELECTED') }}</p>
           </div>
         </div>
       </div>

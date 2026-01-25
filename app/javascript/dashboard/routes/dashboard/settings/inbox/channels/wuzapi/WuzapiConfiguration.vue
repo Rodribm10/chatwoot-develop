@@ -34,20 +34,25 @@ export default defineComponent({
       return `/api/v1/accounts/${accountId.value}/inboxes/${props.inbox.id}/wuzapi${endpoint}`;
     };
 
-    const fetchStatus = async () => {
+    function stopPolling() {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }
+
+    async function fetchStatus() {
       if (!accountId.value) return;
 
       try {
         const response = await window.axios.get(getApiUrl(''));
 
         const data = response.data;
-        // Wuzapi format: { data: { connected: true, jid: "...", details: "..." } }
         const wuzapiData = data.data || {};
 
         const isWuzapiConnected =
           wuzapiData.connected === true && !!wuzapiData.jid;
 
-        // Also keep legacy check just in case payload differs
         const legacyStatus = data.status || data.state;
         const isLegacyConnected = ['CONNECTED', 'inChat', 'success'].includes(
           legacyStatus
@@ -64,13 +69,22 @@ export default defineComponent({
         statusMessage.value =
           error.response?.data?.error || error.message || 'Check failed';
       }
-    };
+    }
 
-    const fetchQrCode = async () => {
+    /* eslint-disable no-use-before-define */
+    function startPolling() {
+      if (pollInterval) return;
+      pollInterval = setInterval(async () => {
+        await fetchStatus();
+        if (pollInterval && !isConnected.value) {
+          await fetchQrCode();
+        }
+      }, 5000);
+    }
+
+    async function fetchQrCode() {
       try {
         const response = await window.axios.get(getApiUrl('/qr'));
-
-        // Backend now normalizes to 'qrcode' in most cases, but we keep robust checks
         const d = response.data;
         const qrcodeData =
           d.qrcode ||
@@ -84,7 +98,6 @@ export default defineComponent({
           qrCode.value = qrcodeData;
           startPolling();
         } else {
-          // Fallback: maybe we are already connected?
           await fetchStatus();
           if (!isConnected.value) {
             statusMessage.value = 'QR Code not received and not connected.';
@@ -94,7 +107,7 @@ export default defineComponent({
         statusMessage.value =
           error.response?.data?.error || 'Failed to load QR';
       }
-    };
+    }
 
     const handleConnect = async () => {
       if (!accountId.value) {
@@ -131,26 +144,6 @@ export default defineComponent({
       }
     };
 
-// Function hoisting allows use before definition
-    function stopPolling() {
-      if (pollInterval) {
-        clearInterval(pollInterval);
-        pollInterval = null;
-      }
-    }
-
-    function startPolling() {
-      if (pollInterval) return;
-      // Poll every 5 seconds to check status AND refresh QR code
-      pollInterval = setInterval(async () => {
-        await fetchStatus();
-        // If still not connected (and polling hasn't been stopped by fetchStatus), refresh QR
-        if (pollInterval && !isConnected.value) {
-          await fetchQrCode();
-        }
-      }, 5000);
-    }
-
     const isLoadingWebhook = ref(false);
     const webhookInfo = ref(null);
 
@@ -173,7 +166,7 @@ export default defineComponent({
         const response = await window.axios.put(getApiUrl('/update_webhook'));
         webhookInfo.value = {
           message: response.data.message,
-          url: response.data.webhook_url
+          url: response.data.webhook_url,
         };
         useAlert('Webhook updated successfully');
       } catch (error) {
@@ -213,8 +206,8 @@ export default defineComponent({
   <div class="mx-8 mt-6">
     <div class="bg-white p-6 rounded-lg border border-n-weak">
       <h3 class="text-lg font-medium text-n-slate-12 mb-4">
-        {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WUZAPI') }} -
-        {{ $t('INBOX_MGMT.SETTINGS_POPUP.MESSENGER_CONFIG') }}
+        {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WUZAPI') }}
+        {{ `- ${$t('INBOX_MGMT.SETTINGS_POPUP.MESSENGER_CONFIG')}` }}
       </h3>
 
       <div v-if="accountId" class="flex flex-col items-center">
@@ -264,29 +257,29 @@ export default defineComponent({
           </div>
 
           <div class="mt-4 text-xs text-n-slate-10">
-            Status: {{ statusMessage }}
+            {{ $t('JASMINE.WUZAPI.STATUS', { status: statusMessage }) }}
           </div>
         </div>
       </div>
 
       <div v-else class="text-red-600 p-4">
-        Error: Account ID not loaded. Please refresh the page.
+        {{ $t('JASMINE.WUZAPI.ACCOUNT_ERROR') }}
       </div>
       <div class="mt-8 pt-6 border-t border-n-weak w-full">
         <h4 class="text-md font-medium text-n-slate-12 mb-4">
-          Webhook Configuration
+          {{ $t('JASMINE.WUZAPI.WEBHOOK_SECTION') }}
         </h4>
         <div class="flex gap-4 mb-4">
           <NextButton
             icon="i-woot-refresh"
             :is-loading="isLoadingWebhook"
-            label="Get Webhook Info"
+            :label="$t('JASMINE.WUZAPI.GET_WEBHOOK_INFO')"
             @click="fetchWebhookInfo"
           />
           <NextButton
             icon="i-woot-upload"
             :is-loading="isLoadingWebhook"
-            label="Update Webhook Connection"
+            :label="$t('JASMINE.WUZAPI.UPDATE_WEBHOOK')"
             @click="updateWebhook"
           />
         </div>

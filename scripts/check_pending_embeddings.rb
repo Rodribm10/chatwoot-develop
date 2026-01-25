@@ -8,7 +8,7 @@ total_count = Captain::AssistantResponse.count
 puts "Total Assistant Responses: #{total_count}"
 puts "Pending Embeddings: #{pending_count}"
 
-if pending_count > 0
+if pending_count.positive?
   puts "\n[!] Found #{pending_count} records without embeddings."
   puts '    This suggests Sidekiq might not be processing jobs.'
 

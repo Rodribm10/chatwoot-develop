@@ -43,7 +43,7 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
 
       # 3. Handle Tool Strategy
       if brain_decision.strategy == :execute_tool
-        File.open(Rails.root.join('log/brain_debug.log'), 'a') { |f| f.puts "[#{Time.now}] BRAIN DECIDED: #{brain_decision.tool_key}" }
+        File.open(Rails.root.join('log/brain_debug.log'), 'a') { |f| f.puts "[#{Time.zone.now}] BRAIN DECIDED: #{brain_decision.tool_key}" }
 
         inbox = @conversation.inbox
 
@@ -57,7 +57,7 @@ class Captain::Llm::AssistantChatService < Llm::BaseAiService
           additional_data: { message: additional_message, tool_input: brain_decision.tool_input }
         )
 
-        File.open(Rails.root.join('log/brain_debug.log'), 'a') { |f| f.puts "[#{Time.now}] RUNNER RESULT: #{runner_result.inspect}" }
+        File.open(Rails.root.join('log/brain_debug.log'), 'a') { |f| f.puts "[#{Time.zone.now}] RUNNER RESULT: #{runner_result.inspect}" }
 
         return { 'response' => runner_result[:body][:message] } if runner_result[:fallback] && runner_result.dig(:body, :message).present?
 
