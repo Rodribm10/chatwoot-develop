@@ -24,7 +24,6 @@ jobs:
   # Backend tests with parallelization
   backend-tests:
     runs-on: [self-hosted, oracle-arm]
-    container: ruby:3.4.4
     strategy:
       fail-fast: false
       max-parallel: 8
@@ -32,31 +31,25 @@ jobs:
         ci_node_total: [16]
         ci_node_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ''
-          POSTGRES_DB: postgres
-          POSTGRES_HOST_AUTH_METHOD: trust
-        options: >-
-          --mount type=tmpfs,destination=/var/lib/postgresql/data
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:alpine
-        options: --entrypoint redis-server
-
     env:
-      POSTGRES_HOST: postgres
-      REDIS_URL: redis://redis:6379
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: ${{ 5432 + matrix.ci_node_index }}
+      REDIS_URL: redis://localhost:${{ 6379 + matrix.ci_node_index }}
       RAILS_ENV: test
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Start services
+        run: |
+          docker run -d --name pg-${{ matrix.ci_node_index }}-${{ github.run_id }} \
+            -e POSTGRES_PASSWORD= -e POSTGRES_DB=postgres -e POSTGRES_HOST_AUTH_METHOD=trust \
+            -p ${{ 5432 + matrix.ci_node_index }}:5432 \
+            pgvector/pgvector:pg16 --mount type=tmpfs,destination=/var/lib/postgresql/data
+
+          docker run -d --name redis-${{ matrix.ci_node_index }}-${{ github.run_id }} \
+            -p ${{ 6379 + matrix.ci_node_index }}:6379 \
+            redis:alpine
       - uses: pnpm/action-setup@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
@@ -79,11 +72,21 @@ jobs:
           rm -rf enterprise
           rm -rf spec/enterprise
 
+      - name: Wait for services
+        run: |
+          echo "Waiting for services to be ready..."
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+          attempt=0
+          until pg_isready -h localhost -p $POSTGRES_PORT || [ $attempt -eq 5 ]; do
+            sleep 2
+            attempt=$((attempt + 1))
+          done
+          sleep 2
+
       - name: Set up database
         run: |
-          apt-get update && apt-get install -y postgresql-client
-          psql -U postgres -h postgres -c "CREATE ROLE root LOGIN SUPERUSER;"
-          psql -U postgres -h postgres -c "CREATE DATABASE chatwoot_dev OWNER root;"
+          psql -U postgres -h localhost -p $POSTGRES_PORT -c "CREATE ROLE root LOGIN SUPERUSER;"
+          psql -U postgres -h localhost -p $POSTGRES_PORT -c "CREATE DATABASE chatwoot_dev OWNER root;"
         env:
           PGPASSWORD: ''
 
