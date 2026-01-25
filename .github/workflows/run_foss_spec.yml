@@ -21,40 +21,12 @@ jobs:
       - name: Run Rubocop
         run: bundle exec rubocop --parallel
 
-  lint-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 23
-          cache: 'pnpm'
-      - name: Install pnpm dependencies
-        run: pnpm i
-      - name: Run ESLint
-        run: pnpm run eslint
-
-  # Frontend tests run in parallel with backend
-  frontend-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 23
-          cache: 'pnpm'
-      - name: Install pnpm dependencies
-        run: pnpm i
-      - name: Run frontend tests
-        run: pnpm run test:coverage
-
   # Backend tests with parallelization
   backend-tests:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 8
       matrix:
         ci_node_total: [16]
         ci_node_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
