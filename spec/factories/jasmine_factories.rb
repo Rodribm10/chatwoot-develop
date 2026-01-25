@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :jasmine_inbox_config, class: 'Jasmine::InboxConfig' do
     association :account
     association :inbox
-    name { "Test Jasmine" }
+    name { 'Test Jasmine' }
     is_enabled { true }
   end
 
@@ -10,7 +10,7 @@ FactoryBot.define do
     association :account
     sequence(:name) { |n| "Collection #{n}" }
     visibility { :private }
-    
+
     trait :private do
       visibility { :private }
       association :owner_inbox, factory: :inbox
@@ -32,6 +32,6 @@ FactoryBot.define do
   factory :jasmine_document, class: 'Jasmine::Document' do
     association :account
     association :collection, factory: :jasmine_collection
-    content { "Sample Content" }
+    content { 'Sample Content' }
   end
 end

@@ -3,19 +3,15 @@ require 'rails_helper'
 RSpec.describe Jasmine::SemanticSearchService do
   subject { described_class.new(inbox) }
 
-  let!(:account) { create(:account) }
-  let!(:inbox) { create(:inbox, account: account) }
-  let!(:config) { create(:jasmine_inbox_config, inbox: inbox, account: account, is_enabled: true) }
+  let(:account) { create(:account) }
+  let(:inbox) { create(:inbox, account: account) }
+  let(:config) { create(:jasmine_inbox_config, inbox: inbox, account: account, is_enabled: true) }
 
-  let!(:collection_private) { create(:jasmine_collection, name: 'Private', visibility: :private, owner_inbox: inbox, account: account) }
-  let!(:collection_shared) { create(:jasmine_collection, name: 'Shared', visibility: :shared, account: account) }
+  let(:collection_private) { create(:jasmine_collection, name: 'Private', visibility: :private, owner_inbox: inbox, account: account) }
+  let(:collection_shared) { create(:jasmine_collection, name: 'Shared', visibility: :shared, account: account) }
 
-  # Link collections: Private (High Priority), Shared (Low Priority)
-  let!(:link_private) { create(:jasmine_inbox_collection, inbox: inbox, collection: collection_private, priority: 10, account: account) }
-  let!(:link_shared) { create(:jasmine_inbox_collection, inbox: inbox, collection: collection_shared, priority: 0, account: account) }
-
-  let!(:doc_private) { create(:jasmine_document, collection: collection_private, content: 'Private Secret', account: account) }
-  let!(:doc_shared) { create(:jasmine_document, collection: collection_shared, content: 'Shared Knowledge', account: account) }
+  let(:doc_private) { create(:jasmine_document, collection: collection_private, content: 'Private Secret', account: account) }
+  let(:doc_shared) { create(:jasmine_document, collection: collection_shared, content: 'Shared Knowledge', account: account) }
 
   # Mock Embedding Service behavior by creating chunks directly with known vectors
   # Query Vector: [1.0, 0.0, ...]
@@ -24,6 +20,19 @@ RSpec.describe Jasmine::SemanticSearchService do
   # Irrelevant: [0.0, 1.0, ...] -> Distance ~1.0
 
   before do
+    # Ensure all `let` variables are initialized
+    account
+    inbox
+    config
+    collection_private
+    collection_shared
+    doc_private
+    doc_shared
+
+    # Link collections
+    create(:jasmine_inbox_collection, inbox: inbox, collection: collection_private, priority: 10, account: account)
+    create(:jasmine_inbox_collection, inbox: inbox, collection: collection_shared, priority: 0, account: account)
+
     # Create chunks manually to bypass job/api dependency
     create_chunk(doc_private, [0.9] + ([0.0]*1535))
     create_chunk(doc_shared, [0.8] + ([0.0]*1535))

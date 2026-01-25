@@ -12,7 +12,6 @@ if channel
   puts 'Updating existing channel...'
   channel.phone_number = phone_number
   channel.provider_config['webhook_url'] = webhook_url
-  channel.save(validate: false)
 else
   puts 'Creating new channel...'
   account = Account.first
@@ -26,8 +25,8 @@ else
       'webhook_url' => webhook_url
     }
   )
-  channel.save(validate: false)
 end
+channel.save(validate: false)
 
 # Ensure inbox exists
 inbox = Inbox.find_by(channel: channel)

@@ -51,14 +51,12 @@ class Messages::MessageBuilder
         file: uploaded_attachment
       )
 
-      attachment.file_type = if uploaded_attachment.is_a?(String)
-                               file_type_by_signed_id(
-                                 uploaded_attachment
-                               )
-                             else
-                               file_type(uploaded_attachment&.content_type)
-                             end
+      attachment.file_type = resolve_file_type(uploaded_attachment)
     end
+  end
+
+  def resolve_file_type(attachment)
+    attachment.is_a?(String) ? file_type_by_signed_id(attachment) : file_type(attachment&.content_type)
   end
 
   def process_emails
@@ -222,10 +220,17 @@ class Messages::MessageBuilder
     @private = @params[:private] || false
     @message_type = @params[:message_type] || 'outgoing'
     @attachments = @params[:attachments]
-    @automation_rule = content_attributes&.dig(:automation_rule_id)
-    # Try to find in_reply_to in params (top level) or content_attributes
-    @in_reply_to = @params[:in_reply_to_id] || @params[:in_reply_to] || content_attributes&.dig(:in_reply_to)
+    @automation_rule = extract_automation_rule
+    @in_reply_to = extract_in_reply_to
     @items = content_attributes&.dig(:items)
+  end
+
+  def extract_automation_rule
+    content_attributes&.dig(:automation_rule_id)
+  end
+
+  def extract_in_reply_to
+    @params[:in_reply_to_id] || @params[:in_reply_to] || content_attributes&.dig(:in_reply_to)
   end
 end
 
