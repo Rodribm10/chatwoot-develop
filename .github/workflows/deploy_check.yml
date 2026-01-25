@@ -16,8 +16,6 @@ jobs:
     name: Check Deployment
     runs-on: [self-hosted, oracle-arm]
     steps:
-      - name: Install jq
-        run: sudo apt-get install -y jq
       - name: Print Deployment URL
         run: echo "https://chatwoot-pr-${{ github.event.pull_request.number }}.herokuapp.com"
       - name: Check Deployment Status
